@@ -1,4 +1,4 @@
-const { supabase } = require('../../config/supabase');
+const { supabase } = require('../../services/supabase.service');
 
 const mapLeave = (leave) => {
     if (!leave) return null;

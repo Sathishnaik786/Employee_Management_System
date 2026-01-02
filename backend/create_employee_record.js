@@ -1,4 +1,4 @@
-const { supabase } = require('./src/config/supabase');
+const { supabase } = require('./src/services/supabase.service');
 
 async function createEmployeeRecord() {
     const email = process.argv[2];

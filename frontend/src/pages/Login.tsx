@@ -37,10 +37,6 @@ export default function Login() {
     
     try {
       await login(email, password);
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
-      });
       navigate('/app/dashboard');
     } catch (error) {
       toast({

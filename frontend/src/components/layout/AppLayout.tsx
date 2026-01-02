@@ -48,7 +48,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
-  { title: 'Employees', href: '/app/employees', icon: Users },
+  { title: 'Employees', href: '/app/employees', icon: Users, roles: ['ADMIN', 'HR', 'MANAGER'] },
   { title: 'Departments', href: '/app/departments', icon: Building2 },
   { title: 'Attendance', href: '/app/attendance', icon: Clock },
   { title: 'Leaves', href: '/app/leaves', icon: Calendar },

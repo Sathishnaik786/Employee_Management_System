@@ -272,6 +272,19 @@ const Employees = () => {
     );
   }
 
+  // Check if user has permission to view employees page
+  if (user.role !== 'ADMIN' && user.role !== 'HR' && user.role !== 'MANAGER') {
+    return (
+      <div className="p-4 text-center">
+        <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+        <p className="text-muted-foreground mb-4">You don't have permission to view the employees page.</p>
+        <Link to="/app/dashboard" className="text-primary hover:underline">
+          Go to Dashboard
+        </Link>
+      </div>
+    );
+  }
+
   // Safe rendering patterns
   if (loading) {
     return (

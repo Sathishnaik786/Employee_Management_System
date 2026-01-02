@@ -22,6 +22,8 @@ const corsOptions = {
           'http://127.0.0.1:8081',
           'http://localhost:8082',
           'http://127.0.0.1:8082',
+          'http://localhost:8080',
+          'http://127.0.0.1:8080',
           'http://localhost:5173',
           'http://127.0.0.1:5173',
           'http://localhost:3003',
@@ -87,6 +89,8 @@ app.use('/projects', require('./routes/project.routes'));
 
 app.use('/api/analytics', require('@analytics/analytics.routes'));
 app.use('/analytics', require('@analytics/analytics.routes'));
+app.use('/api/chat', require('./routes/chat.routes'));
+app.use('/api/notifications', require('./routes/notification.routes'));
 
 // Health check
 app.get('/health', (req, res) => {

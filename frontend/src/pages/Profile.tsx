@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mail, Phone, MapPin, Calendar, Edit, Building2, Briefcase } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, Building2, Briefcase, Camera, Loader2 } from 'lucide-react';
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
 import { CrudModal } from '@/components/modals/CrudModal';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,27 +13,28 @@ import { employeesApi, authApi } from '@/services/api';
 import { EmployeeFormData, Employee, User } from '@/types';
 
 export default function Profile() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, updateProfileImage, refreshProfileImage } = useAuth();
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [employee, setEmployee] = useState<Employee | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         setLoading(true);
         
-        // Get user auth info from /auth/me
+        // Get user auth info from /auth.me
         const authUser = await authApi.me();
         console.log('API DATA: Auth user data:', authUser);
         
-        // Get full employee profile using employeeId from auth
-        if (authUser.user?.employeeId) {
-          const emp = await employeesApi.getById(authUser.user.employeeId);
-          console.log('API DATA: Full employee data:', emp);
-          setEmployee(emp || undefined);
-        }
+        // Get user's profile (not by employeeId, but by authenticated user)
+        const emp = await employeesApi.getProfile();
+        console.log('API DATA: Full employee data:', emp);
+        setEmployee(emp || undefined);
       } catch (error) {
         console.error('Error fetching profile data:', error);
         toast({
@@ -52,6 +53,21 @@ export default function Profile() {
     }
   }, [user]);
 
+  // Refresh profile image signed URL periodically
+  useEffect(() => {
+    if (user) {
+      // Refresh profile image when component mounts
+      refreshProfileImage();
+      
+      // Set up interval to refresh signed URL before it expires
+      const interval = setInterval(() => {
+        refreshProfileImage();
+      }, 30 * 60 * 1000); // Refresh every 30 minutes
+      
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
   const handleEditProfile = () => {
     setIsModalOpen(true);
   };
@@ -66,6 +82,92 @@ export default function Profile() {
       });
     } catch (error: any) {
       throw error;
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Error',
+        description: 'Please select an image file (JPEG, PNG, GIF, WebP)',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: 'Error',
+        description: 'File size exceeds 2MB limit',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      // Create form data to send the file
+      const formData = new FormData();
+      formData.append('image', file);
+
+      // Upload the image to backend
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3003/api'}/employees/profile/image`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          // Don't set Content-Type header when using FormData, let browser set it with boundary
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to upload image');
+      }
+
+      // Update the employee state with new profile image
+      if (result.data?.profile_image) {
+        const newImageUrl = result.data.profile_image;
+        
+        // Update global user state immediately
+        user?.id && updateProfileImage(newImageUrl);
+        
+        // Update local employee state
+        setEmployee(prev => prev ? { ...prev, profile_image: newImageUrl } : undefined);
+        
+        toast({
+          title: 'Success',
+          description: 'Profile image updated successfully',
+        });
+        
+
+      }
+    } catch (error: any) {
+      console.error('Error uploading profile image:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to upload profile image',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -156,12 +258,49 @@ export default function Profile() {
 
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                {user?.email?.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex items-center gap-4 relative">
+            <div className="relative h-20 w-20">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
+                {user?.profile_image ? (
+                  <img
+                    src={user.profile_image}
+                    alt="profile"
+                    className="w-full h-full object-cover"
+                    loading="eager"
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-2xl font-bold">{user?.email?.slice(0, 2).toUpperCase()}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="absolute bottom-2 right-2 z-10">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8 rounded-full border border-background"
+                  onClick={triggerFileInput}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                accept="image/*"
+                className="hidden"
+                disabled={uploading}
+              />
+            </div>
             <div>
               <CardTitle className="text-xl">{employee?.firstName} {employee?.lastName}</CardTitle>
               <p className="text-muted-foreground">{user?.role}</p>

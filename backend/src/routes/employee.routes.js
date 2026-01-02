@@ -10,6 +10,9 @@ router.use(authMiddleware);
 router.get('/profile', employeeController.getProfile);
 router.put('/profile', employeeController.updateProfile);
 
+// Profile image upload endpoint
+router.post('/profile/image', employeeController.uploadProfileImage);
+
 // Regular employee endpoints with role restrictions
 router.get('/', roleMiddleware(['ADMIN', 'HR', 'MANAGER']), employeeController.getAll);
 router.get('/:id', employeeController.getById);

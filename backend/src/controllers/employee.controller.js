@@ -1,4 +1,24 @@
 const { supabase } = require('@lib/supabase');
+const multer = require('multer');
+const NotificationService = require('./notification.service');
+const ProfileImageService = require('./profileImage.service');
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage(); // Store file in memory
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Only allow image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
 
 // Helper to map snake_case DB to camelCase Frontend
 const mapEmployee = (emp) => {
@@ -14,6 +34,7 @@ const mapEmployee = (emp) => {
         emergencyContact: emp.emergency_contact,
         emergencyPhone: emp.emergency_phone,
         managerId: emp.manager_id,
+        profile_image: emp.profile_image, // Map profile_image field
         department: emp.department_name ? {
             name: emp.department_name, // Use department_name from employees table
             id: emp.department_id
@@ -34,7 +55,20 @@ exports.getProfile = async (req, res, next) => {
         if (error) throw error;
         if (!data) return res.status(404).json({ success: false, message: 'Profile not found' });
 
-        res.status(200).json({ success: true, data: mapEmployee(data) });
+        // If profile_image exists, generate a signed URL
+        let profileData = mapEmployee(data);
+        if (data.profile_image) { // This should be the file path now
+            try {
+                const signedUrl = await ProfileImageService.generateSignedUrl(data.profile_image);
+                profileData.profile_image = signedUrl; // Replace file path with signed URL
+            } catch (urlError) {
+                console.error('Error generating signed URL for profile image:', urlError);
+                // Keep the original path if signed URL generation fails
+                profileData.profile_image = null;
+            }
+        }
+
+        res.status(200).json({ success: true, data: profileData });
     } catch (err) {
         next(err);
     }
@@ -192,6 +226,12 @@ exports.create = async (req, res, next) => {
 
         if (error) throw error;
 
+        // Notify admin users about the new employee
+        const adminRecipients = await NotificationService.getNotificationRecipientsForRole('ADMIN');
+        for (const adminId of adminRecipients) {
+            await NotificationService.notifyNewUserCreated(data.user_id, adminId);
+        }
+
         res.status(201).json({ success: true, data: mapEmployee(data) });
     } catch (err) {
         next(err);
@@ -201,7 +241,7 @@ exports.create = async (req, res, next) => {
 exports.update = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { firstName, lastName, dateOfBirth, dateOfJoining, departmentId, zipCode, emergencyContact, emergencyPhone, managerId, ...rest } = req.body;
+        const { firstName, lastName, dateOfBirth, dateOfJoining, departmentId, zipCode, emergencyContact, emergencyPhone, managerId, role, ...rest } = req.body;
 
         const dbData = {
             ...rest,
@@ -216,6 +256,11 @@ exports.update = async (req, res, next) => {
             manager_id: managerId
         };
 
+        // Only add role to update if it's explicitly provided
+        if (role !== undefined) {
+            dbData.role = role;
+        }
+
         const { data, error } = await supabase
             .from('employees')
             .update(dbData)
@@ -224,6 +269,14 @@ exports.update = async (req, res, next) => {
             .single();
 
         if (error) throw error;
+
+        // If role was changed, notify the user
+        if (role !== undefined) {
+            // Get the user ID from the employee record
+            if (data.user_id) {
+                await NotificationService.notifyRoleChanged(data.user_id, data.user_id);
+            }
+        }
 
         res.status(200).json({ success: true, data: mapEmployee(data) });
     } catch (err) {
@@ -245,4 +298,93 @@ exports.delete = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
+};
+
+// Upload profile image
+exports.uploadProfileImage = [
+  upload.single('image'), // Multer middleware to handle file upload
+  async (req, res, next) => {
+    try {
+      // Check if file was uploaded
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'No image file provided' 
+        });
+      }
+
+      // Get user ID from authenticated user
+      const userId = req.user.id;
+      
+      // Get current employee data to access old profile image
+      const { data: currentEmployee, error: fetchError } = await supabase
+        .from('employees')
+        .select('profile_image')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current employee:', fetchError);
+        // Continue anyway, as we might be adding the first image
+      }
+
+      // Upload image to Supabase Storage
+      const imageUrl = await ProfileImageService.uploadProfileImage(req.file, userId);
+
+      // Update employee profile with new image file path
+      const updatedEmployee = await ProfileImageService.updateEmployeeProfileImage(userId, imageUrl);
+
+      // Generate signed URL for the response
+      let signedUrl = null;
+      try {
+        signedUrl = await ProfileImageService.generateSignedUrl(imageUrl);
+      } catch (urlError) {
+        console.error('Error generating signed URL for uploaded image:', urlError);
+      }
+
+      // Delete old profile image if it exists
+      if (currentEmployee && currentEmployee.profile_image) {
+        await ProfileImageService.deleteOldProfileImage(userId, currentEmployee.profile_image);
+      }
+
+      res.status(200).json({ 
+        success: true, 
+        data: { profile_image: signedUrl },
+        message: 'Profile image uploaded successfully'
+      });
+    } catch (err) {
+      console.error('Error uploading profile image:', err);
+      next(err);
+    }
+  }
+];
+
+// Get profile image URL (helper method)
+exports.getProfileImage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabase
+      .from('employees')
+      .select('profile_image')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    let signedUrl = null;
+    if (data?.profile_image) {
+      try {
+        signedUrl = await ProfileImageService.generateSignedUrl(data.profile_image);
+      } catch (urlError) {
+        console.error('Error generating signed URL for profile image:', urlError);
+      }
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      data: { profile_image: signedUrl }
+    });
+  } catch (err) {
+    next(err);
+  }
 };

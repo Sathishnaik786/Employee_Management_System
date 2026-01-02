@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -7,13 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { employeesApi } from '@/services/api';
 import { Employee, EmployeeFormData, PaginationMeta } from '@/types';
-import { Plus, Search, Mail, Phone, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Search, Mail, Phone, Edit, Trash2, ArrowUp, ArrowDown, MessageCircle } from 'lucide-react';
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
 import { CrudModal } from '@/components/modals/CrudModal';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { canChat } from '@/utils/canChat';
+import ChatDrawer from '@/components/common/ChatDrawer';
 
 const Employees = () => {
   const { toast } = useToast();
@@ -30,6 +33,9 @@ const Employees = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
+  const [chatTargetUser, setChatTargetUser] = useState<Employee | null>(null);
+  const chatDrawerRef = useRef<any>(null);
   
   useEffect(() => {
     fetchAllEmployees();
@@ -141,6 +147,22 @@ const Employees = () => {
       return null;
     }
     return sortOrder === 'asc' ? <ArrowUp className="ml-1 h-4 w-4 inline" /> : <ArrowDown className="ml-1 h-4 w-4 inline" />;
+  };
+
+  const openChatWithUser = (employee: Employee) => {
+    if (user && canChat(user.role, employee.role)) {
+      setChatDrawerOpen(true);
+      // Give the drawer a moment to open, then call the openChatWithUser method
+      setTimeout(() => {
+        if (chatDrawerRef.current && chatDrawerRef.current.openChatWithUser) {
+          chatDrawerRef.current.openChatWithUser({
+            id: employee.userId || employee.id,
+            name: `${employee.firstName} ${employee.lastName}`,
+            role: employee.role
+          });
+        }
+      }, 100);
+    }
   };
 
   const handlePageChange = (newPage: number) => {
@@ -358,7 +380,25 @@ const Employees = () => {
                     </td>
                     <td className="px-4 py-3 text-sm">{emp.department?.name}</td>
                     <td className="px-4 py-3 text-sm">{emp.position}</td>
-                    <td className="px-4 py-3"><div className="flex gap-2"><Mail className="h-4 w-4 text-muted-foreground" /><Phone className="h-4 w-4 text-muted-foreground" /></div></td>
+                    <td className="px-4 py-3"><div className="flex gap-2"><Mail className="h-4 w-4 text-muted-foreground" /><Phone className="h-4 w-4 text-muted-foreground" />{user && canChat(user.role, emp.role) && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <MessageCircle 
+                              className="h-4 w-4 text-muted-foreground hover:text-primary cursor-pointer" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openChatWithUser(emp);
+                              }}
+                              aria-label="Send message"
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Send message</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}</div></td>
                     <td className="px-4 py-3"><StatusBadge status={emp.status} /></td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
@@ -430,6 +470,11 @@ const Employees = () => {
             </div>
           </div>
         )}
+      <ChatDrawer 
+        ref={chatDrawerRef}
+        isOpen={chatDrawerOpen} 
+        onClose={() => setChatDrawerOpen(false)} 
+      />
     </>
   );
 }

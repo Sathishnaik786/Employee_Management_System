@@ -10,6 +10,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   status?: string;
+  profile_image?: string;
 }
 
 export interface AuthResponse {
@@ -31,6 +32,7 @@ export interface Employee {
   email: string;
   phone: string;
   avatar?: string;
+  profile_image?: string;
   departmentId: string;
   department?: Department;
   position: string;
@@ -147,10 +149,41 @@ export interface Notification {
   type: NotificationType;
   read: boolean;
   link?: string;
+  sourceId?: string;
   createdAt: string;
 }
 
 export type NotificationType = 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
+
+// Chat Types
+export interface Conversation {
+  conversationId: string;
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+    role?: Role;
+  };
+  lastMessage: string | null;
+  lastMessageTime: string | null;
+  unreadCount: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  receiverId: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  sender: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
 
 // Report Types
 export interface AttendanceReport {

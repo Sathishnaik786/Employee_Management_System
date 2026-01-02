@@ -1,11 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
 import { OnlineIndicator } from '@/components/common/OnlineIndicator';
+import { GlobalSearch } from '@/components/common/GlobalSearch';
+import { NotificationBell } from '@/components/common/NotificationBell';
+import { ChatDrawer } from '@/components/common/ChatDrawer';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +36,7 @@ import {
   Users2,
   FolderKanban,
   FolderOpen,
+  MessageCircle,
 } from 'lucide-react';
 
 interface NavItem {
@@ -63,6 +68,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(2);
 
   const filteredNavItems = navItems.filter(item => {
     if (!item.roles) return true;
@@ -153,11 +160,22 @@ export function AppLayout({ children }: AppLayoutProps) {
                 "flex items-center gap-3 w-full rounded-lg p-2 hover:bg-sidebar-accent transition-colors",
                 collapsed && "justify-center"
               )}>
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                  {user?.profile_image ? (
+                    <img
+                      src={user.profile_image}
+                      alt="profile"
+                      className="w-full h-full object-cover"
+                      loading="eager"
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-sm font-bold">{initials}</span>
+                    </div>
+                  )}
+                </div>
                 {!collapsed && (
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.email}</p>
@@ -202,27 +220,72 @@ export function AppLayout({ children }: AppLayoutProps) {
             <Menu className="h-5 w-5" />
           </Button>
           
-          {/* Date - shown on left on desktop, right on mobile */}
-          <div className="flex-1">
-            <span className="text-sm text-muted-foreground hidden sm:block">
+          {/* Logo - visible on mobile */}
+          <div className="lg:hidden mr-2">
+            <Link to="/app/dashboard" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">E</span>
+              </div>
+              <span className="font-semibold text-sidebar-foreground">EMS</span>
+            </Link>
+          </div>
+          
+          {/* Left side: Date */}
+          <div className="flex items-center">
+            {/* Date - shown on desktop, hidden on mobile */}
+            <span className="text-sm text-muted-foreground hidden lg:block">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </span>
           </div>
           
-          {/* Online indicator */}
-          {user && (
-            <div className="flex items-center gap-4">
+          {/* Center: Global Search */}
+          <div className="hidden lg:block flex-1 max-w-md mx-4">
+            <GlobalSearch />
+          </div>
+          
+          {/* Mobile: Search Icon */}
+          <div className="lg:hidden mx-2">
+            <GlobalSearch isMobile={true} />
+          </div>
+          
+          {/* Right side: Chat, Notification, Profile */}
+          <div className="ml-auto flex items-center gap-2">
+            {/* Chat Icon */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setIsChatOpen(true);
+                setUnreadChatCount(0); // Clear unread count when opening chat
+              }}
+              className="relative"
+              aria-label="Open chat"
+            >
+              <MessageCircle className="h-5 w-5" />
+              {unreadChatCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-xs rounded-full flex items-center justify-center text-white">
+                  {unreadChatCount}
+                </span>
+              )}
+            </Button>
+            
+            {/* Notification Bell */}
+            <NotificationBell />
+            
+            {/* Online indicator (Profile) */}
+            {user && (
               <OnlineIndicator 
                 firstName={user.firstName || ''} 
                 lastName={user.lastName || ''} 
                 email={user.email || ''}
+                profileImage={user.profile_image}
               />
-              <span className="text-sm text-muted-foreground sm:hidden">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </span>
-            </div>
-          )}
+            )}
+          </div>
         </header>
+        
+        {/* Chat Drawer */}
+        <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
         {/* Page content */}
         <main className="flex-1 p-4 lg:p-6 overflow-auto">

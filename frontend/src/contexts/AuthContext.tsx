@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Role } from '@/types';
-import { authApi } from '@/services/api';
+import { User, Role, Employee } from '@/types';
+import { authApi, employeesApi } from '@/services/api';
 
 interface AuthContextType {
   user: User | null;
@@ -9,6 +9,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   hasRole: (roles: Role[]) => boolean;
+  updateProfileImage: (imageUrl: string) => void;
+  refreshProfileImage: () => Promise<string | undefined>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +32,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const response = await authApi.me();
         const userData = response.data.user;
+        
+        // Fetch employee profile to get profile_image
+        let profileImage: string | undefined = undefined;
+        try {
+          const employeeData = await employeesApi.getProfile();
+          profileImage = employeeData?.profile_image || undefined;
+        } catch (profileError) {
+          console.error('Error fetching employee profile:', profileError);
+        }
+        
         setUser({
           id: userData.id,
           email: userData.email,
@@ -38,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: `${userData.firstName} ${userData.lastName}`,
           firstName: userData.firstName,
           lastName: userData.lastName,
+          profile_image: profileImage,
         });
       } catch (error) {
         console.error('Auth verification failed:', error);
@@ -62,6 +75,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       localStorage.setItem('token', data.token);
 
+      // Fetch employee profile to get profile_image
+      let profileImage: string | undefined = undefined;
+      try {
+        const employeeData = await employeesApi.getProfile();
+        profileImage = employeeData?.profile_image || undefined;
+      } catch (profileError) {
+        console.error('Error fetching employee profile:', profileError);
+      }
+      
       setUser({
         id: data.user.id,
         email: data.user.email,
@@ -70,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: `${data.user.firstName} ${data.user.lastName}`,
         firstName: data.user.firstName,
         lastName: data.user.lastName,
+        profile_image: profileImage,
       });
     } finally {
       setIsLoading(false);
@@ -88,8 +111,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return roles.includes(user.role);
   };
 
+  const updateProfileImage = (imageUrl: string) => {
+    if (user) {
+      setUser(prev => prev ? { ...prev, profile_image: imageUrl } : null);
+    }
+  };
+
+  const refreshProfileImage = async () => {
+    if (user) {
+      try {
+        const employeeData = await employeesApi.getProfile();
+        const newProfileImage: string | undefined = employeeData?.profile_image || undefined;
+        setUser(prev => prev ? { ...prev, profile_image: newProfileImage } : null);
+        return newProfileImage;
+      } catch (error) {
+        console.error('Error refreshing profile image:', error);
+        return undefined;
+      }
+    }
+    return undefined;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout, hasRole }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout, hasRole, updateProfileImage, refreshProfileImage }}>
       {children}
     </AuthContext.Provider>
   );

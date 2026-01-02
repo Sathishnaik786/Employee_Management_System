@@ -1,4 +1,5 @@
 const { supabase } = require('@lib/supabase');
+const NotificationService = require('./notification.service');
 
 class ProjectService {
   static async getAllProjects(userId, role, page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') {
@@ -872,6 +873,11 @@ class ProjectService {
       .single();
 
     if (error) throw error;
+
+    // If the task is assigned to someone, notify them
+    if (assigned_to) {
+      await NotificationService.notifyTaskAssigned(data.id, assigned_to, userEmployeeId);
+    }
 
     return data;
   }

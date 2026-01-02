@@ -1,4 +1,5 @@
 const { supabase } = require('@lib/supabase');
+const NotificationService = require('./notification.service');
 
 const mapLeave = (leave) => {
     if (!leave) return null;
@@ -45,6 +46,17 @@ exports.apply = async (req, res, next) => {
             .single();
 
         if (error) throw error;
+
+        // Get the employee's manager and HR recipients to notify them of the new leave request
+        const managerRecipients = await NotificationService.getManagerRecipients(employeeId);
+        const hrRecipients = await NotificationService.getHrRecipients();
+        const allRecipients = [...new Set([...managerRecipients, ...hrRecipients])]; // Remove duplicates
+
+        // Notify managers and HR about the new leave request
+        for (const recipientId of allRecipients) {
+            await NotificationService.notifyLeaveRequest(data.id, data.employee_id, [recipientId]);
+        }
+
         res.status(201).json({ success: true, data: mapLeave(data) });
     } catch (err) {
         next(err);
@@ -111,6 +123,10 @@ exports.approve = async (req, res, next) => {
             .single();
 
         if (error) throw error;
+
+        // Notify the employee whose leave request was approved
+        await NotificationService.notifyLeaveDecision(data.id, data.employee_id, 'APPROVED');
+
         res.status(200).json({ success: true, data: mapLeave(data) });
     } catch (err) {
         next(err);
@@ -134,6 +150,10 @@ exports.reject = async (req, res, next) => {
             .single();
 
         if (error) throw error;
+
+        // Notify the employee whose leave request was rejected
+        await NotificationService.notifyLeaveDecision(data.id, data.employee_id, 'REJECTED');
+
         res.status(200).json({ success: true, data: mapLeave(data) });
     } catch (err) {
         next(err);

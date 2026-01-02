@@ -1,33 +1,43 @@
-import {
+import { 
+  User,
+  AuthResponse,
   Employee,
   Department,
   Attendance,
-  LeaveRequest,
   LeaveType,
+  LeaveRequest,
   Document,
-  AttendanceReport,
-  LeaveReport,
-  EmployeeReport,
-  WorkComment,
+  DocumentType,
+  DashboardStats,
   ApiResponse,
   PaginatedResponse,
-  AuthResponse,
-  User,
-  UserWithEmployee,
-  DashboardStats,
+  LoginFormData,
+  EmployeeFormData,
+  LeaveFormData,
+  DepartmentFormData,
+  WorkItem,
+  WorkComment,
+  WorkItemFormData,
   Project,
-  ProjectFormData,
-  ProjectMemberRole,
   ProjectMember,
   ProjectDocument,
   ProjectTask,
   ProjectMeeting,
   ProjectTodo,
-  ProjectUpdate
+  ProjectUpdate,
+  ProjectFormData,
+  AttendanceReport,
+  LeaveReport,
+  EmployeeReport,
+  UserWithEmployee,
+  Conversation,
+  ChatMessage,
+  Notification,
+  ProjectMemberRole
 } from '@/types';
 
 // Base API URL - replace with your Express backend URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://employee-management-system-91bk.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3003/api';
 
 // Helper function for API calls
 export async function apiCall(
@@ -299,6 +309,55 @@ export const documentsApi = {
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/documents/${employeeId}`, 'GET', undefined, token);
     return response.data || [];
+  },
+};
+
+// =====================
+// CHAT API
+// =====================
+export const chatApi = {
+  getConversations: async (): Promise<Conversation[]> => {
+    const token = localStorage.getItem('token') || undefined;
+    const response = await apiCall('/chat/conversations', 'GET', undefined, token);
+    return response.data || [];
+  },
+
+  getMessages: async (conversationId: string, page: number = 1, limit: number = 50): Promise<ChatMessage[]> => {
+    const token = localStorage.getItem('token') || undefined;
+    const response = await apiCall(`/chat/messages/${conversationId}?page=${page}&limit=${limit}`, 'GET', undefined, token);
+    return response.data || [];
+  },
+
+  markMessagesRead: async (conversationId: string): Promise<void> => {
+    const token = localStorage.getItem('token') || undefined;
+    await apiCall(`/chat/read/${conversationId}`, 'POST', undefined, token);
+  },
+};
+
+// =====================
+// NOTIFICATIONS API
+// =====================
+export const notificationsApi = {
+  getNotifications: async (page: number = 1, limit: number = 50): Promise<Notification[]> => {
+    const token = localStorage.getItem('token') || undefined;
+    const response = await apiCall(`/notifications?page=${page}&limit=${limit}`, 'GET', undefined, token);
+    return response.data || [];
+  },
+
+  markNotificationRead: async (id: string): Promise<void> => {
+    const token = localStorage.getItem('token') || undefined;
+    await apiCall(`/notifications/read/${id}`, 'POST', undefined, token);
+  },
+
+  markAllNotificationsRead: async (): Promise<void> => {
+    const token = localStorage.getItem('token') || undefined;
+    await apiCall('/notifications/read-all', 'POST', undefined, token);
+  },
+
+  getUnreadCount: async (): Promise<number> => {
+    const token = localStorage.getItem('token') || undefined;
+    const response = await apiCall('/notifications/unread-count', 'GET', undefined, token);
+    return response.count || 0;
   },
 };
 

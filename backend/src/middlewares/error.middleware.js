@@ -1,4 +1,4 @@
-const config = require('../config/index');
+const config = require('../config/index.js');
 
 const errorMiddleware = (err, req, res, next) => {
     console.error(err.stack);

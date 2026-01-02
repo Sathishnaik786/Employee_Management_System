@@ -27,7 +27,7 @@ import {
 } from '@/types';
 
 // Base API URL - replace with your Express backend URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://employee-management-system-91bk.onrender.com/api';
 
 // Helper function for API calls
 export async function apiCall(

@@ -71,14 +71,22 @@ app.use('/api/auth', require('./routes/auth.routes'));
 // Compatibility route for direct auth access
 app.use('/auth', require('./routes/auth.routes'));
 app.use('/api/employees', require('./routes/employee.routes'));
+app.use('/employees', require('./routes/employee.routes'));
 app.use('/api/departments', require('./routes/department.routes'));
+app.use('/departments', require('./routes/department.routes'));
 app.use('/api/attendance', require('./routes/attendance.routes'));
+app.use('/attendance', require('./routes/attendance.routes'));
 app.use('/api/leaves', require('./routes/leave.routes'));
+app.use('/leaves', require('./routes/leave.routes'));
 app.use('/api/documents', require('./routes/document.routes'));
+app.use('/documents', require('./routes/document.routes'));
 app.use('/api/reports', require('./routes/report.routes'));
+app.use('/reports', require('./routes/report.routes'));
 app.use('/api/projects', require('./routes/project.routes'));
+app.use('/projects', require('./routes/project.routes'));
 
 app.use('/api/analytics', require('@analytics/analytics.routes'));
+app.use('/analytics', require('@analytics/analytics.routes'));
 
 // Health check
 app.get('/health', (req, res) => {

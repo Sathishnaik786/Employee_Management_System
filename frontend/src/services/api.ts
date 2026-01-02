@@ -36,8 +36,6 @@ export async function apiCall(
   body?: any,
   token?: string
 ) {
-  console.log('API REQUEST:', method, url, body);
-  
   const headers: any = {
     'Content-Type': 'application/json',
   };
@@ -55,11 +53,8 @@ export async function apiCall(
   });
 
   const data = await res.json();
-  
-  console.log('API RESPONSE:', data);
 
   if (!res.ok) {
-    console.error('API ERROR:', res);
     // Create error with status code to allow frontend to handle specific cases
     const error = new Error(data.message || 'API Error');
     (error as any).status = res.status;
@@ -120,7 +115,6 @@ export const employeesApi = {
     
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/employees?${queryParams.toString()}`, 'GET', undefined, token);
-    console.log('API DATA: Employees response:', response);
     
     // The backend returns { success: true, data: { data: [...], total: count, page: page, limit: limit, totalPages: totalPages } }
     // So response contains the full response object
@@ -188,7 +182,6 @@ export const departmentsApi = {
   getAll: async (): Promise<Department[]> => {
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall('/departments', 'GET', undefined, token);
-    console.log('API DATA: Departments response:', response);
     return response.data || [];
   },
 
@@ -229,7 +222,6 @@ export const attendanceApi = {
 
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/attendance/me?${queryParams.toString()}`, 'GET', undefined, token);
-    console.log('API DATA: Attendance response:', response);
     return response.data || [];
   },
 
@@ -241,7 +233,6 @@ export const attendanceApi = {
 
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/attendance/report?${queryParams.toString()}`, 'GET', undefined, token);
-    console.log('API DATA: Attendance report response:', response);
     return {
       success: response.success,
       data: response.data || []
@@ -265,7 +256,6 @@ export const leavesApi = {
 
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/leaves?${queryParams.toString()}`, 'GET', undefined, token);
-    console.log('API DATA: Leaves response:', response);
     return {
       success: response.success,
       data: response.data || []
@@ -308,7 +298,6 @@ export const documentsApi = {
   getByEmployee: async (employeeId: string): Promise<Document[]> => {
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/documents/${employeeId}`, 'GET', undefined, token);
-    console.log('API DATA: Documents response:', response);
     return response.data || [];
   },
 };
@@ -320,14 +309,12 @@ export const reportsApi = {
   getDashboardStats: async (): Promise<DashboardStats> => {
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall('/reports/dashboard', 'GET', undefined, token);
-    console.log('API DATA: Dashboard stats response:', response);
     return response.data || {};
   },
 
   getAttendanceReport: async (): Promise<ApiResponse<AttendanceReport>> => {
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall('/reports/attendance', 'GET', undefined, token);
-    console.log('API DATA: Attendance report response:', response);
     return {
       success: response.success,
       data: response.data || null
@@ -337,14 +324,12 @@ export const reportsApi = {
   getLeaveReport: async (): Promise<LeaveReport> => {
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall('/reports/leaves', 'GET', undefined, token);
-    console.log('API DATA: Leave report response:', response);
     return response.data || null;
   },
 
   getEmployeeReport: async (): Promise<EmployeeReport> => {
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall('/reports/employees', 'GET', undefined, token);
-    console.log('API DATA: Employee report response:', response);
     return response.data || null;
   },
 };
@@ -363,7 +348,6 @@ export const projectsApi = {
     
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/projects?${queryParams.toString()}`, 'GET', undefined, token);
-    console.log('API DATA: Projects response:', response);
     
     // The backend returns { data: [...], meta: { total, pages, page, limit } }
     return {
@@ -387,7 +371,6 @@ export const projectsApi = {
     
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/projects/my-projects?${queryParams.toString()}`, 'GET', undefined, token);
-    console.log('API DATA: My Projects response:', response);
     
     return {
       data: (response.data || []) as Project[],

@@ -1,12 +1,12 @@
 const app = require('./app');
 const env = require('./config/env');
 
-const PORT = env.PORT || 3003;
+const PORT = process.env.PORT || env.PORT || 3003;
 
 console.log('Attempting to start server...');
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is actually listening on http://localhost:${PORT}`);
+    console.log(`Server is actually listening on port ${PORT}`);
     console.log(`Environment: ${env.NODE_ENV}`);
 });
 

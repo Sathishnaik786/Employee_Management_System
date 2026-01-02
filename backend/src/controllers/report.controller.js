@@ -1,4 +1,4 @@
-const { supabase } = require('../config/supabase');
+const { supabase } = require('../../config/supabase');
 
 exports.getDashboardStats = async (req, res, next) => {
     try {

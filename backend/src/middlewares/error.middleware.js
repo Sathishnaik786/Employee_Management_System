@@ -1,4 +1,4 @@
-const env = require('../config/env');
+const env = require('../../config/env');
 
 const errorMiddleware = (err, req, res, next) => {
     console.error(err.stack);

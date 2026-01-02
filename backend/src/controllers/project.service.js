@@ -1,4 +1,4 @@
-const { supabase } = require('../config/supabase');
+const { supabase } = require('../../config/supabase');
 
 class ProjectService {
   static async getAllProjects(userId, role, page = 1, limit = 10, search = '', sortBy = 'created_at', sortOrder = 'desc') {

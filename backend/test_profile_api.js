@@ -1,4 +1,4 @@
-const { supabase } = require('./src/services/supabase.service');
+const { supabase } = require('./src/lib/supabase');
 
 async function testProfileAPI() {
     console.log('Testing Profile API endpoints...');

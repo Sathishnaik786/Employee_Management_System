@@ -1,4 +1,4 @@
-const { supabase } = require('./src/services/supabase.service');
+const { supabase } = require('./src/lib/supabase');
 const analyticsService = require('./analytics/analytics.service');
 
 async function testAnalytics() {

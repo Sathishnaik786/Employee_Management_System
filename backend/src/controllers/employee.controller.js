@@ -1,4 +1,4 @@
-const { supabase } = require('../../services/supabase.service');
+const { supabase } = require('../../lib/supabase');
 
 // Helper to map snake_case DB to camelCase Frontend
 const mapEmployee = (emp) => {

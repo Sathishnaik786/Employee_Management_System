@@ -1,4 +1,4 @@
-const { supabase } = require('../../services/supabase.service');
+const { supabase } = require('../../lib/supabase');
 
 const mapAttendance = (att) => {
     if (!att) return null;

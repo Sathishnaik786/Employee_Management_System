@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+const config = require('./config');
 const errorMiddleware = require('./middlewares/error.middleware');
 
 const app = express();
@@ -12,8 +13,8 @@ const app = express();
 const corsOptions = {
   origin: function (origin, callback) {
     // In production, replace with your actual frontend domain
-    const allowedOrigins = process.env.NODE_ENV === 'production'
-      ? [process.env.FRONTEND_URL, 'https://your-frontend-domain.com']
+    const allowedOrigins = config.NODE_ENV === 'production'
+      ? [config.FRONTEND_URL, 'https://your-frontend-domain.com']
       : [
           'http://localhost:8080',
           'http://127.0.0.1:8080',

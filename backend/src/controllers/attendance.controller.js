@@ -106,7 +106,7 @@ exports.getMyAttendance = async (req, res, next) => {
         }
         
         // For EMPLOYEE role, only allow access to their own data
-        if (req.user.role === 'EMPLOYEE' && employeeId && employeeId !== req.user.employee?.id) {
+        if (req.user.role === 'EMPLOYEE' && employeeId && employeeId !== req.user.employeeId) {
             return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
         }
         
@@ -151,13 +151,13 @@ exports.getReport = async (req, res, next) => {
             if (date) query = query.eq('date', date);
             if (employeeId) {
                 // Only allow users to see their own data or if they have permission
-                if (req.user.role === 'EMPLOYEE' && employeeId !== req.user.employee?.id) {
+                if (req.user.role === 'EMPLOYEE' && employeeId !== req.user.employeeId) {
                     return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
                 }
                 query = query.eq('employee_id', employeeId);
             } else {
                 // Non-admin users only see their own attendance by default
-                query = query.eq('employee_id', req.user.employee?.id);
+                query = query.eq('employee_id', req.user.employeeId);
             }
             if (departmentId && !employeeId && req.user.role !== 'EMPLOYEE') {
                 const { data: employeesInDept } = await supabase

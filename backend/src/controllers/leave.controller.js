@@ -78,16 +78,16 @@ exports.getAll = async (req, res, next) => {
             if (status) query = query.eq('status', status);
             if (employeeId) {
                 // Only allow users to see their own data or if they have permission
-                if (req.user.role === 'EMPLOYEE' && employeeId !== req.user.employee?.id) {
+                if (req.user.role === 'EMPLOYEE' && employeeId !== req.user.employeeId) {
                     return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
                 }
                 query = query.eq('employee_id', employeeId);
             } else {
                 // Non-admin users only see their own leaves by default
-                if (!req.user.employee?.id) {
+                if (!req.user.employeeId) {
                     return res.status(400).json({ success: false, message: 'User employee ID not found' });
                 }
-                query = query.eq('employee_id', req.user.employee?.id);
+                query = query.eq('employee_id', req.user.employeeId);
             }
         }
 

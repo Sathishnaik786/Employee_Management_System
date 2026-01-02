@@ -103,16 +103,24 @@ export function AppLayout({ children }: AppLayoutProps) {
         )}>
           {!collapsed && (
             <Link to="/app/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">E</span>
-              </div>
+              <img 
+                src="/src/assest/logo.png" 
+                alt="Logo" 
+                className="w-8 h-8 rounded-lg object-contain"
+                loading="eager"
+                referrerPolicy="no-referrer"
+              />
               <span className="font-semibold text-sidebar-foreground">EMS</span>
             </Link>
           )}
           {collapsed && (
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">E</span>
-            </div>
+            <img 
+            src="/src/assest/logo.png" 
+            alt="Logo" 
+            className="w-8 h-8 rounded-lg object-contain"
+            loading="eager"
+            referrerPolicy="no-referrer"
+          />
           )}
           <Button
             variant="ghost"

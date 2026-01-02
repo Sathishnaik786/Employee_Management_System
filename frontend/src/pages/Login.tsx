@@ -99,7 +99,7 @@ export default function Login() {
             </div>
             <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
             <CardDescription>
-              Enter your credentials to access your account
+              {/* Enter your credentials to access your account */}
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -12,9 +12,9 @@ const app = express();
 // CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // In production, replace with your actual frontend domain
+    // Production-safe allowlist for CORS
     const allowedOrigins = config.NODE_ENV === 'production'
-      ? [config.FRONTEND_URL, 'https://your-frontend-domain.com']
+      ? ['https://yviems.netlify.app', config.FRONTEND_URL]
       : [
           'http://localhost:8080',
           'http://127.0.0.1:8080',
@@ -68,6 +68,8 @@ app.use(cookieParser());
 
 // Routes (to be added)
 app.use('/api/auth', require('./routes/auth.routes'));
+// Compatibility route for direct auth access
+app.use('/auth', require('./routes/auth.routes'));
 app.use('/api/employees', require('./routes/employee.routes'));
 app.use('/api/departments', require('./routes/department.routes'));
 app.use('/api/attendance', require('./routes/attendance.routes'));

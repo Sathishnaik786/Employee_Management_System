@@ -1,4 +1,4 @@
-const { supabase } = require('../src/lib/supabase');
+const { supabase } = require('@lib/supabase');
 
 /**
  * Analytics Service - Computes read-only metrics from existing data

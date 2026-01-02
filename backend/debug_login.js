@@ -1,4 +1,4 @@
-const { supabase } = require('./src/lib/supabase');
+const { supabase } = require('@lib/supabase');
 
 async function debugLogin() {
     console.log('Debugging login issue...\n');

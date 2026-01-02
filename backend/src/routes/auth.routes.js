@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/auth.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
-const requireRole = require('../middlewares/role.middleware');
+const authController = require('@controllers/auth.controller');
+const authMiddleware = require('@middlewares/auth.middleware');
+const requireRole = require('@middlewares/role.middleware');
 
 router.post('/check-email', authController.checkEmailExists);
 router.post('/login', authController.login);

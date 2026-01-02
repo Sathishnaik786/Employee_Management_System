@@ -4,8 +4,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
-const config = require('./config');
-const errorMiddleware = require('./middlewares/error.middleware');
+const config = require('@config');
+const errorMiddleware = require('@middlewares/error.middleware');
 
 const app = express();
 
@@ -76,7 +76,7 @@ app.use('/api/documents', require('./routes/document.routes'));
 app.use('/api/reports', require('./routes/report.routes'));
 app.use('/api/projects', require('./routes/project.routes'));
 
-app.use('/api/analytics', require('../analytics/analytics.routes'));
+app.use('/api/analytics', require('@analytics/analytics.routes'));
 
 // Health check
 app.get('/health', (req, res) => {

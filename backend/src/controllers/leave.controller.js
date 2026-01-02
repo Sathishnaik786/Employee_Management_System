@@ -1,4 +1,4 @@
-const { supabase } = require('../../lib/supabase');
+const { supabase } = require('@lib/supabase');
 
 const mapLeave = (leave) => {
     if (!leave) return null;

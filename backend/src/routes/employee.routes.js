@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const employeeController = require('../controllers/employee.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
-const roleMiddleware = require('../middlewares/role.middleware');
+const employeeController = require('@controllers/employee.controller');
+const authMiddleware = require('@middlewares/auth.middleware');
+const roleMiddleware = require('@middlewares/role.middleware');
 
 router.use(authMiddleware);
 

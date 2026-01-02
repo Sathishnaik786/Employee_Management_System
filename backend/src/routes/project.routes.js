@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const projectController = require('../controllers/project.controller');
-const authenticateToken = require('../middlewares/auth.middleware');
-const checkRole = require('../middlewares/role.middleware');
+const projectController = require('@controllers/project.controller');
+const authenticateToken = require('@middlewares/auth.middleware');
+const checkRole = require('@middlewares/role.middleware');
 
 // Apply authentication to all routes
 router.use(authenticateToken);

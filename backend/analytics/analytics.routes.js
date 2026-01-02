@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const analyticsController = require('./analytics.controller');
-const requireRole = require('../src/middlewares/role.middleware');
+const requireRole = require('@middlewares/role.middleware');
 
 // Apply auth middleware to all routes in this file
-const authMiddleware = require('../src/middlewares/auth.middleware');
+const authMiddleware = require('@middlewares/auth.middleware');
 router.use(authMiddleware);
 
 // Admin analytics routes

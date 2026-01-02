@@ -2,7 +2,16 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
+  "_moduleAliases": {
+    "@": "./src",
+    "@lib": "./src/lib",
+    "@config": "./src/config",
+    "@controllers": "./src/controllers",
+    "@routes": "./src/routes",
+    "@middlewares": "./src/middlewares",
+    "@analytics": "./analytics"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
@@ -21,6 +30,7 @@
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "module-alias": "^2.2.3",
     "morgan": "^1.10.1",
     "pg": "^8.16.3"
   },

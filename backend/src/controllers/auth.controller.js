@@ -1,4 +1,4 @@
-const { supabase, supabaseAdmin } = require('../../lib/supabase');
+const { supabase, supabaseAdmin } = require('@lib/supabase');
 
 exports.checkEmailExists = async (req, res, next) => {
     try {

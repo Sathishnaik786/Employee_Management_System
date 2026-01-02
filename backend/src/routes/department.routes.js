@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const departmentController = require('../controllers/department.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
-const roleMiddleware = require('../middlewares/role.middleware');
+const departmentController = require('@controllers/department.controller');
+const authMiddleware = require('@middlewares/auth.middleware');
+const roleMiddleware = require('@middlewares/role.middleware');
 
 router.use(authMiddleware);
 

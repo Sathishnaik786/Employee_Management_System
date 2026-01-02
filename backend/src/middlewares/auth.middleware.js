@@ -1,4 +1,4 @@
-const { supabase, supabaseAdmin } = require('../../lib/supabase');
+const { supabase, supabaseAdmin } = require('@lib/supabase');
 
 const authMiddleware = async (req, res, next) => {
   if (req.path.includes('/auth/login')) {

@@ -93,9 +93,13 @@ export default function Login() {
         <Card className="w-full max-w-md shadow-card">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center lg:hidden mb-4">
-              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-                <Building2 className="h-7 w-7 text-primary-foreground" />
-              </div>
+              <img 
+                src="/src/assest/logo.png" 
+                alt="Logo" 
+                className="w-12 h-12 rounded-xl object-contain"
+                loading="eager"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
             <CardDescription>
@@ -159,7 +163,7 @@ export default function Login() {
               </div>
             </form>
             
-            <div className="mt-6 p-4 rounded-lg bg-muted/50">
+            {/* <div className="mt-6 p-4 rounded-lg bg-muted/50">
               <p className="text-xs text-muted-foreground mb-2">Demo credentials:</p>
               <div className="space-y-1 text-xs">
                 <p><span className="font-medium">Admin:</span> admin@company.com</p>
@@ -167,7 +171,7 @@ export default function Login() {
                 <p><span className="font-medium">Manager:</span> manager@company.com</p>
                 <p className="text-muted-foreground">Use any password</p>
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>

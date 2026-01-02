@@ -98,10 +98,22 @@ exports.checkOut = async (req, res, next) => {
 exports.getMyAttendance = async (req, res, next) => {
     try {
         const { employeeId } = req.query;
+        // Check if employeeId is provided or if we can use the authenticated user's employee ID
+        const targetEmployeeId = employeeId || req.user.employee?.id;
+        
+        if (!targetEmployeeId) {
+            return res.status(400).json({ success: false, message: 'Employee ID not provided and user employee ID not found' });
+        }
+        
+        // For EMPLOYEE role, only allow access to their own data
+        if (req.user.role === 'EMPLOYEE' && employeeId && employeeId !== req.user.employee?.id) {
+            return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
+        }
+        
         const { data, error } = await supabase
             .from('attendance')
             .select('*')
-            .eq('employee_id', employeeId || req.user.employee?.id)
+            .eq('employee_id', targetEmployeeId)
             .order('date', { ascending: false });
 
         if (error) throw error;
@@ -137,8 +149,17 @@ exports.getReport = async (req, res, next) => {
             if (employeeId) query = query.eq('employee_id', employeeId);
         } else {
             if (date) query = query.eq('date', date);
-            if (employeeId) query = query.eq('employee_id', employeeId);
-            if (departmentId && !employeeId) {
+            if (employeeId) {
+                // Only allow users to see their own data or if they have permission
+                if (req.user.role === 'EMPLOYEE' && employeeId !== req.user.employee?.id) {
+                    return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
+                }
+                query = query.eq('employee_id', employeeId);
+            } else {
+                // Non-admin users only see their own attendance by default
+                query = query.eq('employee_id', req.user.employee?.id);
+            }
+            if (departmentId && !employeeId && req.user.role !== 'EMPLOYEE') {
                 const { data: employeesInDept } = await supabase
                     .from('employees')
                     .select('id')

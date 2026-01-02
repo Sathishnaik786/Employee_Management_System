@@ -54,9 +54,13 @@ export default function Login() {
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar flex-col justify-between p-12">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <Building2 className="h-6 w-6 text-primary-foreground" />
-          </div>
+          <img 
+            src="/src/assest/logo.png" 
+            alt="Logo" 
+            className="w-25 h-25 rounded-xl object-contain"
+            loading="eager"
+            referrerPolicy="no-referrer"
+          />
           <span className="text-xl font-bold text-sidebar-foreground">Employee MS</span>
         </div>
         

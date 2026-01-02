@@ -216,7 +216,7 @@ desktop.ini
 target/
 
 # Configuration
-config/
+# config/
 
 # IDE
 *.sublime-workspace

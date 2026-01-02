@@ -5,6 +5,7 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { OnlineIndicator } from '@/components/common/OnlineIndicator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -200,12 +201,27 @@ export function AppLayout({ children }: AppLayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="flex-1" />
-          <div className="flex items-center gap-2">
+          
+          {/* Date - shown on left on desktop, right on mobile */}
+          <div className="flex-1">
             <span className="text-sm text-muted-foreground hidden sm:block">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </span>
           </div>
+          
+          {/* Online indicator */}
+          {user && (
+            <div className="flex items-center gap-4">
+              <OnlineIndicator 
+                firstName={user.firstName || ''} 
+                lastName={user.lastName || ''} 
+                email={user.email || ''}
+              />
+              <span className="text-sm text-muted-foreground sm:hidden">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </span>
+            </div>
+          )}
         </header>
 
         {/* Page content */}

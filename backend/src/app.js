@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
-const config = require('./config');
+const config = require('./config/index.js');
 const errorMiddleware = require('./middlewares/error.middleware');
 
 const app = express();

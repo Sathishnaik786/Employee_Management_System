@@ -1,0 +1,141 @@
+const { supabase } = require('../config/supabase');
+
+const mapLeave = (leave) => {
+    if (!leave) return null;
+    return {
+        ...leave,
+        employeeId: leave.employee_id,
+        leaveTypeId: leave.leave_type_id,
+        startDate: leave.start_date,
+        endDate: leave.end_date,
+        totalDays: leave.total_days,
+        approvedBy: leave.approved_by,
+        employee: leave.employees ? {
+            ...leave.employees,
+            firstName: leave.employees.first_name,
+            lastName: leave.employees.last_name,
+        } : undefined,
+        leaveType: leave.leave_types ? {
+            ...leave.leave_types,
+            daysAllowed: leave.leave_types.days_allowed,
+            carryForward: leave.leave_types.carry_forward
+        } : undefined
+    };
+};
+
+exports.apply = async (req, res, next) => {
+    try {
+        const { employeeId, leaveTypeId, startDate, endDate, reason } = req.body;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+        const { data, error } = await supabase
+            .from('leaves')
+            .insert([{
+                employee_id: employeeId,
+                leave_type_id: leaveTypeId,
+                start_date: startDate,
+                end_date: endDate,
+                total_days: totalDays,
+                reason,
+                status: 'PENDING'
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(201).json({ success: true, data: mapLeave(data) });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getAll = async (req, res, next) => {
+    try {
+        const { status, employeeId } = req.query;
+        let query = supabase
+            .from('leaves')
+            .select('*, employee:employees!leaves_employee_id_fkey(*), leave_type:leave_types!leaves_leave_type_id_fkey(*), approver:employees!leaves_approved_by_fkey(*)')
+
+        if (req.user.role === 'ADMIN') {
+            // Admin can see all leaves
+            if (status) query = query.eq('status', status);
+            if (employeeId) query = query.eq('employee_id', employeeId);
+        } else {
+            if (status) query = query.eq('status', status);
+            if (employeeId) query = query.eq('employee_id', employeeId);
+            else query = query.eq('employee_id', req.user.employee?.id);
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
+        if (error) throw error;
+
+        res.status(200).json({ success: true, data: (data || []).map(mapLeave) });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getTypes = async (req, res, next) => {
+    try {
+        const { data, error } = await supabase.from('leave_types').select('*');
+        if (error) throw error;
+        res.status(200).json({
+            success: true,
+            data: data.map(lt => ({
+                ...lt,
+                daysAllowed: lt.days_allowed,
+                carryForward: lt.carry_forward
+            }))
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.approve = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { comments } = req.body;
+        const { data, error } = await supabase
+            .from('leaves')
+            .update({
+                status: 'APPROVED',
+                approved_by: req.user.employee?.id || null,
+                comments,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(200).json({ success: true, data: mapLeave(data) });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.reject = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { comments } = req.body;
+        const { data, error } = await supabase
+            .from('leaves')
+            .update({
+                status: 'REJECTED',
+                approved_by: req.user.employee?.id || null,
+                comments,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.status(200).json({ success: true, data: mapLeave(data) });
+    } catch (err) {
+        next(err);
+    }
+};

@@ -57,11 +57,11 @@ export default function Login() {
           <img 
             src="/src/assest/logo.png" 
             alt="Logo" 
-            className="w-25 h-25 rounded-xl object-contain"
+            className="w-20 h-20 rounded-xl object-contain"
             loading="eager"
             referrerPolicy="no-referrer"
           />
-          <span className="text-xl font-bold text-sidebar-foreground">Employee MS</span>
+          <span className="text-xl font-bold text-sidebar-foreground">YVI Employee MS</span>
         </div>
         
         <div className="space-y-6">

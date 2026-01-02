@@ -198,36 +198,36 @@ const ProjectsPage: React.FC = () => {
               <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
               <p className="text-gray-500">Manage your organization's projects</p>
             </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative">
-            <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search projects..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative">
+                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                <Input
+                  placeholder="Search projects..."
+                  className="pl-8 w-full sm:w-64"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Create Project
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Create Project</DialogTitle>
+                  </DialogHeader>
+                  <ProjectForm
+                    onSubmit={handleCreateProject}
+                    onCancel={() => setIsCreateDialogOpen(false)}
+                    employees={employees}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Create Project
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create Project</DialogTitle>
-              </DialogHeader>
-              <ProjectForm
-                onSubmit={handleCreateProject}
-                onCancel={() => setIsCreateDialogOpen(false)}
-                employees={employees}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
 
       <Card>
         <CardHeader>
@@ -240,40 +240,40 @@ const ProjectsPage: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Manager</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>End Date</TableHead>
-                    <TableHead>Members</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="whitespace-nowrap">Project</TableHead>
+                    <TableHead className="whitespace-nowrap">Type</TableHead>
+                    <TableHead className="whitespace-nowrap">Manager</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Start Date</TableHead>
+                    <TableHead className="whitespace-nowrap">End Date</TableHead>
+                    <TableHead className="whitespace-nowrap">Members</TableHead>
+                    <TableHead className="whitespace-nowrap">Progress</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredProjects.length > 0 ? (
                     filteredProjects.map((project) => (
                       <TableRow key={project.id}>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium min-w-[150px]">
                           <div className="flex flex-col">
                             <span className="font-semibold">{project.name}</span>
                             {project.description && (
-                              <span className="text-sm text-gray-500 truncate max-w-xs">
+                              <span className="text-sm text-gray-500 truncate max-w-[120px] sm:max-w-xs">
                                 {project.description}
                               </span>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="min-w-[100px]">
                           <span className="text-sm font-medium">
                             {project.project_type.replace('_', ' ')}
                           </span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="min-w-[120px]">
                           <div className="flex items-center">
                             <UserIcon className="h-4 w-4 mr-1.5" />
                             <span>
@@ -281,22 +281,22 @@ const ProjectsPage: React.FC = () => {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="min-w-[100px]">
                           <ProjectStatusBadge status={project.status} />
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="min-w-[100px]">
                           {project.start_date ? format(new Date(project.start_date), 'MMM dd, yyyy') : 'N/A'}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="min-w-[100px]">
                           {project.end_date ? format(new Date(project.end_date), 'MMM dd, yyyy') : 'N/A'}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="min-w-[80px]">
                           <div className="flex items-center">
                             <UserIcon className="h-4 w-4 mr-1.5" />
                             <span>{project.project_members.length}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="min-w-[100px]">
                           <div className="flex items-center">
                             <CheckCircleIcon className="h-4 w-4 mr-1.5" />
                             <span>
@@ -304,7 +304,7 @@ const ProjectsPage: React.FC = () => {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right min-w-[80px]">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" className="h-8 w-8 p-0">

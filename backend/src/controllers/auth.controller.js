@@ -125,74 +125,10 @@ exports.resetPassword = async (req, res, next) => {
     }
 };
 
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-
-  // 1️⃣ Authenticate with Supabase
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error || !data?.user || !data?.session) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
-
-  const authUser = data.user;
-  const accessToken = data.session.access_token;
-
-  // 2️⃣ Fetch employee using user_id (not email) - use admin client to bypass RLS
-  const { data: employee, error: empError } = await supabaseAdmin
-    .from('employees')
-    .select('*')
-    .eq('user_id', authUser.id)
-    .maybeSingle();
-
-  if (empError) {
-    console.error('Employee lookup error:', empError);
-  }
-
-  if (!employee) {
-    return res.status(403).json({
-      message: 'Permission denied: User exists but is not mapped to an employee record',
-    });
-  }
-
-  // Check if employee is active
-  if (employee.status !== 'ACTIVE') {
-    return res.status(403).json({
-      message: 'Access denied: Employee account is not active',
-    });
-  }
-
-  // 3️⃣ Return combined session payload
-  return res.json({
-    token: accessToken,
-    user: {
-      id: authUser.id,
-      email: authUser.email,
-      employeeId: employee.id,
-      role: employee.role,
-      firstName: employee.first_name,
-      lastName: employee.last_name,
-    },
-  });
-}
 
 
-exports.me = async (req, res, next) => {
-    try {
-        // req.user is already populated by authMiddleware
-        res.status(200).json({
-            success: true,
-            data: {
-                user: req.user
-            }
-        });
-    } catch (err) {
-        next(err);
-    }
-};
+
+
 
 exports.createUser = async (req, res, next) => {
     try {

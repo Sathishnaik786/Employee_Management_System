@@ -243,24 +243,33 @@ const ProjectsPage: React.FC = () => {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="whitespace-nowrap">S.NO</TableHead>
                     <TableHead className="whitespace-nowrap">Project</TableHead>
                     <TableHead className="whitespace-nowrap">Type</TableHead>
-                    <TableHead className="whitespace-nowrap">Manager</TableHead>
+                    <TableHead className="whitespace-nowrap">Manager Name</TableHead>
                     <TableHead className="whitespace-nowrap">Status</TableHead>
                     <TableHead className="whitespace-nowrap">Start Date</TableHead>
                     <TableHead className="whitespace-nowrap">End Date</TableHead>
-                    <TableHead className="whitespace-nowrap">Members</TableHead>
+                    <TableHead className="whitespace-nowrap">Team</TableHead>
                     <TableHead className="whitespace-nowrap">Progress</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredProjects.length > 0 ? (
-                    filteredProjects.map((project) => (
+                    filteredProjects.map((project, index) => (
                       <TableRow key={project.id}>
+                        <TableCell className="font-medium min-w-[50px]">
+                          {index + 1}
+                        </TableCell>
                         <TableCell className="font-medium min-w-[150px]">
                           <div className="flex flex-col">
-                            <span className="font-semibold">{project.name}</span>
+                            <span 
+                              className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline"
+                              onClick={() => handleViewProject(project.id)}
+                            >
+                              {project.name}
+                            </span>
                             {project.description && (
                               <span className="text-sm text-gray-500 truncate max-w-[120px] sm:max-w-xs">
                                 {project.description}
@@ -290,10 +299,39 @@ const ProjectsPage: React.FC = () => {
                         <TableCell className="min-w-[100px]">
                           {project.end_date ? format(new Date(project.end_date), 'MMM dd, yyyy') : 'N/A'}
                         </TableCell>
-                        <TableCell className="min-w-[80px]">
-                          <div className="flex items-center">
-                            <UserIcon className="h-4 w-4 mr-1.5" />
-                            <span>{project.project_members.length}</span>
+                        <TableCell className="min-w-[150px] max-w-[200px]">
+                          <div className="space-y-1">
+                            {project.project_members
+                              .filter(member => member.role === 'LEAD')
+                              .map(lead => (
+                                <div key={`lead-${lead.id}`} className="flex flex-wrap items-center text-xs sm:text-sm">
+                                  <UserIcon className="h-3 w-3 mr-1 text-blue-500" />
+                                  <span className="text-blue-600 font-medium truncate max-w-[80px] sm:max-w-[120px]">
+                                    {lead.employee?.firstName} {lead.employee?.lastName}
+                                  </span>
+                                  <span className="ml-1 text-[0.6rem] sm:text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">
+                                    Lead
+                                  </span>
+                                </div>
+                              ))
+                            }
+                            {project.project_members
+                              .filter(member => member.role === 'MEMBER')
+                              .slice(0, 2) // Show only first 2 members to avoid overcrowding
+                              .map(member => (
+                                <div key={`member-${member.id}`} className="flex flex-wrap items-center text-xs sm:text-sm">
+                                  <UserIcon className="h-3 w-3 mr-1 text-gray-500" />
+                                  <span className="truncate max-w-[80px] sm:max-w-[120px]">
+                                    {member.employee?.firstName} {member.employee?.lastName}
+                                  </span>
+                                </div>
+                              ))
+                            }
+                            {project.project_members.filter(member => member.role === 'MEMBER').length > 2 && (
+                              <div className="text-[0.6rem] sm:text-xs text-gray-500 mt-1">
+                                +{project.project_members.filter(member => member.role === 'MEMBER').length - 2} more
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="min-w-[100px]">

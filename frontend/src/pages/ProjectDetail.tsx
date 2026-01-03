@@ -215,13 +215,25 @@ const ProjectDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="tasks">Tasks</TabsTrigger>
-              <TabsTrigger value="documents">Documents</TabsTrigger>
-              <TabsTrigger value="meetings">Meetings</TabsTrigger>
-              <TabsTrigger value="todos">Todos</TabsTrigger>
-              <TabsTrigger value="updates">Updates</TabsTrigger>
+            <TabsList className="flex h-auto flex-wrap gap-1 border-b p-0 overflow-x-auto w-full max-w-full pb-4">
+              <TabsTrigger value="overview" className="px-4 py-2 text-sm whitespace-nowrap border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:font-medium">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="px-4 py-2 text-sm whitespace-nowrap border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:font-medium">
+                Tasks
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="px-4 py-2 text-sm whitespace-nowrap border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:font-medium">
+                Documents
+              </TabsTrigger>
+              <TabsTrigger value="meetings" className="px-4 py-2 text-sm whitespace-nowrap border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:font-medium">
+                Meetings
+              </TabsTrigger>
+              <TabsTrigger value="todos" className="px-4 py-2 text-sm whitespace-nowrap border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:font-medium">
+                Todos
+              </TabsTrigger>
+              <TabsTrigger value="updates" className="px-4 py-2 text-sm whitespace-nowrap border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:font-medium">
+                Updates
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="space-y-6">
               <Card>
@@ -665,7 +677,11 @@ const ProjectDetailPage: React.FC = () => {
                         <p className="font-medium">
                           {member.employee?.firstName} {member.employee?.lastName}
                         </p>
-                        <p className="text-sm text-gray-500">{member.role}</p>
+                        <div className="flex items-center space-x-2">
+                          <p className="text-sm text-gray-500">{member.role}</p>
+                          <span className="text-xs text-gray-400">•</span>
+                          <p className="text-sm text-gray-600">{member.employee?.position}</p>
+                        </div>
                       </div>
                     </div>
                   </div>

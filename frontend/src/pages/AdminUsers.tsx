@@ -11,6 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+
 import { 
   Table,
   TableBody,
@@ -19,10 +27,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { departmentsApi, authApi, employeesApi } from '@/services/api';
-import { Department, Employee } from '@/types';
+import { Department, Employee, Role } from '@/types';
 
 interface CreateUserFormData {
   email: string;
@@ -44,6 +60,11 @@ const AdminUsers: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(true);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showRoleUpdateModal, setShowRoleUpdateModal] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [newRole, setNewRole] = useState<string>('');
 
   useEffect(() => {
     console.log('USER:', user);
@@ -98,6 +119,97 @@ const AdminUsers: React.FC = () => {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEdit = (employee: Employee) => {
+    setEditingEmployee(employee);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateEmployee = async (updatedData: any) => {
+    if (!editingEmployee) return;
+    
+    try {
+      await employeesApi.update(editingEmployee.id, updatedData);
+      toast({
+        title: 'Success',
+        description: 'Employee updated successfully',
+      });
+      setShowEditModal(false);
+      setEditingEmployee(null);
+      fetchEmployees();
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update employee',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateRole = async () => {
+    if (!selectedEmployeeId || !newRole) return;
+    
+    try {
+      await employeesApi.update(selectedEmployeeId, { role: newRole as Role });
+      toast({
+        title: 'Success',
+        description: 'Employee role updated successfully',
+      });
+      setShowRoleUpdateModal(false);
+      setSelectedEmployeeId(null);
+      setNewRole('');
+      fetchEmployees();
+    } catch (error) {
+      console.error('Error updating role:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update employee role',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleToggleStatus = async (employeeId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+      await employeesApi.update(employeeId, { status: newStatus });
+      toast({
+        title: 'Success',
+        description: `Employee status updated to ${newStatus}`,
+      });
+      fetchEmployees();
+    } catch (error) {
+      console.error('Error updating employee status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update employee status',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemove = async (employeeId: string) => {
+    if (!window.confirm('Are you sure you want to remove this employee?')) {
+      return;
+    }
+    
+    try {
+      await employeesApi.delete(employeeId);
+      toast({
+        title: 'Success',
+        description: 'Employee removed successfully',
+      });
+      fetchEmployees();
+    } catch (error) {
+      console.error('Error removing employee:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to remove employee',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -270,10 +382,13 @@ const AdminUsers: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
+                <TableHead>S.NO</TableHead>
+                <TableHead>First_Name</TableHead>
+                <TableHead>Last_Name</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Position</TableHead>
                 <TableHead>Department</TableHead>
-                <TableHead>Manager</TableHead>
+                <TableHead>Assigned_Manager</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -285,9 +400,11 @@ const AdminUsers: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : employees.length > 0 ? (
-                employees.map((employee) => (
+                employees.map((employee, index) => (
                   <TableRow key={employee.id}>
-                    <TableCell className="font-medium">{employee.email}</TableCell>
+                    <TableCell className="font-medium">{index + 1}</TableCell>
+                    <TableCell>{employee.firstName}</TableCell>
+                    <TableCell>{employee.lastName}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         employee.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
@@ -298,12 +415,52 @@ const AdminUsers: React.FC = () => {
                         {employee.role}
                       </span>
                     </TableCell>
+                    <TableCell>{employee.position}</TableCell>
                     <TableCell>{employee.department?.name || 'N/A'}</TableCell>
-                    <TableCell>{employee.managerId ? 'Manager' : 'Self'}</TableCell>
+                    <TableCell>{employee.manager?.firstName + ' ' + employee.manager?.lastName || 'N/A'}</TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm" disabled={employee.role === 'ADMIN' && employee.email === 'admin@yvi.com'}>
-                        {employee.role === 'ADMIN' && employee.email === 'admin@yvi.com' ? 'Cannot Delete' : 'Delete'}
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                            </svg>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(employee)}>
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log('Edit Permission', employee.id)}>
+                            Edit Permission
+                          </DropdownMenuItem>
+                          {employee.status === 'ACTIVE' ? (
+                            <DropdownMenuItem 
+                              onClick={() => handleToggleStatus(employee.id, employee.status)}
+                              className="text-red-600 focus:text-red-700"
+                            >
+                              Deactivate
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem 
+                              onClick={() => handleToggleStatus(employee.id, employee.status)}
+                              className="text-green-600 focus:text-green-700"
+                            >
+                              Activate
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem 
+                            onClick={() => handleRemove(employee.id)}
+                            className="text-red-600 focus:text-red-700"
+                          >
+                            Remove
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {setSelectedEmployeeId(employee.id); setNewRole(employee.role); setShowRoleUpdateModal(true);}}>
+                            Update Role
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -318,6 +475,32 @@ const AdminUsers: React.FC = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Role Update Dialog */}
+      <Dialog open={showRoleUpdateModal} onOpenChange={setShowRoleUpdateModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Role</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={newRole} onValueChange={setNewRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ADMIN">ADMIN</SelectItem>
+                <SelectItem value="HR">HR</SelectItem>
+                <SelectItem value="MANAGER">MANAGER</SelectItem>
+                <SelectItem value="EMPLOYEE">EMPLOYEE</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRoleUpdateModal(false)}>Cancel</Button>
+            <Button onClick={handleUpdateRole}>Update Role</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

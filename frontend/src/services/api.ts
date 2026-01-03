@@ -79,14 +79,6 @@ export async function apiCall(
 // AUTH API
 // =====================
 export const authApi = {
-  login: async (email: string, password: string) => {
-    return apiCall('/auth/login', 'POST', { email, password });
-  },
-
-  register: async (data: { email: string; password: string; role: string }) => {
-    return apiCall('/auth/register', 'POST', data);
-  },
-
   checkEmailExists: async (email: string) => {
     return apiCall('/auth/check-email', 'POST', { email });
   },
@@ -97,11 +89,6 @@ export const authApi = {
 
   resetPassword: async (token: string, password: string) => {
     return apiCall('/auth/reset-password', 'POST', { token, password });
-  },
-
-  me: async () => {
-    // Don't pass token explicitly since apiCall will get it from localStorage dynamically
-    return apiCall('/auth/me', 'GET', undefined);
   },
 
   createUser: async (userData: { email: string; role: string; departmentId?: string; managerId?: string }) => {

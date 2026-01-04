@@ -59,7 +59,6 @@ export default function Login() {
             alt="Logo" 
             className="w-20 h-20 rounded-xl object-contain"
             loading="eager"
-            referrerPolicy="no-referrer"
           />
           <span className="text-xl font-bold text-sidebar-foreground">YVI Employee MS</span>
         </div>

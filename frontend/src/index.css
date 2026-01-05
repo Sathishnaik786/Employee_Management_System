@@ -7,18 +7,21 @@
 
 @layer base {
   :root {
-    /* Corporate Blue Theme */
-    --background: 210 20% 98%;
+    /* App background - light gray like Microsoft Teams */
+    /* #f5f6f8 ≈ hsl(220 18% 97%) */
+    --background: 220 18% 97%;
     --foreground: 222 47% 11%;
 
+    /* Cards - clean white surface */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary - Corporate Blue */
-    --primary: 217 91% 50%;
+    /* Primary - Indigo / blue-violet accent */
+    /* Tailwind indigo-600 ≈ hsl(231 48% 48%) */
+    --primary: 231 48% 48%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - Slate */
@@ -34,6 +37,7 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
+    /* Subtle borders similar to gray-200 (#e5e7eb) */
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 217 91% 50%;

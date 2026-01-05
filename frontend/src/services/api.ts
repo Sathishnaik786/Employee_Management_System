@@ -163,7 +163,8 @@ export const employeesApi = {
   // Profile-specific endpoints
   getProfile: async (): Promise<Employee | undefined> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall('/employees/profile', 'GET', undefined, token);
+    const response = await apiCall('/employees/profile', 'GET', undefined, token);
+    return response.data || response;
   },
 
   updateProfile: async (data: Partial<Employee>): Promise<Employee> => {
@@ -552,5 +553,112 @@ export const analyticsApi = {
   getEmployeeSelf: async (): Promise<ApiResponse<any>> => {
     const token = localStorage.getItem('token') || undefined;
     return apiCall('/analytics/employee/self', 'GET', undefined, token);
+  },
+};
+
+// =====================
+// MEETUPS API (frontend integration)
+// =====================
+
+export interface MeetupApiPayload {
+  title: string;
+  description?: string;
+  type: string;
+  platform: "TEAMS" | "GOOGLE_MEET";
+  link?: string;
+  date: string;       // ISO string for scheduled_at
+  startTime: string;  // "HH:mm"
+  endTime: string;    // "HH:mm"
+}
+
+export interface MeetupApiModel {
+  id: string;
+  title: string;
+  description?: string;
+  type: string;
+  platform: "TEAMS" | "GOOGLE_MEET";
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  departmentId?: string;
+  createdBy: string;
+  date?: string;
+  dateLabel?: string;
+  timeLabel?: string;
+  startTime?: string;
+  endTime?: string;
+  hostName?: string;
+  requestedBy?: string;
+  requesterName?: string;
+}
+
+export const meetupsApi = {
+  // GET /meetups - list all visible meetups (approved + own pending), scoped by backend
+  getAll: async (): Promise<MeetupApiModel[]> => {
+    const token = localStorage.getItem('token') || undefined;
+    try {
+      const response = await apiCall('/meetups', 'GET', undefined, token);
+      return (response.data || []) as MeetupApiModel[];
+    } catch (error: any) {
+      // Graceful fallback when API route is not yet implemented
+      if (error?.message?.includes('API Route not found')) {
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // POST /meetups/request - employee requests a meetup (status will be pending)
+  request: async (payload: MeetupApiPayload): Promise<MeetupApiModel> => {
+    const token = localStorage.getItem('token') || undefined;
+    const response = await apiCall('/meetups/request', 'POST', payload, token);
+    return response.data as MeetupApiModel;
+  },
+
+  // POST /meetups/create - admin/manager creates an approved meetup
+  create: async (payload: MeetupApiPayload): Promise<MeetupApiModel> => {
+    const token = localStorage.getItem('token') || undefined;
+    const response = await apiCall('/meetups/create', 'POST', payload, token);
+    return response.data as MeetupApiModel;
+  },
+
+  // POST /meetups/approve/:id - approve or reject a meetup
+  approve: async (id: string, approved: boolean): Promise<MeetupApiModel> => {
+    const token = localStorage.getItem('token') || undefined;
+    const response = await apiCall(`/meetups/approve/${id}`, 'POST', { approved }, token);
+    return response.data as MeetupApiModel;
+  },
+};
+
+// =====================
+// CALENDAR EVENTS API
+// =====================
+
+export interface CalendarEventApiModel {
+  id: string;
+  meetupId?: string;
+  title: string;
+  description?: string;
+  start_time: string;
+  end_time: string;
+  event_type: "MEETUP";
+  department_id?: string;
+  created_by: string;
+  platform?: "TEAMS" | "GOOGLE_MEET";
+  status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  meet_link?: string;
+}
+
+export const calendarApi = {
+  getEvents: async (): Promise<CalendarEventApiModel[]> => {
+    const token = localStorage.getItem('token') || undefined;
+    try {
+      const response = await apiCall('/calendar-events', 'GET', undefined, token);
+      return (response.data || []) as CalendarEventApiModel[];
+    } catch (error: any) {
+      // If calendar endpoint is not ready yet, fall back to empty list
+      if (error?.message?.includes('API Route not found')) {
+        return [];
+      }
+      throw error;
+    }
   },
 };

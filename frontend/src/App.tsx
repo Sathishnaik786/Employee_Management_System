@@ -10,7 +10,6 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AppLoader } from '@/components/common/AppLoader';
 
-import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -22,6 +21,8 @@ import Leaves from "./pages/Leaves";
 import Documents from "./pages/Documents";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
+import CalendarPage from "./pages/Calendar";
+import MeetupsPage from "./pages/Meetups";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 
@@ -52,7 +53,7 @@ const queryClient = new QueryClient({
 });
 
 const router = createBrowserRouter([
-    { path: "/", element: <Landing /> }, // Landing page
+    { path: "/", element: <Login /> }, // Login page as primary
     { path: "/login", element: <Login /> },
     { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/reset-password", element: <ResetPassword /> },
@@ -66,6 +67,8 @@ const router = createBrowserRouter([
         { path: "departments", element: <Departments /> },
         { path: "attendance", element: <AttendancePage /> },
         { path: "leaves", element: <Leaves /> },
+        { path: "calendar", element: <CalendarPage /> },
+        { path: "meetups", element: <MeetupsPage /> },
         { path: "documents", element: <Documents /> },
         { path: "reports", element: <Reports /> },
 

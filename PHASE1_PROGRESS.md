@@ -62,3 +62,6 @@ Run the indexes SQL file in Supabase:
 3. Verify indexes are created
 
 
+
+
+

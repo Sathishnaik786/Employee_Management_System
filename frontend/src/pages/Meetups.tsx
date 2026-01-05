@@ -1,0 +1,213 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { format } from "date-fns";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { Meetup, MeetupCard } from "@/components/common/MeetupCard";
+import { CreateMeetupModal, MeetupFormValues, MeetupFormMode } from "@/components/modals/CreateMeetupModal";
+import { ApprovalsPanel, PendingMeetup } from "@/components/common/ApprovalsPanel";
+import { meetupsApi, type MeetupApiModel } from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function MeetupsPage() {
+  const { user } = useAuth();
+  const role = user?.role;
+
+  const isAdminOrManager = role === "ADMIN" || role === "MANAGER";
+  const primaryButtonLabel = isAdminOrManager ? "Create Meet" : "Request Meet";
+
+  const [meetups, setMeetups] = useState<MeetupApiModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<MeetupFormMode>("request");
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadMeetups = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await meetupsApi.getAll();
+      setMeetups(data || []);
+    } catch (err: unknown) {
+      console.error("Failed to load meetups", err);
+      if (err instanceof Error) {
+        setError(err.message || "Failed to load meet-ups");
+      } else {
+        setError("Failed to load meet-ups");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMeetups();
+  }, []);
+
+  const handleOpenModal = () => {
+    setModalMode(isAdminOrManager ? "create" : "request");
+    setModalOpen(true);
+  };
+
+  const handleSubmitMeetup = async (values: MeetupFormValues) => {
+    try {
+      setSubmitting(true);
+
+      const payload = {
+        title: values.title,
+        description: values.description,
+        type: values.type,
+        platform: values.platform,
+        link: values.link,
+        date: values.date.toISOString(),
+        startTime: values.startTime,
+        endTime: values.endTime,
+      };
+
+      if (isAdminOrManager) {
+        await meetupsApi.create(payload);
+      } else {
+        await meetupsApi.request(payload);
+      }
+
+      await loadMeetups();
+      setModalOpen(false);
+    } catch (err) {
+      console.error("Failed to submit meetup", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleApprove = async (id: string) => {
+    try {
+      await meetupsApi.approve(id, true);
+      await loadMeetups();
+    } catch (err) {
+      console.error("Failed to approve meetup", err);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    try {
+      await meetupsApi.approve(id, false);
+      await loadMeetups();
+    } catch (err) {
+      console.error("Failed to reject meetup", err);
+    }
+  };
+
+  const approvedMeetups: Meetup[] = useMemo(
+    () =>
+      (meetups || [])
+        .filter((m) => m.status === "APPROVED")
+        .map((m) => ({
+          id: m.id,
+          title: m.title,
+          type: m.type,
+          date: m.dateLabel || m.date || "",
+          timeRange: m.timeLabel || `${m.startTime} - ${m.endTime}`,
+          platform: m.platform,
+          status: m.status,
+          host: m.hostName,
+          description: m.description,
+        })),
+    [meetups],
+  );
+
+  const pendingMeetups: PendingMeetup[] = useMemo(
+    () =>
+      (meetups || [])
+        .filter((m) => m.status === "PENDING")
+        .map((m) => ({
+          id: m.id,
+          title: m.title,
+          requestedBy: m.requestedBy || m.requesterName || "Unknown",
+          dateLabel:
+            m.dateLabel ||
+            (m.date ? format(new Date(m.date), "EEE, dd MMM yyyy") : ""),
+          timeLabel: m.timeLabel || `${m.startTime} - ${m.endTime}`,
+        })),
+    [meetups],
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <PageHeader
+          title="Meet-ups"
+          description="Manage and join your upcoming team meet-ups."
+        />
+        <div className="flex justify-start md:justify-end">
+          <Button onClick={handleOpenModal} className="w-full md:w-auto">
+            {primaryButtonLabel}
+          </Button>
+        </div>
+      </div>
+
+      {isAdminOrManager && (
+        <ApprovalsPanel
+          items={pendingMeetups}
+          isLoading={loading}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+      )}
+
+      <div className="space-y-3">
+        {loading && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {[...Array(3)].map((_, idx) => (
+              <div
+                key={idx}
+                className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm"
+              >
+                <Skeleton className="mb-3 h-4 w-3/4" />
+                <Skeleton className="mb-2 h-3 w-1/2" />
+                <Skeleton className="mb-2 h-3 w-1/3" />
+                <Skeleton className="h-8 w-24" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="rounded-lg border border-dashed border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && approvedMeetups.length === 0 && (
+          <div className="rounded-lg border border-dashed border-gray-200 bg-white/60 p-6 text-center text-sm text-gray-500">
+            No meet-ups scheduled yet.{" "}
+            <span className="font-medium text-primary">
+              {primaryButtonLabel}{" "}
+            </span>
+            to get started.
+          </div>
+        )}
+
+        {!loading && !error && approvedMeetups.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {approvedMeetups.map((meetup) => (
+              <MeetupCard key={meetup.id} meetup={meetup} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <CreateMeetupModal
+        open={modalOpen}
+        mode={modalMode}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleSubmitMeetup}
+        isSubmitting={submitting}
+      />
+    </div>
+  );
+}
+
+
+

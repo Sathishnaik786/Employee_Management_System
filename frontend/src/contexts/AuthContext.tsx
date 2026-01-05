@@ -109,10 +109,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const refreshProfileImage = async () => {
-    if (user) {
-      // In a real implementation, you'd fetch a new signed URL for the profile image
-      // For now, just refetch the user profile
-      await fetchUserProfile();
+    if (!user) return;
+    
+    try {
+      // Fetch fresh profile data with signed URL from backend
+      const response = await authApi.me();
+      if (response.success && response.data?.user) {
+        const updatedUser = response.data.user;
+        // Only update if profile_image actually changed to prevent unnecessary re-renders
+        if (updatedUser.profile_image !== user.profile_image) {
+          setUser({
+            ...user,
+            profile_image: updatedUser.profile_image,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing profile image:', error);
+      // Don't throw - fail silently to avoid breaking the UI
     }
   };
 

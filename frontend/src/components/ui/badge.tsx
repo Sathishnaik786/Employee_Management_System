@@ -9,7 +9,12 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        // Indigo / blue-violet accent - used as primary for Teams
+        primary: "border-transparent bg-primary/10 text-primary hover:bg-primary/15",
+        // Soft green - used for Google Meet or generic success
+        secondary: "border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+        success: "border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+        warning: "border-transparent bg-amber-50 text-amber-700 hover:bg-amber-100",
         destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
       },

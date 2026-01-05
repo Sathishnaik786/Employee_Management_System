@@ -54,8 +54,10 @@ const navItems: NavItem[] = [
   { title: 'Departments', href: '/app/departments', icon: Building2 },
   { title: 'Attendance', href: '/app/attendance', icon: Clock },
   { title: 'Leaves', href: '/app/leaves', icon: Calendar },
+  { title: 'Calendar', href: '/app/calendar', icon: Calendar },
   { title: 'Projects', href: '/app/projects', icon: FolderKanban, roles: ['ADMIN', 'MANAGER'] },
   { title: 'My Projects', href: '/app/my-projects', icon: FolderOpen, roles: ['EMPLOYEE'] },
+  { title: 'Meet-ups', href: '/app/meetups', icon: Users2 },
 
   { title: 'Documents', href: '/app/documents', icon: FileText, roles: ['ADMIN', 'HR'] },
   { title: 'Reports', href: '/app/reports', icon: BarChart3, roles: ['ADMIN', 'HR', 'MANAGER'] },
@@ -226,8 +228,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </div>
                 {!collapsed && (
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.email}</p>
-                    <p className="text-xs text-sidebar-muted">{user?.role}</p>
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.firstName} {user?.lastName}</p>
+                    <p className="text-xs text-sidebar-muted">{user?.role} | {user?.email}</p>
                   </div>
                 )}
               </button>
@@ -236,7 +238,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <DropdownMenuItem asChild>
                 <Link to="/app/profile" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  Profile
+                  View Profile
                 </Link>
               </DropdownMenuItem>
               {/*<DropdownMenuItem asChild>
@@ -331,6 +333,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 lastName={user.lastName || ''} 
                 email={user.email || ''}
                 profileImage={user.profile_image}
+                position={user.position || ''}
               />
             )}
           </div>

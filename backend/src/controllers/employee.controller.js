@@ -61,10 +61,26 @@ exports.getProfile = async (req, res, next) => {
         if (data.profile_image) { // This should be the file path now
             try {
                 const signedUrl = await ProfileImageService.generateSignedUrl(data.profile_image);
-                profileData.profile_image = signedUrl; // Replace file path with signed URL
+                if (signedUrl) {
+                    profileData.profile_image = signedUrl; // Replace file path with signed URL
+                } else {
+                    // File doesn't exist in storage - clear the invalid path from DB
+                    profileData.profile_image = null;
+                    // Optionally clean up the invalid path from database (async, don't block response)
+                    supabase
+                        .from('employees')
+                        .update({ profile_image: null })
+                        .eq('user_id', req.user.id)
+                        .then(() => {
+                            console.log(`Cleaned up invalid profile_image path for user ${req.user.id}`);
+                        })
+                        .catch(cleanupError => {
+                            console.error('Error cleaning up invalid profile_image:', cleanupError);
+                        });
+                }
             } catch (urlError) {
                 console.error('Error generating signed URL for profile image:', urlError);
-                // Keep the original path if signed URL generation fails
+                // Set to null if signed URL generation fails
                 profileData.profile_image = null;
             }
         }
@@ -368,8 +384,13 @@ exports.uploadProfileImage = [
       let signedUrl = null;
       try {
         signedUrl = await ProfileImageService.generateSignedUrl(imageUrl);
+        if (!signedUrl) {
+          console.warn('Failed to generate signed URL for newly uploaded image:', imageUrl);
+        }
       } catch (urlError) {
         console.error('Error generating signed URL for uploaded image:', urlError);
+        // Even if signed URL generation fails, the upload was successful
+        // The file path is stored in DB and can be accessed later
       }
 
       // Delete old profile image if it exists

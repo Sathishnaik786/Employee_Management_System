@@ -403,7 +403,30 @@ const AdminUsers: React.FC = () => {
                 employees.map((employee, index) => (
                   <TableRow key={employee.id}>
                     <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>{employee.firstName}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                          {employee.profile_image ? (
+                            <img
+                              src={employee.profile_image}
+                              alt={`${employee.firstName} ${employee.lastName}`}
+                              className="w-full h-full object-cover"
+                              loading="eager"
+                              referrerPolicy="no-referrer"
+                              crossOrigin="anonymous"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-xs font-bold">
+                                {employee.firstName?.charAt(0) || 'U'}
+                                {employee.lastName?.charAt(0) || ''}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {employee.firstName}
+                      </div>
+                    </TableCell>
                     <TableCell>{employee.lastName}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${

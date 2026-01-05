@@ -367,7 +367,54 @@ exports.login = async (req, res, next) => {
 // Get current user's profile
 exports.getMe = async (req, res, next) => {
     try {
-        // The user info is already attached to req.user by the auth middleware
+        // Get employee data to fetch profile_image with signed URL
+        const { data: employee, error } = await supabase
+            .from('employees')
+            .select('profile_image')
+            .eq('user_id', req.user.id)
+            .single();
+
+        let profileImageUrl = null;
+        
+        // Generate signed URL if profile_image exists
+        if (employee?.profile_image) {
+            try {
+                const ProfileImageService = require('./profileImage.service');
+                profileImageUrl = await ProfileImageService.generateSignedUrl(employee.profile_image);
+                
+                // If file doesn't exist, clean up invalid path from database
+                if (!profileImageUrl && employee.profile_image) {
+                    // Clean up invalid path asynchronously (don't block response)
+                    supabase
+                        .from('employees')
+                        .update({ profile_image: null })
+                        .eq('user_id', req.user.id)
+                        .then(() => {
+                            console.log(`Cleaned up invalid profile_image path for user ${req.user.id}`);
+                        })
+                        .catch(cleanupError => {
+                            console.error('Error cleaning up invalid profile_image:', cleanupError);
+                        });
+                }
+            } catch (urlError) {
+                // Handle storage errors gracefully
+                if (urlError.statusCode === '404' || urlError.status === 404 || urlError.__isStorageError) {
+                    console.warn('Profile image file not found in storage, cleaning up database');
+                    // Clean up invalid path
+                    supabase
+                        .from('employees')
+                        .update({ profile_image: null })
+                        .eq('user_id', req.user.id)
+                        .catch(cleanupError => {
+                            console.error('Error cleaning up invalid profile_image:', cleanupError);
+                        });
+                } else {
+                    console.error('Error generating signed URL in getMe:', urlError);
+                }
+                // Continue without profile image if URL generation fails
+            }
+        }
+
         res.status(200).json({
             success: true,
             data: {
@@ -375,7 +422,7 @@ exports.getMe = async (req, res, next) => {
                     id: req.user.id,
                     email: req.user.email,
                     role: req.user.role,
-                    profile_image: req.user.profile_image, // Include profile image if available
+                    profile_image: profileImageUrl, // Include signed URL if available
                     firstName: req.user.firstName,
                     lastName: req.user.lastName,
                     employeeId: req.user.employeeId,

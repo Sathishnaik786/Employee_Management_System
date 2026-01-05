@@ -108,7 +108,7 @@ class ProfileImageService {
    * Generate signed URL for profile image
    * @param {string} filePath - The file path in storage
    * @param {number} expiresIn - Number of seconds until the URL expires (default 3600)
-   * @returns {Promise<string>} - Signed URL of the image
+   * @returns {Promise<string|null>} - Signed URL of the image, or null if file doesn't exist
    */
   async generateSignedUrl(filePath, expiresIn = 3600) {
     try {
@@ -120,12 +120,22 @@ class ProfileImageService {
         .createSignedUrl(filePath, expiresIn);
 
       if (error) {
+        // If it's a "not found" error, return null instead of throwing
+        if (error.statusCode === '404' || error.status === 404 || error.__isStorageError) {
+          // Silently return null - file doesn't exist, which is acceptable
+          return null;
+        }
         console.error('Error generating signed URL:', error);
         throw error;
       }
 
       return data.signedUrl;
     } catch (error) {
+      // Handle storage errors gracefully - don't log "not found" as errors
+      if (error.statusCode === '404' || error.status === 404 || error.__isStorageError) {
+        // File doesn't exist - this is normal if file was deleted or never uploaded
+        return null;
+      }
       console.error('Error in generateSignedUrl:', error);
       throw error;
     }

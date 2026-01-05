@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { authApi } from '@/services/api';
 
 export default function ForgotPassword() {
@@ -134,7 +134,13 @@ export default function ForgotPassword() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-            <Building2 className="h-7 w-7 text-primary-foreground" />
+            <img 
+                        src="/logo.png"
+                        alt="YVI Employee MS Logo" 
+                        className="h-7 w-7 object-contain text-primary-foreground"
+                        loading="eager"
+                        referrerPolicy="no-referrer"
+                      />
           </div>
         </div>
         

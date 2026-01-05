@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Building2 } from 'lucide-react';
 
 interface AppLoaderProps {
   isLoading: boolean;
@@ -30,7 +29,13 @@ export function AppLoader({ isLoading }: AppLoaderProps) {
             ease: "easeInOut",
           }}
         >
-          <Building2 className="h-12 w-12 text-primary" />
+          <img 
+                      src="/logo.png"
+                      alt="YVI Employee MS Logo" 
+                      className="h-12 w-12 object-contain text-primary"
+                      loading="eager"
+                      referrerPolicy="no-referrer"
+                    />
         </motion.div>
         <motion.div
           className="flex gap-1"

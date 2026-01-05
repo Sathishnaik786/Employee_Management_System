@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
-  Building2, 
   Users, 
   Clock, 
   FileText, 
@@ -73,7 +72,13 @@ export default function Landing() {
           >
             <motion.div variants={fadeInVariants} className="flex justify-center mb-6">
               <div className="p-4 rounded-2xl bg-primary/10">
-                <Building2 className="h-12 w-12 text-primary" />
+                <img 
+                            src="/logo.png"
+                            alt="YVI Employee MS Logo" 
+                            className="h-12 w-12 object-contain text-primary"
+                            loading="eager"
+                            referrerPolicy="no-referrer"
+                          />
               </div>
             </motion.div>
             

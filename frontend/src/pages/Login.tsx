@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -54,7 +54,13 @@ export default function Login() {
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar flex-col justify-between p-12">
         <div className="flex items-center gap-3">
-          <Building2 className="w-20 h-20 text-primary" />
+          <img 
+                      src="/logo.png"
+                      alt="YVI Employee MS Logo" 
+                      className="w-20 h-20 object-contain"
+                      loading="eager"
+                      referrerPolicy="no-referrer"
+                    />
           <span className="text-xl font-bold text-sidebar-foreground">YVI Employee MS</span>
         </div>
         
@@ -91,7 +97,13 @@ export default function Login() {
         <Card className="w-full max-w-md shadow-card">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center lg:hidden mb-4">
-              <Building2 className="w-12 h-12 text-primary" />
+              <img 
+                          src="/logo.png"
+                          alt="YVI Employee MS Logo" 
+                          className="w-12 h-12 object-contain"
+                          loading="eager"
+                          referrerPolicy="no-referrer"
+                        />
             </div>
             <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
             <CardDescription>

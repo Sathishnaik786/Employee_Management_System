@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { sidebarCollapseVariants, slideInLeftVariants } from '@/animations/motionVariants';
 
 import { OnlineIndicator } from '@/components/common/OnlineIndicator';
 import { GlobalSearch } from '@/components/common/GlobalSearch';
@@ -80,21 +82,31 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
+
       {/* Mobile overlay */}
-      {mobileOpen && (
-        <div 
-          className="fixed inset-0 bg-foreground/50 z-40 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            className="fixed inset-0 bg-foreground/50 z-40 lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
-      <aside
+      <motion.aside
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-screen bg-sidebar transition-all duration-300 flex flex-col",
+          "fixed lg:sticky top-0 left-0 z-50 h-screen bg-sidebar flex flex-col",
           collapsed ? "w-[70px]" : "w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
+        variants={sidebarCollapseVariants}
+        animate={collapsed ? 'collapsed' : 'expanded'}
+        initial={false}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
         {/* Logo */}
         <div className={cn(
@@ -138,23 +150,51 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Navigation */}
         <ScrollArea className="flex-1 py-4">
           <nav className="space-y-1 px-2">
-            {filteredNavItems.map((item) => {
+            {filteredNavItems.map((item, index) => {
               const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
               return (
-                <Link
+                <motion.div
                   key={item.href}
-                  to={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-primary"
-                      : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                  )}
+                  initial="initial"
+                  animate="animate"
+                  variants={slideInLeftVariants}
+                  transition={{ delay: index * 0.03 }}
                 >
-                  <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-sidebar-primary")} />
-                  {!collapsed && <span className="font-medium">{item.title}</span>}
-                </Link>
+                  <Link
+                    to={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-primary"
+                        : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                    )}
+                  >
+                    {/* Active indicator bar */}
+                    {isActive && (
+                      <motion.div
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-sidebar-primary rounded-r-full"
+                        layoutId="activeIndicator"
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                    <item.icon className={cn(
+                      "h-5 w-5 flex-shrink-0 transition-transform duration-200",
+                      isActive && "text-sidebar-primary",
+                      !isActive && "group-hover:scale-110"
+                    )} />
+                    {!collapsed && (
+                      <motion.span
+                        className="font-medium"
+                        initial={{ opacity: collapsed ? 0 : 1 }}
+                        animate={{ opacity: collapsed ? 0 : 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {item.title}
+                      </motion.span>
+                    )}
+                  </Link>
+                </motion.div>
               );
             })}
           </nav>
@@ -213,7 +253,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </aside>
+      </motion.aside>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen">
@@ -297,11 +337,17 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         {/* Page content */}
         <main className="flex-1 p-4 lg:p-6 overflow-auto">
-          {children ?? (
-            <div className="p-6 text-red-500">
-              Page rendered but no content returned
-            </div>
-          )}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            {children ?? (
+              <div className="p-6 text-red-500">
+                Page rendered but no content returned
+              </div>
+            )}
+          </motion.div>
         </main>
       </div>
     </div>

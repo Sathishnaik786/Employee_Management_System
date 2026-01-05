@@ -2,6 +2,7 @@ const { supabase } = require('@lib/supabase');
 const multer = require('multer');
 const NotificationService = require('./notification.service');
 const ProfileImageService = require('./profileImage.service');
+const CacheService = require('../services/cache.service');
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage(); // Store file in memory
@@ -186,6 +187,19 @@ exports.getAll = async (req, res, next) => {
 exports.getById = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const cacheKey = `employee:${id}`;
+
+        // Try cache first
+        const cached = await CacheService.get(cacheKey);
+        if (cached) {
+            return res.status(200).json({ 
+                success: true, 
+                data: cached,
+                cached: true 
+            });
+        }
+
+        // Fetch from database
         const { data, error } = await supabase
             .from('employees')
             .select('*, department:departments!employees_department_id_fkey(*), manager:employees!employees_manager_id_fkey(*)')
@@ -195,7 +209,12 @@ exports.getById = async (req, res, next) => {
         if (error) throw error;
         if (!data) return res.status(404).json({ success: false, message: 'Employee not found' });
 
-        res.status(200).json({ success: true, data: mapEmployee(data) });
+        const mappedData = mapEmployee(data);
+
+        // Cache the result (5 minutes)
+        await CacheService.set(cacheKey, mappedData, 300);
+
+        res.status(200).json({ success: true, data: mappedData });
     } catch (err) {
         next(err);
     }
@@ -231,6 +250,9 @@ exports.create = async (req, res, next) => {
         for (const adminId of adminRecipients) {
             await NotificationService.notifyNewUserCreated(data.user_id, adminId);
         }
+
+        // Invalidate cache after create
+        await CacheService.invalidateEntity('employee');
 
         res.status(201).json({ success: true, data: mapEmployee(data) });
     } catch (err) {
@@ -278,6 +300,10 @@ exports.update = async (req, res, next) => {
             }
         }
 
+        // Invalidate cache after update
+        await CacheService.delete(`employee:${id}`);
+        await CacheService.invalidateEntity('employee');
+
         res.status(200).json({ success: true, data: mapEmployee(data) });
     } catch (err) {
         next(err);
@@ -293,6 +319,10 @@ exports.delete = async (req, res, next) => {
             .eq('id', id);
 
         if (error) throw error;
+
+        // Invalidate cache after delete
+        await CacheService.delete(`employee:${id}`);
+        await CacheService.invalidateEntity('employee');
 
         res.status(200).json({ success: true, message: 'Employee deleted successfully' });
     } catch (err) {

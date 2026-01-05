@@ -1,234 +1,148 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Role, Employee } from '@/types';
-import { authApi, employeesApi } from '@/services/api';
-import { supabase } from '@/lib/supabase';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
+import { authApi } from '@/services/api';
+import { Role } from '@/types';
+import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
+
+interface AuthUser {
+  id: string;
+  email: string | null;
+  role: Role;
+  profile_image?: string;
+  [key: string]: any;
+}
 
 interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
+  user: AuthUser | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<any>;
   logout: () => void;
-  hasRole: (roles: Role[]) => boolean;
-  updateProfileImage: (imageUrl: string) => void;
-  refreshProfileImage: () => Promise<string | undefined>;
+  hasRole: (role: string | string[]) => boolean;
+  updateProfileImage: (image: string) => void;
+  refreshProfileImage: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  
+  // Enable real-time query invalidation
+  useQueryInvalidation();
 
+  // Check if user is already logged in on initial load
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Get current session from Supabase
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          // Query employees table using user_id = session.user.id
-          const { data: employeeData, error } = await supabase
-            .from('employees')
-            .select('id, user_id, role, first_name, last_name, profile_image')
-            .eq('user_id', session.user.id)
-            .single();
-
-          if (error) {
-            console.error('Error fetching employee data:', error);
-            // Don't logout here, just set user to null
-            setUser(null);
-          } else if (employeeData) {
-            // Set user data using employee information
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-              role: employeeData.role as Role,
-              employeeId: employeeData.id,
-              name: `${employeeData.first_name} ${employeeData.last_name}`,
-              firstName: employeeData.first_name,
-              lastName: employeeData.last_name,
-              profile_image: employeeData.profile_image || undefined,
-            });
-          } else {
-            // No employee record found for this user
-            setUser(null);
-          }
-        } else {
-          // No active session
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Auth verification failed:', error);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: string, session: any) => {
-        if (event === 'SIGNED_OUT' || event === 'PASSWORD_RECOVERY') {
-          setUser(null);
-        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-          if (session) {
-            // Query employees table using user_id = session.user.id
-            const { data: employeeData, error } = await supabase
-              .from('employees')
-              .select('id, user_id, role, first_name, last_name, profile_image')
-              .eq('user_id', session.user.id)
-              .single();
-
-            if (error) {
-              console.error('Error fetching employee data:', error);
-              setUser(null);
-            } else if (employeeData) {
-              // Set user data using employee information
-              setUser({
-                id: session.user.id,
-                email: session.user.email || '',
-                role: employeeData.role as Role,
-                employeeId: employeeData.id,
-                name: `${employeeData.first_name} ${employeeData.last_name}`,
-                firstName: employeeData.first_name,
-                lastName: employeeData.last_name,
-                profile_image: employeeData.profile_image || undefined,
-              });
-            } else {
-              // No employee record found for this user
-              setUser(null);
-            }
-          }
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUserProfile();
+    } else {
+      setIsLoading(false);
+    }
   }, []);
 
-  useEffect(() => {
-    console.log('AUTH USER STATE:', user);
-  }, [user]);
-
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-
+  const fetchUserProfile = async () => {
     try {
-      // Supabase authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        throw new Error(error.message);
+      setIsLoading(true);
+      // Use the me() endpoint to get user profile
+      const response = await authApi.me();
+      if (response.success && response.data?.user) {
+        setUser(response.data.user);
+      } else {
+        // If me() endpoint doesn't exist or fails, clear token
+        localStorage.removeItem('token');
       }
-
-      const session = data.session;
-      if (session) {
-        // Query employees table using user_id = session.user.id
-        const { data: employeeData, error: employeeError } = await supabase
-          .from('employees')
-          .select('id, user_id, role, first_name, last_name, profile_image')
-          .eq('user_id', session.user.id)
-          .single();
-
-        if (employeeError) {
-          console.error('Error fetching employee data:', employeeError);
-          throw new Error('Failed to retrieve employee data');
-        } else if (employeeData) {
-          // Set user data using employee information
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            role: employeeData.role as Role,
-            employeeId: employeeData.id,
-            name: `${employeeData.first_name} ${employeeData.last_name}`,
-            firstName: employeeData.first_name,
-            lastName: employeeData.last_name,
-            profile_image: employeeData.profile_image || undefined,
-          });
-
-          // Store the session token in localStorage for compatibility with backend APIs
-          localStorage.setItem('token', session.access_token);
-        } else {
-          throw new Error('No employee record found for this user');
-        }
-      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      // Clear token if there's an error
+      localStorage.removeItem('token');
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = async () => {
+  const login = async (email: string, password: string) => {
     try {
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error signing out from Supabase:', error);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3003/api'}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data?.token) {
+        localStorage.setItem('token', data.data.token);
+        await fetchUserProfile();
+        return data;
+      } else {
+        throw new Error(data.message || 'Login failed');
       }
     } catch (error) {
-      console.error('Error during logout:', error);
-    } finally {
-      setUser(null);
-      localStorage.removeItem('token');
-      // Redirect to login page after logout
-      window.location.href = '/login';
+      console.error('Login error:', error);
+      throw error;
     }
   };
 
-  const hasRole = (roles: Role[]) => {
-    if (!user) return false;
-    return roles.includes(user.role);
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
   };
 
-  const updateProfileImage = (imageUrl: string) => {
+  const updateProfileImage = (image: string) => {
     if (user) {
-      setUser(prev => prev ? { ...prev, profile_image: imageUrl } : null);
+      setUser({
+        ...user,
+        profile_image: image,
+      });
     }
   };
 
   const refreshProfileImage = async () => {
     if (user) {
-      try {
-        const { data: employeeData, error } = await supabase
-          .from('employees')
-          .select('profile_image')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching employee profile from Supabase:', error);
-          return undefined;
-        } else {
-          const newProfileImage: string | undefined = employeeData?.profile_image || undefined;
-          setUser(prev => prev ? { ...prev, profile_image: newProfileImage } : null);
-          return newProfileImage;
-        }
-      } catch (error) {
-        console.error('Error refreshing profile image:', error);
-        return undefined;
-      }
+      // In a real implementation, you'd fetch a new signed URL for the profile image
+      // For now, just refetch the user profile
+      await fetchUserProfile();
     }
-    return undefined;
+  };
+
+  const value = {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    login,
+    logout,
+    hasRole: (role: string | string[]) => {
+      if (Array.isArray(role)) {
+        return role.includes(user?.role || '');
+      }
+      return user?.role === role;
+    },
+    updateProfileImage,
+    refreshProfileImage,
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout, hasRole, updateProfileImage, refreshProfileImage }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};

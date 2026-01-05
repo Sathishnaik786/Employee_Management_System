@@ -35,20 +35,61 @@ class ChatService {
   connect(userId: string, token: string) {
     if (this.socket?.connected) return;
     
-    this.socket = io('http://localhost:3003', {
+    const apiUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3003';
+    
+    this.socket = io(apiUrl, {
       auth: {
         token
       },
-      transports: ['websocket']
+      transports: ['websocket', 'polling'], // Fallback to polling if websocket fails
+      reconnection: true,
+      reconnectionDelay: 1000, // Start with 1 second
+      reconnectionDelayMax: 5000, // Max 5 seconds
+      reconnectionAttempts: Infinity, // Keep trying to reconnect
+      timeout: 20000, // Connection timeout
     });
 
     this.socket.on('connect', () => {
-      console.log('Connected to chat server');
+      console.log('✅ Connected to chat server');
+      this.reconnectAttempts = 0;
     });
 
-    this.socket.on('disconnect', () => {
-      console.log('Disconnected from chat server');
+    this.socket.on('disconnect', (reason) => {
+      console.log('⚠️ Disconnected from chat server:', reason);
+      if (reason === 'io server disconnect') {
+        // Server disconnected, need to manually reconnect
+        this.socket?.connect();
+      }
     });
+
+    this.socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log(`🔄 Reconnection attempt ${attemptNumber}`);
+      this.reconnectAttempts = attemptNumber;
+    });
+
+    this.socket.on('reconnect', (attemptNumber) => {
+      console.log(`✅ Reconnected after ${attemptNumber} attempts`);
+    });
+
+    this.socket.on('reconnect_error', (error) => {
+      console.error('❌ Reconnection error:', error);
+    });
+
+    this.socket.on('reconnect_failed', () => {
+      console.error('❌ Reconnection failed - max attempts reached');
+    });
+
+    this.socket.on('error', (error) => {
+      console.error('❌ Socket error:', error);
+    });
+  }
+
+  getSocket(): Socket | null {
+    return this.socket;
+  }
+
+  isConnected(): boolean {
+    return this.socket?.connected || false;
   }
 
   disconnect() {

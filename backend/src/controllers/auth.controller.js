@@ -285,3 +285,104 @@ exports.createUser = async (req, res, next) => {
         next(err);
     }
 };
+
+
+// Login function
+exports.login = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Email and password are required' 
+            });
+        }
+
+        // Sign in with Supabase Auth
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) {
+            console.error('Login error:', error);
+            return res.status(401).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+
+        // Get user from the token
+        const user = data.user;
+
+        // Check if user exists in our employees table
+        const { data: employee, error: empError } = await supabaseAdmin
+            .from('employees')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        if (empError) {
+            console.error('Employee lookup error:', empError);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Internal server error' 
+            });
+        }
+
+        if (!employee) {
+            console.log('No employee record found for user:', user.id);
+            return res.status(403).json({
+                success: false,
+                message: 'Permission denied: User exists but is not mapped to an employee record',
+            });
+        }
+
+        // Generate access token
+        const token = data.session.access_token;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    role: employee.role,
+                    profile_image: employee.profile_image, // Include profile image if available
+                    firstName: employee.first_name,
+                    lastName: employee.last_name,
+                    employeeId: employee.id,
+                },
+                token: token
+            },
+            message: 'Login successful'
+        });
+    } catch (err) {
+        console.error('Login error:', err);
+        next(err);
+    }
+};
+
+// Get current user's profile
+exports.getMe = async (req, res, next) => {
+    try {
+        // The user info is already attached to req.user by the auth middleware
+        res.status(200).json({
+            success: true,
+            data: {
+                user: {
+                    id: req.user.id,
+                    email: req.user.email,
+                    role: req.user.role,
+                    profile_image: req.user.profile_image, // Include profile image if available
+                    firstName: req.user.firstName,
+                    lastName: req.user.lastName,
+                    employeeId: req.user.employeeId,
+                }
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+};

@@ -91,6 +91,11 @@ export const authApi = {
     return apiCall('/auth/reset-password', 'POST', { token, password });
   },
 
+  me: async (): Promise<ApiResponse<{ user: User }>> => {
+    const token = localStorage.getItem('token') || undefined;
+    return apiCall('/auth/me', 'GET', undefined, token);
+  },
+
   createUser: async (userData: { email: string; role: string; departmentId?: string; managerId?: string }) => {
     const token = localStorage.getItem('token') || undefined;
     return apiCall('/auth/admin/users', 'POST', userData, token);

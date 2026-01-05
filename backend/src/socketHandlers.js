@@ -7,6 +7,8 @@ const userConversations = new Map(); // userId -> Set of conversationIds
 
 class SocketHandlers {
   static initialize(io) {
+    // Store io instance for event service
+    this.io = io;
     io.use(async (socket, next) => {
       try {
         const { token } = socket.handshake.auth;
@@ -44,8 +46,20 @@ class SocketHandlers {
           employeeId: employee.id,
           firstName: employee.first_name,
           lastName: employee.last_name,
+          departmentId: employee.department_id
         };
+        
+        // Join user-specific room
         socket.join(`user:${socket.userId}`);
+        
+        // Join role-specific room for role-based broadcasts
+        socket.join(`role:${employee.role}`);
+        
+        // Join department room if applicable
+        if (employee.department_id) {
+          socket.join(`department:${employee.department_id}`);
+        }
+        
         next();
       } catch (error) {
         next(new Error('Authentication error'));
@@ -211,6 +225,11 @@ class SocketHandlers {
     userIds.forEach(userId => {
       this.emitNotification(io, userId, notification);
     });
+  }
+
+  // Get io instance for event service
+  static getIO() {
+    return this.io;
   }
 }
 

@@ -5,7 +5,8 @@ const config = require('@config');
 const http = require('http');
 const { Server } = require('socket.io');
 const { createAdapter } = require('@socket.io/redis-adapter');
-const { redis } = require('@lib/redis');
+const { redis, redisMode, attachEventHandlers } = require('@lib/redis');
+const logger = require('@lib/logger');
 
 const PORT = process.env.PORT || config.PORT || 3003;
 
@@ -30,23 +31,76 @@ const corsOrigins = config.NODE_ENV === 'production'
     ];
 
 const io = new Server(server, {
-    cors: {
-        origin: corsOrigins,
-        credentials: true
-    },
-    transports: ['websocket', 'polling'],
-    // Add Redis adapter for horizontal scaling
-    adapter: createAdapter(redis, redis.duplicate())
+  cors: {
+    origin: corsOrigins,
+    credentials: true,
+  },
+  transports: ['websocket', 'polling'],
 });
+
+/**
+ * Socket.IO Redis adapter wiring
+ *
+ * RULES:
+ * - Adapter is enabled ONLY when ENABLE_SOCKET_REDIS === 'true'
+ * - Uses the shared primary Redis client plus a dedicated duplicate for subscriptions
+ * - ALL Redis clients used here get proper error / lifecycle handlers
+ * - If Redis adapter init fails, we gracefully fall back to in-memory adapter
+ */
+
+// Prefer explicit env flag, fall back to existing config behavior to avoid breaking changes
+const enableSocketRedisEnv = process.env.ENABLE_SOCKET_REDIS;
+const enableSocketRedis =
+  enableSocketRedisEnv !== undefined
+    ? enableSocketRedisEnv === 'true'
+    : config.ENABLE_SOCKET_REDIS;
+
+let redisAdapterEnabled = false;
+
+if (enableSocketRedis) {
+  try {
+    // Primary client is imported from @lib/redis and already has handlers
+    const pubClient = redis;
+    const subClient = redis.duplicate();
+
+    // Attach robust handlers for the subscription client
+    attachEventHandlers(subClient, 'socketio-sub');
+
+    io.adapter(createAdapter(pubClient, subClient));
+    redisAdapterEnabled = true;
+
+    logger.info('Socket.IO Redis adapter enabled', {
+      mode: redisMode,
+    });
+  } catch (err) {
+    redisAdapterEnabled = false;
+    logger.error('Failed to initialize Socket.IO Redis adapter, falling back to in-memory adapter', {
+      mode: redisMode,
+      message: err?.message,
+    });
+  }
+} else {
+  logger.info('Socket.IO Redis adapter disabled via ENABLE_SOCKET_REDIS; using in-memory adapter', {
+    mode: redisMode,
+  });
+}
 
 // Initialize socket handlers
 const SocketHandlers = require('./socketHandlers');
 SocketHandlers.initialize(io);
 
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is actually listening on port ${PORT}`);
-    console.log(`Environment: ${config.NODE_ENV}`);
-    console.log(`WebSocket server initialized with Redis adapter`);
+  console.log(`Server is actually listening on port ${PORT}`);
+  console.log(`Environment: ${config.NODE_ENV}`);
+  console.log(
+    `WebSocket server initialized with ${redisAdapterEnabled ? 'Redis adapter' : 'in-memory adapter (no Redis)'}`
+  );
+  logger.info('Server started', {
+    port: PORT,
+    env: config.NODE_ENV,
+    socketRedisAdapter: redisAdapterEnabled ? 'enabled' : 'disabled',
+    redisMode,
+  });
 });
 
 server.on('error', (error) => {

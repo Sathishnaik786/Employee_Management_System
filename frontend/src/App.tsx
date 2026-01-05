@@ -3,12 +3,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AppLoader } from '@/components/common/AppLoader';
 
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -28,10 +30,29 @@ import Projects from './pages/Projects';
 import MyProjects from './pages/MyProjects';
 import ProjectDetail from './pages/ProjectDetail';
 
-const queryClient = new QueryClient();
+// Optimized QueryClient configuration for better performance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes - garbage collection time (replaces cacheTime in v5)
+      refetchOnWindowFocus: false, // Don't refetch on window focus
+      refetchOnMount: false, // Don't refetch on mount if data exists
+      refetchOnReconnect: true, // Refetch on reconnect
+      retry: 1, // Retry failed requests once
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    },
+    mutations: {
+      retry: false, // Don't retry mutations
+      onError: (error) => {
+        console.error('Mutation error:', error);
+      },
+    },
+  },
+});
 
 const router = createBrowserRouter([
-    { path: "/", element: <Login /> }, // Root path goes to login
+    { path: "/", element: <Landing /> }, // Landing page
     { path: "/login", element: <Login /> },
     { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/reset-password", element: <ResetPassword /> },
@@ -65,16 +86,27 @@ const router = createBrowserRouter([
     },
   });
 
+const AppContent = () => {
+  const { isLoading } = useAuth();
+  
+  return (
+    <>
+      <AppLoader isLoading={isLoading} />
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <RouterProvider router={router} />
+      </TooltipProvider>
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <SidebarProvider>
         <OnlineStatusProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <RouterProvider router={router} />
-          </TooltipProvider>
+          <AppContent />
         </OnlineStatusProvider>
       </SidebarProvider>
     </AuthProvider>

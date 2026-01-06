@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mail, Phone, MapPin, Calendar, Edit, Building2, Briefcase, Camera, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, Building2, Briefcase, Camera, Loader2, User, Shield } from 'lucide-react';
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
 import { CrudModal } from '@/components/modals/CrudModal';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,14 +24,14 @@ export default function Profile() {
   // Memoized fetch function to prevent infinite loops
   const fetchProfileData = useCallback(async () => {
     if (!user) return;
-      
+    
     try {
       // Get user's profile with signed image URL from backend
       const response = await employeesApi.getProfile();
-        
+      
       // Handle the response appropriately
       const emp = response;
-        
+      
       if (emp) {
         setEmployee(emp);
         // Backend returns signed URL in profile_image field
@@ -52,7 +52,7 @@ export default function Profile() {
       setEmployee(undefined);
     }
   }, [user, updateProfileImage]);
-  
+
   // Fetch profile data only once when user is available and we don't have it yet
   useEffect(() => {
     if (user && !authLoading && !employee) {
@@ -353,11 +353,13 @@ export default function Profile() {
         />
       </CrudModal>
 
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <div className="flex items-center gap-4 relative">
-            <div className="relative h-20 w-20">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Profile Header Section */}
+        <div className="relative rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-6 text-white overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+          <div className="relative flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white/30 bg-white/20 backdrop-blur-sm transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl">
                 {user?.profile_image || employee?.profile_image ? (
                   <img
                     src={user?.profile_image || employee?.profile_image}
@@ -372,8 +374,8 @@ export default function Profile() {
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
-                    <span className="text-2xl font-bold text-white">
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/30 to-white/10">
+                    <span className="text-3xl font-bold text-white">
                       {employee?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                       {employee?.lastName?.charAt(0) || user?.email?.charAt(1) || ''}
                     </span>
@@ -381,21 +383,12 @@ export default function Profile() {
                 )}
               </div>
 
-              <div className="absolute bottom-2 right-2 z-10">
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="h-8 w-8 rounded-full border border-background"
-                  onClick={triggerFileInput}
-                  disabled={uploading}
-                >
-                  {uploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Camera className="h-4 w-4" />
-                  )}
-                </Button>
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="bg-white/90 rounded-full p-2">
+                  <Camera className="h-5 w-5 text-indigo-600" />
+                </div>
               </div>
+              
               <input
                 type="file"
                 ref={fileInputRef}
@@ -405,156 +398,202 @@ export default function Profile() {
                 disabled={uploading}
               />
             </div>
-            <div>
-              <CardTitle className="text-xl">{employee?.firstName} {employee?.lastName}</CardTitle>
-              <p className="text-muted-foreground">{user?.role}</p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3">
-              <Mail className="h-5 w-5 text-muted-foreground" />
-              <span>{user?.email}</span>
+            
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl font-bold">{employee?.firstName} {employee?.lastName}</h1>
+              <p className="text-white/90 text-lg mt-1">{user?.role}</p>
+              <p className="text-white/80 mt-1">{user?.email}</p>
             </div>
             
-            {/* Show employee data if available, otherwise show a message */}
-            {employee ? (
-              <>
-                {/* Personal Information */}
+            <div className="mt-4 sm:mt-0 ml-auto">
+              <Button
+                onClick={triggerFileInput}
+                disabled={uploading}
+                variant="secondary"
+                className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm transition-all duration-300 hover:shadow-lg"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="h-4 w-4 mr-2" />
+                    Change Photo
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Personal Information Card */}
+          <Card className="border-0 shadow-lg bg-white/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="h-5 w-5 text-indigo-600" />
+                Personal Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
                 {employee?.phone && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span>{employee?.phone}</span>
                   </div>
                 )}
                 {employee?.dateOfBirth && (
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span>DOB: {new Date(employee?.dateOfBirth).toLocaleDateString()}</span>
                   </div>
                 )}
-                
-                {/* Company Information */}
-                {employee?.department?.name && (
-                  <div className="flex items-center gap-3">
-                    <div className="h-5 w-5 text-muted-foreground flex items-center justify-center">
-                      <Building2 className="h-4 w-4" />
-                    </div>
-                    <span>Dept: {employee?.department?.name}</span>
-                  </div>
-                )}
-                {employee?.position && (
-                  <div className="flex items-center gap-3">
-                    <div className="h-5 w-5 text-muted-foreground flex items-center justify-center">
-                      <Briefcase className="h-4 w-4" />
-                    </div>
-                    <span>Position: {employee?.position}</span>
-                  </div>
-                )}
-                {employee?.role && (
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="h-5 w-5 text-muted-foreground" />
-                    <span>Role: {employee?.role}</span>
-                  </div>
-                )}
-                {employee?.dateOfJoining && (
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-muted-foreground" />
-                    <span>DOJ: {new Date(employee?.dateOfJoining).toLocaleDateString()}</span>
-                  </div>
-                )}
-                
-                {/* Location Information */}
-                {employee?.country && (
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <span>Country: {employee?.country}</span>
-                  </div>
-                )}
-                {employee?.state && (
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <span>State: {employee?.state}</span>
+                {employee?.address && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{employee?.address}</span>
                   </div>
                 )}
                 {employee?.city && (
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <span>City: {employee?.city}</span>
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{employee?.city}, {employee?.state} {employee?.zipCode}</span>
                   </div>
                 )}
-                {employee?.zipCode && (
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <span>ZIP: {employee?.zipCode}</span>
+                {employee?.country && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{employee?.country}</span>
                   </div>
                 )}
-                {employee?.address && (
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <span>Address: {employee?.address}</span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Work Information Card */}
+          <Card className="border-0 shadow-lg bg-white/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-indigo-600" />
+                Work Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {employee?.department?.name && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{employee?.department?.name}</span>
                   </div>
                 )}
-                
-                {/* Emergency Information */}
-                {employee?.emergencyContact && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-muted-foreground" />
-                    <span>Emergency Contact: {employee?.emergencyContact}</span>
+                {employee?.position && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{employee?.position}</span>
                   </div>
                 )}
-                {employee?.emergencyPhone && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-muted-foreground" />
-                    <span>Emergency Phone: {employee?.emergencyPhone}</span>
+                {employee?.role && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{employee?.role}</span>
                   </div>
                 )}
-                
-                {/* Employment Information */}
-                {employee?.salary && (
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="h-5 w-5 text-muted-foreground" />
-                    <span>Salary: ${employee?.salary.toLocaleString()}</span>
-                  </div>
-                )}
-                {employee?.status && (
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="h-5 w-5 text-muted-foreground" />
-                    <span>Status: {employee?.status}</span>
+                {employee?.dateOfJoining && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>DOJ: {new Date(employee?.dateOfJoining).toLocaleDateString()}</span>
                   </div>
                 )}
                 {employee?.manager?.firstName && (
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span>Manager: {employee?.manager?.firstName} {employee?.manager?.lastName}</span>
                   </div>
                 )}
-                
-                {/* Timestamps */}
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                {employee?.salary && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>Salary: ${employee?.salary.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Emergency Information Card */}
+          <Card className="border-0 shadow-lg bg-white/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Phone className="h-5 w-5 text-indigo-600" />
+                Emergency Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {employee?.emergencyContact && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{employee?.emergencyContact}</span>
+                  </div>
+                )}
+                {employee?.emergencyPhone && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{employee?.emergencyPhone}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Account Information Card */}
+          <Card className="border-0 shadow-lg bg-white/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Shield className="h-5 w-5 text-indigo-600" />
+                Account Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {employee?.status && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Shield className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>Status: {employee?.status}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span>{user?.email}</span>
+                </div>
+                <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span>Created: {employee?.createdAt ? new Date(employee?.createdAt).toLocaleDateString() : 'N/A'}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span>Updated: {employee?.updatedAt ? new Date(employee?.updatedAt).toLocaleDateString() : 'N/A'}</span>
                 </div>
-              </>
-            ) : (
-              <div className="col-span-2 text-center py-4 text-muted-foreground">
-                Employee profile data is not available. Please contact an administrator to set up your employee record.
               </div>
-            )}
-          </div>
-          <div className="mt-6">
-            <Button onClick={handleEditProfile} disabled={uploading} className="w-full md:w-auto">
-              <Edit className="h-4 w-4 mr-2" />
-              {uploading ? 'Loading...' : 'Edit Profile'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Edit Profile Button */}
+        <div className="flex justify-center pt-4">
+          <Button 
+            onClick={handleEditProfile} 
+            disabled={uploading}
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-6 rounded-full text-lg font-medium transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95"
+          >
+            <Edit className="h-5 w-5 mr-3" />
+            {uploading ? 'Updating...' : 'Edit Profile'}
+          </Button>
+        </div>
+      </div>
     </>
   );
 }

@@ -25,8 +25,6 @@ const corsOptions = {
           'http://127.0.0.1:8081',
           'http://localhost:8082',
           'http://127.0.0.1:8082',
-          'http://localhost:8080',
-          'http://127.0.0.1:8080',
           'http://localhost:5173',
           'http://127.0.0.1:5173',
           'http://localhost:3003',
@@ -50,7 +48,7 @@ const corsOptions = {
 };
 
 // Rate limiting
-const limiter = rateLimit({
+const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
@@ -58,10 +56,19 @@ const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
+// More permissive rate limiter for profile endpoint
+const profileLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 120, // Higher limit for profile endpoint
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Middlewares
-app.use(limiter);
 app.use(helmet());
 app.use(cors(corsOptions));
+app.use(generalLimiter);
 
 // Compression middleware (gzip responses)
 app.use(compression());
@@ -86,26 +93,32 @@ app.use('/api/auth', require('./routes/auth.routes'));
 // Compatibility route for direct auth access
 app.use('/auth', require('./routes/auth.routes'));
 
-// Apply cache middleware to employee routes (GET requests only)
-app.use('/api/employees', cacheMiddleware(), require('./routes/employee.routes'));
-app.use('/employees', cacheMiddleware(), require('./routes/employee.routes'));
-app.use('/api/departments', require('./routes/department.routes'));
-app.use('/departments', require('./routes/department.routes'));
-app.use('/api/attendance', require('./routes/attendance.routes'));
-app.use('/attendance', require('./routes/attendance.routes'));
-app.use('/api/leaves', require('./routes/leave.routes'));
-app.use('/leaves', require('./routes/leave.routes'));
-app.use('/api/documents', require('./routes/document.routes'));
-app.use('/documents', require('./routes/document.routes'));
-app.use('/api/reports', require('./routes/report.routes'));
-app.use('/reports', require('./routes/report.routes'));
-app.use('/api/projects', require('./routes/project.routes'));
-app.use('/projects', require('./routes/project.routes'));
+// Apply different rate limiting for profile endpoint
+app.use('/api/employees/profile', profileLimiter);
+app.use('/employees/profile', profileLimiter);
 
-app.use('/api/analytics', require('@analytics/analytics.routes'));
-app.use('/analytics', require('@analytics/analytics.routes'));
-app.use('/api/chat', require('./routes/chat.routes'));
-app.use('/api/notifications', require('./routes/notification.routes'));
+// Apply general rate limiting for other employee routes
+app.use('/api/employees', generalLimiter, cacheMiddleware(), require('./routes/employee.routes'));
+app.use('/employees', generalLimiter, cacheMiddleware(), require('./routes/employee.routes'));
+
+// Apply general rate limiting to other routes
+app.use('/api/departments', generalLimiter, require('./routes/department.routes'));
+app.use('/departments', generalLimiter, require('./routes/department.routes'));
+app.use('/api/attendance', generalLimiter, require('./routes/attendance.routes'));
+app.use('/attendance', generalLimiter, require('./routes/attendance.routes'));
+app.use('/api/leaves', generalLimiter, require('./routes/leave.routes'));
+app.use('/leaves', generalLimiter, require('./routes/leave.routes'));
+app.use('/api/documents', generalLimiter, require('./routes/document.routes'));
+app.use('/documents', generalLimiter, require('./routes/document.routes'));
+app.use('/api/reports', generalLimiter, require('./routes/report.routes'));
+app.use('/reports', generalLimiter, require('./routes/report.routes'));
+app.use('/api/projects', generalLimiter, require('./routes/project.routes'));
+app.use('/projects', generalLimiter, require('./routes/project.routes'));
+
+app.use('/api/analytics', generalLimiter, require('@analytics/analytics.routes'));
+app.use('/analytics', generalLimiter, require('@analytics/analytics.routes'));
+app.use('/api/chat', generalLimiter, require('./routes/chat.routes'));
+app.use('/api/notifications', generalLimiter, require('./routes/notification.routes'));
 
 // Health check routes
 app.use('/health', require('./routes/health.routes'));

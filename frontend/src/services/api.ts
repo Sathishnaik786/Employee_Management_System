@@ -332,25 +332,43 @@ export const chatApi = {
 // =====================
 export const notificationsApi = {
   getNotifications: async (page: number = 1, limit: number = 50): Promise<Notification[]> => {
-    const token = localStorage.getItem('token') || undefined;
-    const response = await apiCall(`/notifications?page=${page}&limit=${limit}`, 'GET', undefined, token);
-    return response.data || [];
+    try {
+      const token = localStorage.getItem('token') || undefined;
+      const response = await apiCall(`/notifications?page=${page}&limit=${limit}`, 'GET', undefined, token);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return [];
+    }
   },
 
   markNotificationRead: async (id: string): Promise<void> => {
-    const token = localStorage.getItem('token') || undefined;
-    await apiCall(`/notifications/read/${id}`, 'POST', undefined, token);
+    try {
+      const token = localStorage.getItem('token') || undefined;
+      await apiCall(`/notifications/read/${id}`, 'POST', undefined, token);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   },
 
   markAllNotificationsRead: async (): Promise<void> => {
-    const token = localStorage.getItem('token') || undefined;
-    await apiCall('/notifications/read-all', 'POST', undefined, token);
+    try {
+      const token = localStorage.getItem('token') || undefined;
+      await apiCall('/notifications/read-all', 'POST', undefined, token);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   },
 
   getUnreadCount: async (): Promise<number> => {
-    const token = localStorage.getItem('token') || undefined;
-    const response = await apiCall('/notifications/unread-count', 'GET', undefined, token);
-    return response.count || 0;
+    try {
+      const token = localStorage.getItem('token') || undefined;
+      const response = await apiCall('/notifications/unread-count', 'GET', undefined, token);
+      return response.count || 0;
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+      return 0;
+    }
   },
 };
 

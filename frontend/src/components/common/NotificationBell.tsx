@@ -52,7 +52,7 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
         notificationService.disconnect();
       };
     }
-  }, [user]);
+  }, [user?.id]); // Only re-run when user ID changes, not on every user object change
   
   // Fetch notifications for the user
   const fetchNotifications = async () => {

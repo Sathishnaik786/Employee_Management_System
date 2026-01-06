@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/services/api';
@@ -33,6 +33,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const profileRequestPromiseRef = useRef<Promise<any> | null>(null);
   const queryClient = useQueryClient();
   
   // Enable real-time query invalidation
@@ -49,24 +50,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const fetchUserProfile = async () => {
-    try {
-      setIsLoading(true);
-      // Use the me() endpoint to get user profile
-      const response = await authApi.me();
-      if (response.success && response.data?.user) {
-        setUser(response.data.user);
-      } else {
-        // If me() endpoint doesn't exist or fails, clear token
-        localStorage.removeItem('token');
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      // Clear token if there's an error
-      localStorage.removeItem('token');
-      setUser(null);
-    } finally {
-      setIsLoading(false);
+    // Prevent duplicate requests by returning the existing promise if one is in flight
+    if (profileRequestPromiseRef.current) {
+      return profileRequestPromiseRef.current;
     }
+    
+    const requestPromise = (async () => {
+      try {
+        setIsLoading(true);
+        // Use the me() endpoint to get user profile
+        const response = await authApi.me();
+        if (response.success && response.data?.user) {
+          setUser(response.data.user);
+        } else {
+          // If me() endpoint doesn't exist or fails, clear token
+          localStorage.removeItem('token');
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        // Clear token if there's an error
+        localStorage.removeItem('token');
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+        // Clear the reference after the request completes
+        profileRequestPromiseRef.current = null;
+      }
+    })();
+    
+    // Store the promise reference to prevent duplicate requests
+    profileRequestPromiseRef.current = requestPromise;
+    
+    return requestPromise;
   };
 
   const login = async (email: string, password: string) => {

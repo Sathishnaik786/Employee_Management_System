@@ -1,4 +1,6 @@
-const { supabase } = require('@lib/supabase');
+require('dotenv').config();
+require('module-alias/register');
+const { supabase, supabaseAdmin } = require('@lib/supabase');
 
 async function createEmployeeRecord() {
     const email = process.argv[2];
@@ -10,8 +12,8 @@ async function createEmployeeRecord() {
     }
     
     try {
-        // First, get the user from Supabase Auth
-        const { data: { users }, error: authError } = await supabase.auth.admin.listUsers();
+        // First, get the user from Supabase Auth using the service role
+        const { data: { users }, error: authError } = await supabaseAdmin.auth.admin.listUsers();
         
         if (authError) {
             console.error('Error fetching users from Supabase Auth:', authError.message);
@@ -38,6 +40,33 @@ async function createEmployeeRecord() {
             console.log(`Employee record already exists for user ${email}`);
             console.log('Employee data:', existingEmployee);
             return;
+        }
+        
+        // First, check if user exists in the public users table
+        const { data: existingUser, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle();
+            
+        if (!existingUser) {
+            // User doesn't exist in public users table, create it first
+            const { data: newUser, error: newError } = await supabase
+                .from('users')
+                .insert([{
+                    id: user.id,
+                    email: email,
+                    role: 'EMPLOYEE' // Default role
+                }])
+                .select()
+                .single();
+                
+            if (newError) {
+                console.error('Error creating user in public table:', newError.message);
+                return;
+            }
+            
+            console.log('Created user in public table:', newUser);
         }
         
         // Create a basic employee record for the user

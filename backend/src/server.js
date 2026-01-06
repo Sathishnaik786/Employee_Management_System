@@ -14,19 +14,23 @@ console.log('Attempting to start server...');
 
 const server = http.createServer(app);
 
-// CORS origins configuration
+// CORS origins configuration - should match Express CORS configuration
 const corsOrigins = config.NODE_ENV === 'production'
   ? [config.FRONTEND_URL, 'https://yviems.netlify.app'].filter(Boolean)
   : [
       'http://localhost:8080',
-      'http://localhost:8081',
-      'http://localhost:8082',
-      'http://localhost:5173',
-      'http://localhost:5174',
       'http://127.0.0.1:8080',
+      'http://localhost:8081',
       'http://127.0.0.1:8081',
+      'http://localhost:8082',
       'http://127.0.0.1:8082',
+      'http://localhost:5173',
       'http://127.0.0.1:5173',
+      'http://localhost:3003',
+      'http://127.0.0.1:3003',
+      'http://localhost:3002',
+      'http://127.0.0.1:3002',
+      'http://localhost:5174',
       'http://127.0.0.1:5174'
     ];
 

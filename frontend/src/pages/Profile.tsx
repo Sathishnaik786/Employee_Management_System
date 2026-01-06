@@ -17,40 +17,30 @@ export default function Profile() {
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [employee, setEmployee] = useState<Employee | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Memoized fetch function to prevent infinite loops
   const fetchProfileData = useCallback(async () => {
     if (!user) return;
-    
-    try {
-      setLoading(true);
       
+    try {
       // Get user's profile with signed image URL from backend
       const response = await employeesApi.getProfile();
-      
-      console.log('Profile API Response:', response); // Debug logging
-      
+        
       // Handle the response appropriately
       const emp = response;
-      
+        
       if (emp) {
         setEmployee(emp);
         // Backend returns signed URL in profile_image field
-        if (emp.profile_image) {
-          setProfileImageUrl(emp.profile_image);
-          // Also update global auth context
+        if (emp.profile_image && emp.profile_image !== user?.profile_image) {
+          // Only update global auth context if the image is different
           updateProfileImage(emp.profile_image);
-        } else {
-          setProfileImageUrl(null);
         }
       } else {
         setEmployee(undefined);
-        setProfileImageUrl(null);
       }
     } catch (error) {
       console.error('Error fetching profile data:', error);
@@ -60,18 +50,15 @@ export default function Profile() {
         variant: 'destructive',
       });
       setEmployee(undefined);
-      setProfileImageUrl(null);
-    } finally {
-      setLoading(false);
     }
-  }, [user, toast, updateProfileImage]);
-
-  // Fetch profile data only once when user is available
+  }, [user, updateProfileImage]);
+  
+  // Fetch profile data only once when user is available and we don't have it yet
   useEffect(() => {
-    if (user && !authLoading) {
+    if (user && !authLoading && !employee) {
       fetchProfileData();
     }
-  }, [user?.id, authLoading, fetchProfileData]);
+  }, [user?.id, authLoading, employee, fetchProfileData]);
 
   const handleEditProfile = () => {
     setIsModalOpen(true);
@@ -118,7 +105,6 @@ export default function Profile() {
       
       // Update profile image URL if it changed
       if (updatedEmployee.profile_image) {
-        setProfileImageUrl(updatedEmployee.profile_image);
         updateProfileImage(updatedEmployee.profile_image);
       }
       
@@ -194,9 +180,6 @@ export default function Profile() {
       if (result.data?.profile_image) {
         const newImageUrl = result.data.profile_image;
         
-        // Update local state
-        setProfileImageUrl(newImageUrl);
-        
         // Update global user state
         updateProfileImage(newImageUrl);
         
@@ -259,7 +242,7 @@ export default function Profile() {
     );
   }
 
-  if (loading) {
+  if (authLoading) {
     return (
       <>
         <PageHeader title="Profile" description="Manage your personal information" />
@@ -375,9 +358,9 @@ export default function Profile() {
           <div className="flex items-center gap-4 relative">
             <div className="relative h-20 w-20">
               <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300">
-                {profileImageUrl || employee?.profile_image ? (
+                {user?.profile_image || employee?.profile_image ? (
                   <img
-                    src={profileImageUrl || employee?.profile_image}
+                    src={user?.profile_image || employee?.profile_image}
                     alt="profile"
                     className="w-full h-full object-cover"
                     loading="eager"
@@ -385,8 +368,7 @@ export default function Profile() {
                     crossOrigin="anonymous"
                     onError={(e) => {
                       // Fallback to initials if image fails to load
-                      console.error('Profile image failed to load:', profileImageUrl);
-                      setProfileImageUrl(null);
+                      console.error('Profile image failed to load:', user?.profile_image);
                     }}
                   />
                 ) : (
@@ -566,9 +548,9 @@ export default function Profile() {
             )}
           </div>
           <div className="mt-6">
-            <Button onClick={handleEditProfile} disabled={loading} className="w-full md:w-auto">
+            <Button onClick={handleEditProfile} disabled={uploading} className="w-full md:w-auto">
               <Edit className="h-4 w-4 mr-2" />
-              {loading ? 'Loading...' : 'Edit Profile'}
+              {uploading ? 'Loading...' : 'Edit Profile'}
             </Button>
           </div>
         </CardContent>

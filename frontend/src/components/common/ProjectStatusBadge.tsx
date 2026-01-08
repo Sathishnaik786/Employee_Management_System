@@ -1,51 +1,63 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Target, Clock, Pause, CheckCircle2, Archive, Rocket } from 'lucide-react';
 
 interface ProjectStatusBadgeProps {
   status: string;
   className?: string;
+  showIcon?: boolean;
 }
 
-const ProjectStatusBadge: React.FC<ProjectStatusBadgeProps> = ({ 
-  status, 
-  className 
+const ProjectStatusBadge: React.FC<ProjectStatusBadgeProps> = ({
+  status,
+  className,
+  showIcon = true
 }) => {
   const getStatusConfig = (status: string) => {
     switch (status.toUpperCase()) {
       case 'CREATED':
         return {
-          label: 'Created',
-          className: 'bg-gray-100 text-gray-800 border-gray-200'
+          label: 'Initialization',
+          className: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+          icon: <Target size={12} />
         };
       case 'ASSIGNED':
+      case 'ACTIVE':
         return {
-          label: 'Assigned',
-          className: 'bg-blue-100 text-blue-800 border-blue-200'
+          label: 'Deployed',
+          className: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+          icon: <Rocket size={12} />
         };
       case 'IN_PROGRESS':
         return {
-          label: 'In Progress',
-          className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+          label: 'Operational',
+          className: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+          icon: <Clock size={12} />
         };
       case 'ON_HOLD':
         return {
-          label: 'On Hold',
-          className: 'bg-orange-100 text-orange-800 border-orange-200'
+          label: 'Paused',
+          className: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+          icon: <Pause size={12} />
         };
       case 'COMPLETED':
+      case 'DONE':
         return {
-          label: 'Completed',
-          className: 'bg-green-100 text-green-800 border-green-200'
+          label: 'Finalized',
+          className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+          icon: <CheckCircle2 size={12} />
         };
       case 'ARCHIVED':
         return {
           label: 'Archived',
-          className: 'bg-purple-100 text-purple-800 border-purple-200'
+          className: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+          icon: <Archive size={12} />
         };
       default:
         return {
           label: status,
-          className: 'bg-gray-100 text-gray-800 border-gray-200'
+          className: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+          icon: <Target size={12} />
         };
     }
   };
@@ -53,13 +65,14 @@ const ProjectStatusBadge: React.FC<ProjectStatusBadgeProps> = ({
   const config = getStatusConfig(status);
 
   return (
-    <span 
+    <span
       className={cn(
-        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
+        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border transition-all duration-300 backdrop-blur-sm',
         config.className,
         className
       )}
     >
+      {showIcon && config.icon}
       {config.label}
     </span>
   );

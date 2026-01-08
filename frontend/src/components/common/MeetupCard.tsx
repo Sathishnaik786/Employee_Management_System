@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-export type MeetupStatus = "APPROVED" | "PENDING";
+export type MeetupStatus = "APPROVED" | "PENDING" | "REJECTED" | "CANCELLED";
 export type MeetupPlatform = "TEAMS" | "GOOGLE_MEET";
 
 export interface Meetup {
@@ -26,7 +26,8 @@ interface MeetupCardProps {
 
 export const MeetupCard: React.FC<MeetupCardProps> = ({ meetup, onJoin }) => {
   const platformVariant: BadgeProps["variant"] = meetup.platform === "TEAMS" ? "primary" : "secondary";
-  const statusVariant: BadgeProps["variant"] = meetup.status === "APPROVED" ? "success" : "warning";
+  const statusVariant: BadgeProps["variant"] = meetup.status === "APPROVED" ? "success" : 
+    meetup.status === "PENDING" ? "warning" : "destructive";
 
   return (
     <Card className="flex h-full flex-col border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
@@ -40,11 +41,27 @@ export const MeetupCard: React.FC<MeetupCardProps> = ({ meetup, onJoin }) => {
               <Badge variant="outline" className="uppercase tracking-wide text-[10px] text-gray-600">
                 {meetup.type}
               </Badge>
-              <Badge variant={platformVariant as any} className="uppercase text-[10px]">
-                {meetup.platform}
-              </Badge>
+              {meetup.platform === 'GOOGLE_MEET' ? (
+                <div className="flex items-center gap-1">
+                  <img 
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Google_Meet_text_logo_%282020%29.svg/1024px-Google_Meet_text_logo_%282020%29.svg.png" 
+                    alt="Google Meet" 
+                    className="h-20 w-20 object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <img 
+                    src="https://logos-world.net/wp-content/uploads/2021/04/Microsoft-Teams-Emblem.png" 
+                    alt="Microsoft Teams" 
+                    className="h-20 w-20 object-contain"
+                  />
+                </div>
+              )}
               <Badge variant={statusVariant} className="text-[10px]">
-                {meetup.status === "APPROVED" ? "Approved" : "Pending"}
+                {meetup.status === "APPROVED" ? "Approved" : 
+                 meetup.status === "PENDING" ? "Pending" : 
+                 meetup.status === "REJECTED" ? "Rejected" : "Cancelled"}
               </Badge>
             </div>
           </div>
@@ -76,10 +93,13 @@ export const MeetupCard: React.FC<MeetupCardProps> = ({ meetup, onJoin }) => {
           <Button
             size="sm"
             className="px-3"
-            onClick={() => onJoin?.(meetup)}
+            onClick={() => {
+              console.log('Join button clicked in MeetupCard', meetup);
+              onJoin?.(meetup);
+            }}
             disabled={meetup.status !== "APPROVED"}
           >
-            Join Meet
+            {meetup.status === "APPROVED" ? "Join Meet" : "Not Available"}
           </Button>
         </div>
       </CardContent>

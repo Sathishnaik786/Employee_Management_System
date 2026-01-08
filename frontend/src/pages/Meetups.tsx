@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Meetup, MeetupCard } from "@/components/common/MeetupCard";
+import { Meetup, MeetupCard, type Meetup as MeetupType } from "@/components/common/MeetupCard";
 import { CreateMeetupModal, MeetupFormValues, MeetupFormMode } from "@/components/modals/CreateMeetupModal";
 import { ApprovalsPanel, PendingMeetup } from "@/components/common/ApprovalsPanel";
 import { meetupsApi, type MeetupApiModel } from "@/services/api";
@@ -17,7 +17,7 @@ export default function MeetupsPage() {
   const primaryButtonLabel = isAdminOrManager ? "Create Meet" : "Request Meet";
 
   const [meetups, setMeetups] = useState<MeetupApiModel[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -29,7 +29,7 @@ export default function MeetupsPage() {
       setLoading(true);
       setError(null);
       const data = await meetupsApi.getAll();
-      setMeetups(data || []);
+      setMeetups(Array.isArray(data) ? data : []);
     } catch (err: unknown) {
       console.error("Failed to load meetups", err);
       if (err instanceof Error) {
@@ -99,28 +99,52 @@ export default function MeetupsPage() {
     }
   };
 
+  const handleJoinMeet = (originalMeetup: MeetupApiModel | undefined) => {
+    if (!originalMeetup) {
+      console.error('Original meetup not found');
+      alert('Unable to join meet - meetup data not available');
+      return;
+    }
+    console.log('Join Meet button clicked', originalMeetup);
+    // Check for both possible field names that might come from the API
+    const meetLink = originalMeetup.link || originalMeetup.meet_link;
+    if (meetLink) {
+      console.log('Opening meet link:', meetLink);
+      // Open the meet link in a new tab
+      window.open(meetLink, '_blank', 'noopener,noreferrer');
+    } else {
+      // If no link exists, show an error or notification
+      console.error('No meet link available for this meetup', originalMeetup.id);
+      alert('No meet link available for this meetup');
+      // In a real app, you might want to show a toast notification here
+    }
+  };
+
   const approvedMeetups: Meetup[] = useMemo(
-    () =>
-      (meetups || [])
-        .filter((m) => m.status === "APPROVED")
+    () => {
+      if (!Array.isArray(meetups)) return [];
+      return meetups
+        .filter((m) => m && m.status === "APPROVED")
         .map((m) => ({
           id: m.id,
           title: m.title,
           type: m.type,
           date: m.dateLabel || m.date || "",
-          timeRange: m.timeLabel || `${m.startTime} - ${m.endTime}`,
+          timeRange: m.timeLabel || `${m.startTime || ''} - ${m.endTime || ''}`,
           platform: m.platform,
           status: m.status,
           host: m.hostName,
           description: m.description,
-        })),
+        }));
+    },
     [meetups],
   );
 
   const pendingMeetups: PendingMeetup[] = useMemo(
-    () =>
-      (meetups || [])
-        .filter((m) => m.status === "PENDING")
+    () => {
+      if (!Array.isArray(meetups)) return [];
+      return meetups
+        .filter((m) => m && m.status === "PENDING")
         .map((m) => ({
           id: m.id,
           title: m.title,
@@ -128,8 +152,9 @@ export default function MeetupsPage() {
           dateLabel:
             m.dateLabel ||
             (m.date ? format(new Date(m.date), "EEE, dd MMM yyyy") : ""),
-          timeLabel: m.timeLabel || `${m.startTime} - ${m.endTime}`,
-        })),
+          timeLabel: m.timeLabel || `${m.startTime || ''} - ${m.endTime || ''}`,
+        }));
+    },
     [meetups],
   );
 
@@ -140,9 +165,9 @@ export default function MeetupsPage() {
           title="Meet-ups"
           description="Manage and join your upcoming team meet-ups."
         />
-        <div className="flex justify-start md:justify-end">
-          <Button onClick={handleOpenModal} className="w-full md:w-auto">
-            {primaryButtonLabel}
+        <div className="w-full md:w-auto">
+          <Button onClick={handleOpenModal} className="w-full" disabled={loading}>
+            {loading ? "Loading..." : primaryButtonLabel}
           </Button>
         </div>
       </div>
@@ -158,7 +183,7 @@ export default function MeetupsPage() {
 
       <div className="space-y-3">
         {loading && (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
             {[...Array(3)].map((_, idx) => (
               <div
                 key={idx}
@@ -181,19 +206,31 @@ export default function MeetupsPage() {
 
         {!loading && !error && approvedMeetups.length === 0 && (
           <div className="rounded-lg border border-dashed border-gray-200 bg-white/60 p-6 text-center text-sm text-gray-500">
-            No meet-ups scheduled yet.{" "}
+            <div className="mx-auto mb-3 h-12 w-12 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-full w-full">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            No meet-ups scheduled yet. 
             <span className="font-medium text-primary">
-              {primaryButtonLabel}{" "}
+              {primaryButtonLabel}
             </span>
             to get started.
           </div>
         )}
 
         {!loading && !error && approvedMeetups.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {approvedMeetups.map((meetup) => (
-              <MeetupCard key={meetup.id} meetup={meetup} />
-            ))}
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+            {approvedMeetups.map((meetup) => {
+              const originalMeetup = meetups.find(m => m.id === meetup.id);
+              return (
+                <MeetupCard 
+                  key={meetup.id} 
+                  meetup={meetup} 
+                  onJoin={() => handleJoinMeet(originalMeetup)} 
+                />
+              );
+            })}
           </div>
         )}
       </div>

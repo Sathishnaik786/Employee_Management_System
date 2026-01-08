@@ -64,11 +64,27 @@ export const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
             <h2 className="text-lg font-semibold text-gray-900">{event.title}</h2>
             {event.platform && (
               <div className="mt-2 flex items-center gap-2 text-xs">
-                {platformVariant && (
-                  <Badge variant={platformVariant} className="uppercase">
-                    {event.platform}
-                  </Badge>
-                )}
+                <div className="flex items-center gap-1">
+                  {event.platform === 'GOOGLE_MEET' ? (
+                    <>
+                      <img 
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Google_Meet_text_logo_%282020%29.svg/1024px-Google_Meet_text_logo_%282020%29.svg.png" 
+                        alt="Google Meet" 
+                        className="h-4 w-4 object-contain"
+                      />
+                      <span className="uppercase text-[10px]">Google Meet</span>
+                    </>
+                  ) : (
+                    <>
+                      <img 
+                        src="https://www.liblogo.com/img-logo/mi462m3e6-microsoft-teams-logo-microsoft-teams-logo-png-and-vector-logo-download.png" 
+                        alt="Microsoft Teams" 
+                        className="h-4 w-4 object-contain"
+                      />
+                      <span className="uppercase text-[10px]">Teams</span>
+                    </>
+                  )}
+                </div>
                 {statusVariant && (
                   <Badge variant={statusVariant}>
                     {event.status === "APPROVED" ? "Approved" : "Pending"}

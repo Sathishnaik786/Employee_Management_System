@@ -606,6 +606,8 @@ export interface MeetupApiModel {
   hostName?: string;
   requestedBy?: string;
   requesterName?: string;
+  meet_link?: string;
+  link?: string;
 }
 
 export const meetupsApi = {

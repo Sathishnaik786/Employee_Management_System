@@ -119,6 +119,8 @@ app.use('/api/analytics', generalLimiter, require('@analytics/analytics.routes')
 app.use('/analytics', generalLimiter, require('@analytics/analytics.routes'));
 app.use('/api/chat', generalLimiter, require('./routes/chat.routes'));
 app.use('/api/notifications', generalLimiter, require('./routes/notification.routes'));
+app.use('/api/meetups', generalLimiter, require('./routes/meetup.routes'));
+app.use('/api/calendar-events', generalLimiter, require('./routes/calendar.routes'));
 
 // Health check routes
 app.use('/health', require('./routes/health.routes'));

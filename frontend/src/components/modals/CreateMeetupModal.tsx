@@ -71,13 +71,13 @@ export const CreateMeetupModal: React.FC<CreateMeetupModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto sm:rounded-xl">
+      <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto sm:rounded-xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{titleLabel}</DialogTitle>
           <DialogDescription>{descriptionLabel}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4 sm:space-y-6">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-800">Title</label>
             <Input
@@ -98,7 +98,7 @@ export const CreateMeetupModal: React.FC<CreateMeetupModalProps> = ({
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-800">Meetup Type</label>
               <Select
@@ -129,8 +129,22 @@ export const CreateMeetupModal: React.FC<CreateMeetupModalProps> = ({
                   <SelectValue placeholder="Select platform" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="TEAMS">Microsoft Teams</SelectItem>
-                  <SelectItem value="GOOGLE_MEET">Google Meet</SelectItem>
+                  <SelectItem value="TEAMS" className="flex items-center gap-2">
+                    <img 
+                      src="https://www.liblogo.com/img-logo/mi462m3e6-microsoft-teams-logo-microsoft-teams-logo-png-and-vector-logo-download.png" 
+                      alt="Microsoft Teams" 
+                      className="h-4 w-4 object-contain"
+                    />
+                    Microsoft Teams
+                  </SelectItem>
+                  <SelectItem value="GOOGLE_MEET" className="flex items-center gap-2">
+                    <img 
+                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Google_Meet_text_logo_%282020%29.svg/1024px-Google_Meet_text_logo_%282020%29.svg.png" 
+                      alt="Google Meet" 
+                      className="h-4 w-4 object-contain"
+                    />
+                    Google Meet
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -145,23 +159,24 @@ export const CreateMeetupModal: React.FC<CreateMeetupModalProps> = ({
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-800">Date</label>
-              <div className="rounded-lg border border-gray-200 bg-white p-2">
+              <div className="rounded-lg border border-gray-200 bg-white p-1 sm:p-2">
                 <Calendar
                   mode="single"
                   selected={values.date}
                   onSelect={(date) => date && handleChange("date", date)}
+                  className="w-full max-w-full"
                 />
               </div>
             </div>
 
             <div className="space-y-3">
-              <p className="mt-5 text-xs font-medium uppercase tracking-wide text-gray-500">
+              <p className="mt-3 sm:mt-5 text-xs font-medium uppercase tracking-wide text-gray-500">
                 Time
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-gray-700">
                     Start time
@@ -194,11 +209,11 @@ export const CreateMeetupModal: React.FC<CreateMeetupModalProps> = ({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={!!isSubmitting}>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} disabled={!!isSubmitting} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" disabled={!!isSubmitting}>
+            <Button type="submit" disabled={!!isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? "Saving..." : titleLabel}
             </Button>
           </div>

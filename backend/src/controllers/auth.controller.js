@@ -367,10 +367,10 @@ exports.login = async (req, res, next) => {
 // Get current user's profile
 exports.getMe = async (req, res, next) => {
     try {
-        // Get employee data to fetch profile_image with signed URL
+        // Get employee data to fetch profile_image and position with signed URL
         const { data: employee, error } = await supabase
             .from('employees')
-            .select('profile_image')
+            .select('profile_image, position')
             .eq('user_id', req.user.id)
             .single();
 
@@ -422,6 +422,7 @@ exports.getMe = async (req, res, next) => {
                     id: req.user.id,
                     email: req.user.email,
                     role: req.user.role,
+                    position: employee?.position, // Include position from employee record
                     profile_image: profileImageUrl, // Include signed URL if available
                     firstName: req.user.firstName,
                     lastName: req.user.lastName,

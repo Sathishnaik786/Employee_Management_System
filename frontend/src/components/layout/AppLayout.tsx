@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +7,7 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { sidebarCollapseVariants, slideInLeftVariants } from '@/animations/motionVariants';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { OnlineIndicator } from '@/components/common/OnlineIndicator';
 import { GlobalSearch } from '@/components/common/GlobalSearch';
@@ -39,6 +40,10 @@ import {
   FolderKanban,
   FolderOpen,
   MessageCircle,
+  ChevronDown,
+  Dot,
+  HelpCircle,
+  ShieldCheck
 } from 'lucide-react';
 
 interface NavItem {
@@ -48,20 +53,44 @@ interface NavItem {
   roles?: string[];
 }
 
-const navItems: NavItem[] = [
-  { title: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
-  { title: 'Employees', href: '/app/employees', icon: Users, roles: ['ADMIN', 'HR', 'MANAGER'] },
-  { title: 'Departments', href: '/app/departments', icon: Building2 },
-  { title: 'Attendance', href: '/app/attendance', icon: Clock },
-  { title: 'Leaves', href: '/app/leaves', icon: Calendar },
-  { title: 'Calendar', href: '/app/calendar', icon: Calendar },
-  { title: 'Projects', href: '/app/projects', icon: FolderKanban, roles: ['ADMIN', 'MANAGER'] },
-  { title: 'My Projects', href: '/app/my-projects', icon: FolderOpen, roles: ['EMPLOYEE'] },
-  { title: 'Meet-ups', href: '/app/meetups', icon: Users2 },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
 
-  { title: 'Documents', href: '/app/documents', icon: FileText, roles: ['ADMIN', 'HR'] },
-  { title: 'Reports', href: '/app/reports', icon: BarChart3, roles: ['ADMIN', 'HR', 'MANAGER'] },
-  { title: 'Admin Users', href: '/app/admin/users', icon: Users, roles: ['ADMIN'] },
+const navGroups: NavGroup[] = [
+  {
+    label: 'Overview',
+    items: [
+      { title: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
+      { title: 'Meet-ups', href: '/app/meetups', icon: Users2 },
+    ]
+  },
+  {
+    label: 'Resources',
+    items: [
+      { title: 'Employees', href: '/app/employees', icon: Users, roles: ['ADMIN', 'HR', 'MANAGER'] },
+      { title: 'Departments', href: '/app/departments', icon: Building2 },
+      { title: 'Attendance', href: '/app/attendance', icon: Clock },
+      { title: 'Leaves', href: '/app/leaves', icon: Calendar },
+      { title: 'Calendar', href: '/app/calendar', icon: Calendar },
+    ]
+  },
+  {
+    label: 'Execution',
+    items: [
+      { title: 'Projects', href: '/app/projects', icon: FolderKanban, roles: ['ADMIN', 'MANAGER'] },
+      { title: 'My Projects', href: '/app/my-projects', icon: FolderOpen, roles: ['EMPLOYEE'] },
+    ]
+  },
+  {
+    label: 'Intelligence',
+    items: [
+      { title: 'Documents', href: '/app/documents', icon: FileText, roles: ['ADMIN', 'HR'] },
+      { title: 'Reports', href: '/app/reports', icon: BarChart3, roles: ['ADMIN', 'HR', 'MANAGER'] },
+      { title: 'Admin Users', href: '/app/admin/users', icon: Users, roles: ['ADMIN'] },
+    ]
+  }
 ];
 
 interface AppLayoutProps {
@@ -75,21 +104,35 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [unreadChatCount, setUnreadChatCount] = useState(2);
 
-  const filteredNavItems = navItems.filter(item => {
-    if (!item.roles) return true;
-    return user && item.roles.includes(user.role);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('yvi_sidebar_sections');
+    return saved ? JSON.parse(saved) : { Overview: true, Resources: true, Execution: true, Intelligence: true };
   });
+
+  const toggleSection = (label: string) => {
+    setExpandedSections(prev => {
+      const next = { ...prev, [label]: !prev[label] };
+      localStorage.setItem('yvi_sidebar_sections', JSON.stringify(next));
+      return next;
+    });
+  };
 
   const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
 
-  return (
-    <div className="min-h-screen flex w-full bg-background">
+  const filterItems = (items: NavItem[]) => {
+    return items.filter(item => {
+      if (!item.roles) return true;
+      return user && item.roles.includes(user.role);
+    });
+  };
 
+  return (
+    <div className="h-screen flex w-full bg-background text-foreground overflow-hidden font-sans antialiased">
       {/* Mobile overlay */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            className="fixed inset-0 bg-foreground/50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -99,259 +142,355 @@ export function AppLayout({ children }: AppLayoutProps) {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <motion.aside
-        className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-screen bg-sidebar flex flex-col",
-          collapsed ? "w-[70px]" : "w-64",
-          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        )}
-        variants={sidebarCollapseVariants}
-        animate={collapsed ? 'collapsed' : 'expanded'}
-        initial={false}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      >
-        {/* Logo */}
-        <div className={cn(
-          "h-16 flex items-center border-b border-sidebar-border px-4",
-          collapsed ? "justify-center" : "justify-between"
-        )}>
-          {!collapsed && (
-            <Link to="/app/dashboard" className="flex items-center gap-2">
-              <img 
-                src="/logo.png"
-                alt="Logo" 
-                className="w-8 h-8 rounded-lg object-contain"
-                loading="eager"
-                referrerPolicy="no-referrer"
-              />
-              <span className="font-semibold text-sidebar-foreground">EMS</span>
-            </Link>
+      <TooltipProvider delayDuration={0}>
+        <motion.aside
+          className={cn(
+            "fixed lg:sticky top-0 left-0 z-50 h-screen flex flex-col border-r border-sidebar-border/30 overflow-hidden",
+            "bg-[#0a0c10] lg:bg-[#0a0c10]/95 lg:backdrop-blur-2xl transition-all duration-500 ease-in-out",
+            collapsed ? "w-[78px]" : "w-64",
+            mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
-          {collapsed && (
-            <img 
-            src="/logo.png"
-            alt="Logo" 
-            className="w-8 h-8 rounded-lg object-contain"
-            loading="eager"
-            referrerPolicy="no-referrer"
-          />
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "hidden lg:flex text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent",
-              collapsed && "absolute -right-3 top-5 bg-sidebar border border-sidebar-border rounded-full w-6 h-6"
-            )}
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
-        </div>
+          animate={collapsed ? { width: 78 } : { width: 256 }}
+          initial={false}
+          transition={{ type: 'spring', stiffness: 220, damping: 28 }}
+        >
+          {/* Subtle Side Gradient */}
+          <div className="absolute inset-y-0 right-0 w-[1px] bg-gradient-to-b from-transparent via-primary/10 to-transparent" />
 
-        {/* Navigation */}
-        <ScrollArea className="flex-1 py-4">
-          <nav className="space-y-1 px-2">
-            {filteredNavItems.map((item, index) => {
-              const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
-              return (
+          {/* Logo Section */}
+          <div className={cn(
+            "h-[72px] flex items-center shrink-0 border-b border-sidebar-border/10",
+            collapsed ? "justify-center" : "px-6 justify-between"
+          )}>
+            <Link to="/app/dashboard" className="flex items-center gap-3.5 group">
+              <motion.div
+                whileHover={{ scale: 1.05, rotate: -3 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <img
+                  src="/logo.png"
+                  alt="Logo"
+                  className="w-9 h-9 relative rounded-xl object-contain shadow-2xl shadow-primary/40 bg-white/5 p-1.5 border border-white/10"
+                />
+              </motion.div>
+              {!collapsed && (
                 <motion.div
-                  key={item.href}
-                  initial="initial"
-                  animate="animate"
-                  variants={slideInLeftVariants}
-                  transition={{ delay: index * 0.03 }}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex flex-col"
                 >
-                  <Link
-                    to={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={cn(
-                      "relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
-                      isActive
-                        ? "bg-sidebar-accent text-sidebar-primary"
-                        : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                    )}
-                  >
-                    {/* Active indicator bar */}
-                    {isActive && (
-                      <motion.div
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-sidebar-primary rounded-r-full"
-                        layoutId="activeIndicator"
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                      />
-                    )}
-                    <item.icon className={cn(
-                      "h-5 w-5 flex-shrink-0 transition-transform duration-200",
-                      isActive && "text-sidebar-primary",
-                      !isActive && "group-hover:scale-110"
-                    )} />
-                    {!collapsed && (
-                      <motion.span
-                        className="font-medium"
-                        initial={{ opacity: collapsed ? 0 : 1 }}
-                        animate={{ opacity: collapsed ? 0 : 1 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {item.title}
-                      </motion.span>
-                    )}
-                  </Link>
+                  <span className="font-black text-lg tracking-tight text-white leading-none">YVI TECH</span>
+                  <span className="text-[10px] font-bold text-primary/70 tracking-[0.2em] mt-0.5">ENTERPRISE</span>
                 </motion.div>
-              );
-            })}
-          </nav>
-        </ScrollArea>
+              )}
+            </Link>
+          </div>
 
-        {/* User menu */}
-        <div className="border-t border-sidebar-border p-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className={cn(
-                "flex items-center gap-3 w-full rounded-lg p-2 hover:bg-sidebar-accent transition-colors",
-                collapsed && "justify-center"
-              )}>
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
-                  {user?.profile_image ? (
-                    <img
-                      src={user.profile_image}
-                      alt="profile"
-                      className="w-full h-full object-cover"
-                      loading="eager"
-                      referrerPolicy="no-referrer"
-                      crossOrigin="anonymous"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-sm font-bold">{initials}</span>
+          {/* Navigation Area */}
+          <ScrollArea className="flex-1 scrollbar-premium px-3">
+            <div className="py-6 space-y-8">
+              {navGroups.map((group) => {
+                const groupItems = filterItems(group.items);
+                if (groupItems.length === 0) return null;
+
+                const isExpanded = expandedSections[group.label] !== false;
+
+                return (
+                  <div key={group.label} className="space-y-2">
+                    {!collapsed && (
+                      <button
+                        onClick={() => toggleSection(group.label)}
+                        className="flex items-center justify-between w-full px-4 mb-2 group text-sidebar-muted/40 hover:text-sidebar-foreground transition-colors"
+                      >
+                        <span className="text-[10px] font-black uppercase tracking-[0.25em]">{group.label}</span>
+                        <ChevronDown
+                          size={12}
+                          className={cn("transition-transform duration-300", !isExpanded && "-rotate-90")}
+                        />
+                      </button>
+                    )}
+
+                    <div className="space-y-1">
+                      <AnimatePresence initial={false}>
+                        {(isExpanded || collapsed) && (
+                          <motion.div
+                            initial={collapsed ? false : { height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            className="overflow-hidden space-y-1"
+                          >
+                            {groupItems.map((item) => {
+                              const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
+
+                              return (
+                                <Tooltip key={item.href}>
+                                  <TooltipTrigger asChild>
+                                    <Link
+                                      to={item.href}
+                                      onClick={() => setMobileOpen(false)}
+                                      className={cn(
+                                        "relative flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 group",
+                                        collapsed ? "justify-center mx-1" : "mx-1",
+                                        isActive
+                                          ? "bg-primary/10 text-primary shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
+                                          : "text-sidebar-muted hover:text-white hover:bg-white/5"
+                                      )}
+                                    >
+                                      {/* Active Indicator Bar */}
+                                      {isActive && !collapsed && (
+                                        <motion.div
+                                          layoutId="activeTab"
+                                          className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-1.5 h-6 bg-primary rounded-r-full shadow-[0_0_15px_rgba(37,99,235,0.6)]"
+                                          transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                                        />
+                                      )}
+
+                                      <item.icon className={cn(
+                                        "h-[18px] w-[18px] shrink-0 transition-all duration-300",
+                                        isActive ? "text-primary scale-110" : "group-hover:scale-110 group-hover:text-white"
+                                      )} />
+
+                                      {!collapsed && (
+                                        <motion.span
+                                          initial={{ opacity: 0 }}
+                                          animate={{ opacity: 1 }}
+                                          className={cn(
+                                            "text-sm font-semibold tracking-wide",
+                                            isActive ? "text-white" : "text-sidebar-muted"
+                                          )}
+                                        >
+                                          {item.title}
+                                        </motion.span>
+                                      )}
+
+                                      {/* Dot for updates / items - Example */}
+                                      {!collapsed && item.title === 'Inbox' && (
+                                        <div className="ml-auto flex items-center justify-center h-5 px-1.5 rounded-full bg-primary/20 text-[10px] font-black text-primary border border-primary/20">
+                                          12
+                                        </div>
+                                      )}
+                                    </Link>
+                                  </TooltipTrigger>
+                                  {collapsed && (
+                                    <TooltipContent side="right" className="bg-[#1a1c23] border-white/10 text-white font-bold rounded-lg px-3 py-1.5 ml-2 shadow-2xl">
+                                      {item.title}
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                  )}
-                </div>
-                {!collapsed && (
-                  <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.firstName} {user?.lastName}</p>
-                    <p className="text-xs text-sidebar-muted">{user?.role} | {user?.email}</p>
                   </div>
-                )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem asChild>
-                <Link to="/app/profile" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  View Profile
-                </Link>
-              </DropdownMenuItem>
-              {/*<DropdownMenuItem asChild>
-                <Link to="/app/settings" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>*/}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </motion.aside>
+                );
+              })}
+            </div>
+          </ScrollArea>
+
+          {/* User & Footer Area */}
+          <div className="p-4 bg-[#0a0c10]/40 border-t border-sidebar-border/10">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={cn(
+                  "flex items-center gap-3 w-full rounded-2xl p-2.5 transition-all duration-300 group",
+                  "bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.08] hover:border-white/[0.1] active:scale-[0.98]",
+                  collapsed && "justify-center p-2"
+                )}>
+                  <div className="relative shrink-0">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden ring-2 ring-white/5 group-hover:ring-primary/40 transition-all shadow-xl shadow-black/40">
+                      {user?.profile_image ? (
+                        <img
+                          src={user.profile_image}
+                          alt="p"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
+                          <span className="text-sm font-black">{initials}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#0a0c10] shadow-glow" />
+                  </div>
+
+                  {!collapsed && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -5 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex-1 text-left min-w-0"
+                    >
+                      <p className="text-xs font-black text-white truncate uppercase tracking-tighter">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p className="text-[10px] text-sidebar-muted font-bold truncate mt-0.5 italic flex items-center gap-1">
+                        <ShieldCheck size={10} className="text-primary/60" /> {user?.role}
+                      </p>
+                    </motion.div>
+                  )}
+                  {!collapsed && (
+                    <ChevronRight size={14} className="text-sidebar-muted group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side={collapsed ? "right" : "top"}
+                align={collapsed ? "center" : "end"}
+                className="w-64 glass-panel-dark border-white/10 rounded-2xl p-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] ml-2"
+              >
+                <div className="px-3 py-4 mb-2 rounded-xl bg-white/5 border border-white/5">
+                  <p className="text-[10px] font-black text-primary tracking-[0.2em] mb-1 uppercase">Logged in as</p>
+                  <p className="text-sm font-black text-white">{user?.email}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground mt-1 tracking-wider italic">Signature Verified</p>
+                </div>
+
+                <DropdownMenuItem asChild className="rounded-xl flex items-center gap-3 p-3 font-bold cursor-pointer group focus:bg-primary/20 focus:text-white">
+                  <Link to="/app/profile">
+                    <User className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
+                    Identity Hub
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem className="rounded-xl flex items-center gap-3 p-3 font-bold cursor-pointer group focus:bg-primary/20 focus:text-white">
+                  <HelpCircle className="h-4 w-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                  Support Core
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="bg-white/10 my-1" />
+
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="rounded-xl flex items-center gap-3 p-3 font-bold text-rose-400 cursor-pointer focus:bg-rose-500/10 focus:text-rose-500"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Deauthorize Session
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {!collapsed && (
+              <div className="mt-4 px-2 flex items-center justify-between text-[10px] font-black text-sidebar-muted/30 uppercase tracking-[0.1em]">
+                <span>v2.4.0-ENT</span>
+                <Dot className="text-primary animate-pulse" />
+                <span>YVI TECH CORP</span>
+              </div>
+            )}
+          </div>
+        </motion.aside>
+      </TooltipProvider>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 h-16 bg-card border-b flex items-center px-4 lg:px-6">
+        <header className="sticky top-0 z-30 h-[72px] bg-background/80 backdrop-blur-xl border-b border-border/10 flex items-center px-4 lg:px-8">
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden mr-2"
+            className="lg:hidden mr-2 hover:bg-sidebar-accent/50 rounded-xl"
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="h-5 w-5" />
           </Button>
-          
+
+          {/* Collapse Button (Desktop) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden lg:flex mr-4 h-9 w-9 rounded-xl border border-border/40 hover:bg-muted/50 transition-all text-muted-foreground hover:text-primary active:scale-95"
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </Button>
+
           {/* Logo - visible on mobile */}
-          <div className="lg:hidden mr-2">
+          <div className="lg:hidden mr-4">
             <Link to="/app/dashboard" className="flex items-center gap-2">
-              <img 
-              src="/logo.png"
-              alt="YVI Employee MS Logo" 
-              className="w-8 h-8 object-contain"
-              loading="eager"
-              referrerPolicy="no-referrer"
-            />
-              <span className="font-semibold text-sidebar-foreground">EMS</span>
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="w-8 h-8 object-contain rounded-lg shadow-lg"
+              />
+              <span className="font-bold text-lg tracking-tighter">YVI</span>
             </Link>
           </div>
-          
-          {/* Left side: Date */}
-          <div className="flex items-center">
-            {/* Date - shown on desktop, hidden on mobile */}
-            <span className="text-sm text-muted-foreground hidden lg:block">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </span>
+
+          {/* Page Details Shadow */}
+          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-muted/30 border border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+            <Calendar size={13} className="text-primary" />
+            <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
           </div>
-          
+
           {/* Center: Global Search */}
-          <div className="hidden lg:block flex-1 max-w-md mx-4">
+          <div className="hidden lg:block flex-1 max-w-xl mx-auto px-10">
             <GlobalSearch />
           </div>
-          
+
           {/* Mobile: Search Icon */}
           <div className="lg:hidden mx-2">
             <GlobalSearch isMobile={true} />
           </div>
-          
+
           {/* Right side: Chat, Notification, Profile */}
-          <div className="ml-auto flex items-center gap-2">
-            {/* Chat Icon */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setIsChatOpen(true);
-                setUnreadChatCount(0); // Clear unread count when opening chat
-              }}
-              className="relative"
-              aria-label="Open chat"
-            >
-              <MessageCircle className="h-5 w-5" />
-              {unreadChatCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-xs rounded-full flex items-center justify-center text-white">
-                  {unreadChatCount}
-                </span>
-              )}
-            </Button>
-            
-            {/* Notification Bell */}
-            <NotificationBell />
-            
-            {/* Online indicator (Profile) */}
+          <div className="ml-auto flex items-center gap-3">
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/20 border border-border/30">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setIsChatOpen(true);
+                  setUnreadChatCount(0);
+                }}
+                className="relative h-9 w-9 rounded-lg hover:bg-background hover:shadow-md transition-all group"
+              >
+                <MessageCircle size={18} className="group-hover:text-primary transition-colors" />
+                {unreadChatCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-[10px] font-black rounded-full flex items-center justify-center text-white ring-2 ring-background animate-pulse">
+                    {unreadChatCount}
+                  </span>
+                )}
+              </Button>
+
+              <NotificationBell />
+            </div>
+
+            <div className="h-6 w-[1px] bg-border/40 mx-1 hidden sm:block" />
+
+            {/* Profile with Quick Actions */}
             {user && (
-              <OnlineIndicator 
-                firstName={user.firstName || ''} 
-                lastName={user.lastName || ''} 
+              <OnlineIndicator
+                firstName={user.firstName || ''}
+                lastName={user.lastName || ''}
                 email={user.email || ''}
                 profileImage={user.profile_image}
                 position={user.position || ''}
+                role={user.role || ''}
               />
             )}
           </div>
         </header>
-        
+
         {/* Chat Drawer */}
         <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-premium relative">
+          {/* Subtle background blob */}
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="p-6 lg:p-10 max-w-[1600px] mx-auto relative z-10"
           >
             {children ?? (
-              <div className="p-6 text-red-500">
-                Page rendered but no content returned
+              <div className="p-12 text-center text-rose-500 font-black tracking-widest border border-dashed border-rose-500/30 rounded-3xl">
+                SYSTEM CORE ARCHIVE EMPTY - NO CONTENT RENDERED
               </div>
             )}
           </motion.div>

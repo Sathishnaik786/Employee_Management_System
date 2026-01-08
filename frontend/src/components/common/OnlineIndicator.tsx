@@ -6,11 +6,12 @@ interface OnlineIndicatorProps {
   lastName: string;
   email: string;
   position?: string;
+  role?: string;
   profileImage?: string;
   className?: string;
 }
 
-export function OnlineIndicator({ firstName, lastName, email, profileImage, position, className = '' }: OnlineIndicatorProps) {
+export function OnlineIndicator({ firstName, lastName, email, profileImage, position, role, className = '' }: OnlineIndicatorProps) {
   const initials = `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
   const { isOnline } = useOnlineStatus();
   
@@ -41,7 +42,9 @@ export function OnlineIndicator({ firstName, lastName, email, profileImage, posi
         <p className="text-sm font-medium text-foreground">
           {firstName} {lastName}
         </p>
-        <p className="text-xs text-muted-foreground truncate max-w-[120px]">{position ? `${position} | ${email}` : email}</p>
+        <p className="text-xs text-muted-foreground truncate max-w-[120px]">
+          {role && position ? `${role} • ${position} | ${email}` : role ? `${role} | ${email}` : position ? `${position} | ${email}` : email}
+        </p>
       </div>
     </div>
   );

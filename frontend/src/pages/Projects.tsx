@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import { motion, AnimatePresence } from 'framer-motion';
+import {
   Card,
   CardContent,
   CardHeader,
@@ -8,61 +9,63 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
-import { 
-  SearchIcon, 
-  PlusIcon, 
-  MoreHorizontalIcon,
-  CalendarIcon,
-  UserIcon,
-  FileTextIcon,
-  CheckCircleIcon
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage
+} from '@/components/ui/avatar';
+import {
+  SearchIcon,
+  PlusIcon,
+  MoreVertical,
+  Calendar,
+  User,
+  CheckCircle2,
+  Briefcase,
+  LayoutGrid,
+  List as ListIcon,
+  ChevronRight,
+  Target,
+  Clock,
+  ArrowUpRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { projectsApi } from '@/services/api';
+import { projectsApi, employeesApi } from '@/services/api';
 import { Project, Employee } from '@/types';
 import ProjectStatusBadge from '@/components/common/ProjectStatusBadge';
 import ProjectForm from '@/components/forms/ProjectForm';
-import { employeesApi } from '@/services/api';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { staggerContainer, slideUpVariants } from '@/animations/motionVariants';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const ProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 12;
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
 
-  // Fetch projects
   const fetchProjects = async () => {
     try {
       setLoading(true);
@@ -71,13 +74,13 @@ const ProjectsPage: React.FC = () => {
         limit: itemsPerPage,
         search: searchTerm,
       });
-      setProjects(response.data);
-      setTotalPages(response.meta.totalPages);
+      setProjects(response.data || []);
+      setTotalPages(response.meta?.totalPages || 1);
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch projects',
+        description: 'Failed to synchronize projects archive',
         variant: 'destructive',
       });
     } finally {
@@ -85,18 +88,12 @@ const ProjectsPage: React.FC = () => {
     }
   };
 
-  // Fetch employees
   const fetchEmployees = async () => {
     try {
       const response = await employeesApi.getAll();
-      setEmployees(response.data);
+      setEmployees(response.data || []);
     } catch (error) {
       console.error('Error fetching employees:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch employees',
-        variant: 'destructive',
-      });
     }
   };
 
@@ -110,330 +107,354 @@ const ProjectsPage: React.FC = () => {
   const handleCreateProject = async (data: any) => {
     try {
       await projectsApi.create(data);
-      toast({
-        title: 'Success',
-        description: 'Project created successfully',
-      });
+      toast({ title: 'Success', description: 'Institutional project deployed successfully' });
       setIsCreateDialogOpen(false);
       fetchProjects();
     } catch (error) {
-      console.error('Error creating project:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create project',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Deployment sequence failed', variant: 'destructive' });
     }
   };
 
   const handleUpdateProject = async (data: any) => {
     if (!editingProject) return;
-    
     try {
       await projectsApi.update(editingProject.id, data);
-      toast({
-        title: 'Success',
-        description: 'Project updated successfully',
-      });
+      toast({ title: 'Success', description: 'Project parameters recalibrated' });
       setIsEditDialogOpen(false);
       setEditingProject(null);
       fetchProjects();
     } catch (error) {
-      console.error('Error updating project:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update project',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Recalibration failed', variant: 'destructive' });
     }
   };
 
   const handleDeleteProject = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this project?')) {
-      return;
-    }
-
+    if (!window.confirm('Commence project decommissioning? This action is irreversible.')) return;
     try {
       await projectsApi.delete(id);
-      toast({
-        title: 'Success',
-        description: 'Project deleted successfully',
-      });
+      toast({ title: 'Success', description: 'Project decommissioned' });
       fetchProjects();
     } catch (error) {
-      console.error('Error deleting project:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete project',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Decommissioning failed', variant: 'destructive' });
     }
   };
 
-  const handleEditProject = (project: Project) => {
-    setEditingProject(project);
-    setIsEditDialogOpen(true);
-  };
+  const stats = useMemo(() => ({
+    total: projects.length,
+    inProgress: projects.filter(p => p.status === 'IN_PROGRESS').length,
+    completed: projects.filter(p => p.status === 'COMPLETED').length,
+  }), [projects]);
 
-  const handleViewProject = (id: string) => {
-    navigate(`/app/projects/${id}`);
-  };
-
-  const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.project_type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  if (authLoading) return <div className="p-12 flex justify-center"><div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full" /></div>;
 
   return (
-    <div className="space-y-6">
-      {authLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-              <p className="text-gray-500">Manage your organization's projects</p>
+    <motion.div
+      initial="initial"
+      animate="animate"
+      variants={staggerContainer}
+      className="p-6 lg:p-8 space-y-8"
+    >
+      <motion.div variants={slideUpVariants}>
+        <PageHeader
+          title="Project Intelligence"
+          description="Orchestrate organizational initiatives and track milestone delivery."
+          className="bg-header-gradient p-8 rounded-3xl border border-border/30 shadow-premium"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex bg-muted/30 p-1 rounded-xl border border-border/20 mr-2">
+              <Button
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className={cn("h-8 px-3 rounded-lg text-xs font-bold", viewMode === 'grid' && "shadow-sm")}
+              >
+                <LayoutGrid size={14} className="mr-1.5" /> GRID
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className={cn("h-8 px-3 rounded-lg text-xs font-bold", viewMode === 'list' && "shadow-sm")}
+              >
+                <ListIcon size={14} className="mr-1.5" /> LIST
+              </Button>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative">
-                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  placeholder="Search projects..."
-                  className="pl-8 w-full sm:w-64"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    Create Project
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Create Project</DialogTitle>
-                  </DialogHeader>
-                  <ProjectForm
-                    onSubmit={handleCreateProject}
-                    onCancel={() => setIsCreateDialogOpen(false)}
-                    employees={employees}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
+            <Button variant="premium" size="sm" onClick={() => setIsCreateDialogOpen(true)} className="shadow-lg shadow-primary/20">
+              <PlusIcon size={16} className="mr-2" /> INITIATE PROJECT
+            </Button>
           </div>
+        </PageHeader>
+      </motion.div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Project List</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      {/* Analytics Overview */}
+      <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-border/30 bg-card/60 backdrop-blur-md shadow-premium rounded-3xl overflow-hidden group">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Initiatives</p>
+                <h3 className="text-3xl font-black mt-1">{loading ? '...' : stats.total}</h3>
+              </div>
+              <div className="p-4 rounded-2xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                <Briefcase size={24} />
+              </div>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table className="min-w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="whitespace-nowrap">S.NO</TableHead>
-                    <TableHead className="whitespace-nowrap">Project</TableHead>
-                    <TableHead className="whitespace-nowrap">Type</TableHead>
-                    <TableHead className="whitespace-nowrap">Manager Name</TableHead>
-                    <TableHead className="whitespace-nowrap">Status</TableHead>
-                    <TableHead className="whitespace-nowrap">Start Date</TableHead>
-                    <TableHead className="whitespace-nowrap">End Date</TableHead>
-                    <TableHead className="whitespace-nowrap">Team</TableHead>
-                    <TableHead className="whitespace-nowrap">Progress</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProjects.length > 0 ? (
-                    filteredProjects.map((project, index) => (
-                      <TableRow key={project.id}>
-                        <TableCell className="font-medium min-w-[50px]">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="font-medium min-w-[150px]">
-                          <div className="flex flex-col">
-                            <span 
-                              className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline"
-                              onClick={() => handleViewProject(project.id)}
-                            >
-                              {project.name}
-                            </span>
-                            {project.description && (
-                              <span className="text-sm text-gray-500 truncate max-w-[120px] sm:max-w-xs">
-                                {project.description}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          <span className="text-sm font-medium">
-                            {project.project_type.replace('_', ' ')}
-                          </span>
-                        </TableCell>
-                        <TableCell className="min-w-[120px]">
-                          <div className="flex items-center">
-                            <UserIcon className="h-4 w-4 mr-1.5" />
-                            <span>
-                              {project.manager?.firstName} {project.manager?.lastName}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          <ProjectStatusBadge status={project.status} />
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          {project.start_date ? format(new Date(project.start_date), 'MMM dd, yyyy') : 'N/A'}
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          {project.end_date ? format(new Date(project.end_date), 'MMM dd, yyyy') : 'N/A'}
-                        </TableCell>
-                        <TableCell className="min-w-[150px] max-w-[200px]">
-                          <div className="space-y-1">
-                            {project.project_members
-                              .filter(member => member.role === 'LEAD')
-                              .map(lead => (
-                                <div key={`lead-${lead.id}`} className="flex flex-wrap items-center text-xs sm:text-sm">
-                                  <UserIcon className="h-3 w-3 mr-1 text-blue-500" />
-                                  <span className="text-blue-600 font-medium truncate max-w-[80px] sm:max-w-[120px]">
-                                    {lead.employee?.firstName} {lead.employee?.lastName}
-                                  </span>
-                                  <span className="ml-1 text-[0.6rem] sm:text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">
-                                    Lead
-                                  </span>
-                                </div>
-                              ))
-                            }
-                            {project.project_members
-                              .filter(member => member.role === 'MEMBER')
-                              .slice(0, 2) // Show only first 2 members to avoid overcrowding
-                              .map(member => (
-                                <div key={`member-${member.id}`} className="flex flex-wrap items-center text-xs sm:text-sm">
-                                  <UserIcon className="h-3 w-3 mr-1 text-gray-500" />
-                                  <span className="truncate max-w-[80px] sm:max-w-[120px]">
-                                    {member.employee?.firstName} {member.employee?.lastName}
-                                  </span>
-                                </div>
-                              ))
-                            }
-                            {project.project_members.filter(member => member.role === 'MEMBER').length > 2 && (
-                              <div className="text-[0.6rem] sm:text-xs text-gray-500 mt-1">
-                                +{project.project_members.filter(member => member.role === 'MEMBER').length - 2} more
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          <div className="flex items-center">
-                            <CheckCircleIcon className="h-4 w-4 mr-1.5" />
-                            <span>
-                              {project.project_tasks?.filter(t => t.status === 'DONE').length || 0}/{project.project_tasks?.length || 0}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right min-w-[80px]">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontalIcon className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleViewProject(project.id)}>
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditProject(project)}>
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteProject(project.id)}
-                                className="text-red-600"
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                        No projects found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+          </CardContent>
+        </Card>
+        <Card className="border-border/30 bg-card/60 backdrop-blur-md shadow-premium rounded-3xl overflow-hidden group">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">In Operation</p>
+                <h3 className="text-3xl font-black mt-1 text-amber-500">{loading ? '...' : stats.inProgress}</h3>
+              </div>
+              <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-500 group-hover:scale-110 transition-transform">
+                <Clock size={24} />
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        <Card className="border-border/30 bg-card/60 backdrop-blur-md shadow-premium rounded-3xl overflow-hidden group">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Successful Delivery</p>
+                <h3 className="text-3xl font-black mt-1 text-emerald-500">{loading ? '...' : stats.completed}</h3>
+              </div>
+              <div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform">
+                <CheckCircle2 size={24} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Search & Filtering */}
+      <motion.div variants={slideUpVariants} className="max-w-md">
+        <div className="relative group">
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Input
+            placeholder="Filter projects by signature..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-12 h-12 bg-background/50 backdrop-blur-sm border-border/30 focus:border-primary/40 rounded-xl transition-all"
+          />
+        </div>
+      </motion.div>
+
+      {/* Project Display */}
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col items-center justify-center h-64 gap-4"
+          >
+            <div className="animate-spin h-10 w-10 border-[3px] border-primary border-t-transparent rounded-full" />
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic">Synchronizing Core Archive...</p>
+          </motion.div>
+        ) : viewMode === 'grid' ? (
+          <motion.div
+            key="grid"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            {projects.map((project, idx) => {
+              const tasks = project.project_tasks || [];
+              const doneTasks = tasks.filter(t => t.status === 'DONE').length;
+              const progress = tasks.length > 0 ? (doneTasks / tasks.length) * 100 : 0;
+
+              return (
+                <motion.div
+                  key={project.id}
+                  variants={slideUpVariants}
+                  whileHover={{ y: -8 }}
+                  className="group cursor-pointer"
+                  onClick={() => navigate(`/app/projects/${project.id}`)}
+                >
+                  <Card className="h-full border-border/30 bg-card/60 backdrop-blur-sm shadow-premium group-hover:shadow-2xl group-hover:border-primary/20 rounded-3xl overflow-hidden transition-all duration-300">
+                    <CardHeader className="pb-4 relative">
+                      <div className="flex justify-between items-start mb-2">
+                        <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tighter bg-primary/5 border-primary/10 text-primary px-2 py-0.5">
+                          {project.project_type.replace('_', ' ')}
+                        </Badge>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
+                              <MoreVertical size={14} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-xl glass-panel-dark border-white/10 p-1">
+                            <DropdownMenuItem className="rounded-lg gap-2 font-bold focus:bg-primary/20" onClick={(e) => { e.stopPropagation(); setEditingProject(project); setIsEditDialogOpen(true); }}>
+                              <Target size={14} className="text-primary" /> Recalibrate
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/10" />
+                            <DropdownMenuItem className="rounded-lg gap-2 font-bold text-rose-400 focus:bg-rose-500/10 focus:text-rose-500" onClick={(e) => { e.stopPropagation(); handleDeleteProject(project.id); }}>
+                              <PlusIcon className="rotate-45" size={14} /> Decommission
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <CardTitle className="text-lg font-black tracking-tight group-hover:text-primary transition-colors leading-tight">{project.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium italic">
+                        <User size={12} className="opacity-50" />
+                        <span>Manager: </span>
+                        <span className="text-foreground font-bold not-italic">{project.manager?.firstName} {project.manager?.lastName}</span>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          <span>Progress</span>
+                          <span className="text-primary">{Math.round(progress)}%</span>
+                        </div>
+                        <Progress value={progress} className="h-1.5 bg-muted/40" />
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2">
+                        <ProjectStatusBadge status={project.status} />
+                        <div className="flex -space-x-2">
+                          {project.project_members?.slice(0, 3).map((member, i) => (
+                            <Avatar key={i} className="h-7 w-7 border-2 border-background ring-1 ring-border shadow-sm">
+                              <AvatarImage src={member.employee?.profile_image} />
+                              <AvatarFallback className="text-[8px] bg-primary/10 text-primary font-black">{member.employee?.firstName?.[0]}{member.employee?.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {project.project_members?.length > 3 && (
+                            <div className="h-7 w-7 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[8px] font-black text-muted-foreground">
+                              +{project.project_members.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="list"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            {projects.map((project, idx) => {
+              const tasks = project.project_tasks || [];
+              const doneTasks = tasks.filter(t => t.status === 'DONE').length;
+              const progress = tasks.length > 0 ? (doneTasks / tasks.length) * 100 : 0;
+
+              return (
+                <Card
+                  key={project.id}
+                  className="group hover:bg-muted/30 transition-all border-border/30 bg-card/40 backdrop-blur-sm rounded-2xl overflow-hidden cursor-pointer"
+                  onClick={() => navigate(`/app/projects/${project.id}`)}
+                >
+                  <div className="flex items-center p-4">
+                    <div className="p-3 rounded-xl bg-primary/10 text-primary mr-4 group-hover:scale-110 transition-transform">
+                      <Briefcase size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-black text-sm tracking-tight">{project.name}</h4>
+                      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">{project.project_type.replace('_', ' ')}</p>
+                    </div>
+                    <div className="flex-1 px-8 hidden lg:block">
+                      <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">
+                        <span>Completion Rate</span>
+                        <span>{Math.round(progress)}%</span>
+                      </div>
+                      <Progress value={progress} className="h-1 bg-muted/30" />
+                    </div>
+                    <div className="flex-1 hidden md:block px-6">
+                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1 opacity-50">Lead Strategist</p>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-5 w-5">
+                          <AvatarImage src={project.manager?.profile_image} />
+                          <AvatarFallback className="text-[6px] bg-primary/5 text-primary">{project.manager?.firstName?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs font-bold">{project.manager?.firstName} {project.manager?.lastName}</span>
+                      </div>
+                    </div>
+                    <div className="w-32 flex justify-center">
+                      <ProjectStatusBadge status={project.status} />
+                    </div>
+                    <div className="pl-4">
+                      <ChevronRight size={18} className="text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-2">
+      {totalPages > 1 && (
+        <div className="flex justify-center pt-8 gap-3">
           <Button
             variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            className="rounded-xl px-6 h-11 font-black uppercase tracking-widest text-[10px] border-border/40"
           >
-            Previous
+            Retrieve Previous
           </Button>
-          <span className="px-2">
-            Page {currentPage} of {totalPages}
-          </span>
           <Button
             variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            className="rounded-xl px-6 h-11 font-black uppercase tracking-widest text-[10px] border-border/40"
           >
-            Next
+            Load Next Archive
           </Button>
         </div>
       )}
 
-      {/* Edit Project Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Project</DialogTitle>
+      {/* Project Form Dialogs */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-3xl glass-panel-dark border-white/10 rounded-[2.5rem] p-0 overflow-hidden">
+          <DialogHeader className="p-8 pb-0">
+            <DialogTitle className="text-2xl font-black uppercase tracking-widest text-primary flex items-center gap-3">
+              <PlusIcon /> Initiative Deployment
+            </DialogTitle>
           </DialogHeader>
-          {editingProject && (
+          <div className="p-8">
             <ProjectForm
-              onSubmit={handleUpdateProject}
-              onCancel={() => setIsEditDialogOpen(false)}
-              initialData={{
-                name: editingProject.name,
-                description: editingProject.description,
-                project_type: editingProject.project_type,
-                status: editingProject.status,
-                start_date: editingProject.start_date,
-                end_date: editingProject.end_date,
-                manager_id: editingProject.manager_id,
-                client_id: editingProject.client_id,
-              }}
               employees={employees}
+              onSubmit={handleCreateProject}
+              onCancel={() => setIsCreateDialogOpen(false)}
             />
-          )}
+          </div>
         </DialogContent>
       </Dialog>
-      </>  // Closing the fragment
-    )}  
-    </div>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl glass-panel-dark border-white/10 rounded-[3rem] p-0 overflow-hidden">
+          <DialogHeader className="p-10 pb-4">
+            <DialogTitle className="text-2xl font-black uppercase tracking-[0.2em] text-primary flex items-center gap-4">
+              <ArrowUpRight size={28} /> Parameter Calibration
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-10 pb-10">
+            {editingProject && (
+              <ProjectForm
+                project={editingProject}
+                employees={employees}
+                onSubmit={handleUpdateProject}
+                onCancel={() => { setIsEditDialogOpen(false); setEditingProject(null); }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </motion.div>
   );
 };
 

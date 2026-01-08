@@ -1,16 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnalyticsStatCard } from './AnalyticsStatCard';
-import { 
-  Users, 
-  Users2, 
-  Calendar, 
-  UserCheck, 
-  User, 
-  UserRound, 
-  CalendarDays, 
-  UsersRound, 
-  Briefcase, 
-  ClipboardList 
+import { motion } from 'framer-motion';
+import { staggerContainer } from '@/animations/motionVariants';
+import {
+  Users,
+  Users2,
+  Calendar,
+  UserCheck,
+  User,
+  UserRound,
+  CalendarDays,
+  UsersRound,
+  Briefcase,
+  ClipboardList
 } from 'lucide-react';
 import { AdminOverviewData, ManagerTeamProgressData, HRWorkforceData, EmployeeSelfData } from '@/types';
 
@@ -31,36 +33,41 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
       {loading ? (
         <>
           {[...Array(4)].map((_, index) => (
-            <div key={index} className="h-24 bg-muted rounded-lg animate-pulse" />
+            <div key={index} className="h-32 bg-card/40 rounded-2xl animate-pulse border border-border/40 shadow-sm" />
           ))}
         </>
       ) : (
-        <>
+        <motion.div
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="contents"
+        >
           {role === 'ADMIN' && analyticsData.adminOverview && (
             <>
               <AnalyticsStatCard
                 title="Total Employees"
                 value={analyticsData.adminOverview.totalEmployees}
                 icon={Users}
-                change={`+${analyticsData.adminOverview.activeEmployees} active`}
+                change={`${analyticsData.adminOverview.activeEmployees} active`}
                 changeType="positive"
               />
               <AnalyticsStatCard
                 title="Departments"
                 value={analyticsData.adminOverview.totalDepartments}
                 icon={Users2}
-                change={`+${analyticsData.adminOverview.totalWorkItems} work items`}
+                change={`${analyticsData.adminOverview.totalWorkItems} work items`}
                 changeType="neutral"
               />
               <AnalyticsStatCard
                 title="Pending Leaves"
                 value={analyticsData.adminOverview.pendingLeaveRequests}
                 icon={Calendar}
-                change={`+${analyticsData.adminOverview.approvedLeaveRequests} approved`}
+                change={`${analyticsData.adminOverview.approvedLeaveRequests} approved`}
                 changeType="neutral"
               />
               <AnalyticsStatCard
@@ -71,21 +78,21 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
               />
             </>
           )}
-          
+
           {role === 'MANAGER' && analyticsData.managerProgress && (
             <>
               <AnalyticsStatCard
                 title="Team Size"
                 value={analyticsData.managerProgress.teamSize}
                 icon={Users}
-                change={`+${analyticsData.managerProgress.teamCompletedWorkItems} completed`}
+                change={`${analyticsData.managerProgress.teamCompletedWorkItems} completed`}
                 changeType="positive"
               />
               <AnalyticsStatCard
                 title="Team Work Items"
                 value={analyticsData.managerProgress.teamWorkItems}
                 icon={Briefcase}
-                change={`+${analyticsData.managerProgress.teamPresentToday} present today`}
+                change={`${analyticsData.managerProgress.teamPresentToday} present`}
                 changeType="positive"
               />
               <AnalyticsStatCard
@@ -103,7 +110,7 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
               />
             </>
           )}
-          
+
           {role === 'HR' && analyticsData.hrWorkforce && (
             <>
               <AnalyticsStatCard
@@ -136,7 +143,7 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
               />
             </>
           )}
-          
+
           {role === 'EMPLOYEE' && analyticsData.employeeSelf && (
             <>
               <AnalyticsStatCard
@@ -166,12 +173,12 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
                 title="Leave Requests"
                 value={analyticsData.employeeSelf.totalLeaveRequests}
                 icon={Calendar}
-                change={`+${analyticsData.employeeSelf.approvedLeaveRequests} approved`}
+                change={`${analyticsData.employeeSelf.approvedLeaveRequests} approved`}
                 changeType="neutral"
               />
             </>
           )}
-        </>
+        </motion.div>
       )}
     </div>
   );

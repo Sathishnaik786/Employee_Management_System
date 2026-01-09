@@ -25,6 +25,8 @@ import CalendarPage from "./pages/Calendar";
 import MeetupsPage from "./pages/Meetups";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
+import { updatesRoutes } from './modules/updates/updates.routes';
+
 
 import AdminUsers from './pages/AdminUsers';
 import Projects from './pages/Projects';
@@ -53,45 +55,50 @@ const queryClient = new QueryClient({
 });
 
 const router = createBrowserRouter([
-    { path: "/", element: <Login /> }, // Login page as primary
-    { path: "/login", element: <Login /> },
-    { path: "/forgot-password", element: <ForgotPassword /> },
-    { path: "/reset-password", element: <ResetPassword /> },
-    {
-      path: "/app", // Protected routes under /app path
-      element: <ProtectedRoute allowedRoles={['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE']}>/* AppLayout is handled by ProtectedRoute */</ProtectedRoute>,
-      children: [
-        { index: true, element: <Navigate to="/app/dashboard" replace /> },
-        { path: "dashboard", element: <Dashboard /> },
-        { path: "employees", element: <Employees /> },
-        { path: "departments", element: <Departments /> },
-        { path: "attendance", element: <AttendancePage /> },
-        { path: "leaves", element: <Leaves /> },
-        { path: "calendar", element: <CalendarPage /> },
-        { path: "meetups", element: <MeetupsPage /> },
-        { path: "documents", element: <Documents /> },
-        { path: "reports", element: <Reports /> },
+  { path: "/", element: <Login /> }, // Login page as primary
+  { path: "/login", element: <Login /> },
+  { path: "/forgot-password", element: <ForgotPassword /> },
+  { path: "/reset-password", element: <ResetPassword /> },
+  {
+    path: "/app", // Protected routes under /app path
+    element: <ProtectedRoute allowedRoles={['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE']}>/* AppLayout is handled by ProtectedRoute */</ProtectedRoute>,
+    children: [
+      { index: true, element: <Navigate to="/app/dashboard" replace /> },
+      { path: "dashboard", element: <Dashboard /> },
+      { path: "employees", element: <Employees /> },
+      { path: "departments", element: <Departments /> },
+      { path: "attendance", element: <AttendancePage /> },
+      { path: "leaves", element: <Leaves /> },
+      { path: "calendar", element: <CalendarPage /> },
+      { path: "meetups", element: <MeetupsPage /> },
+      { path: "documents", element: <Documents /> },
+      { path: "reports", element: <Reports /> },
 
-        { path: "admin/users", element: <AdminUsers /> },
-        { path: "projects", element: <Projects /> },
-        { path: "my-projects", element: <MyProjects /> },
-        { path: "projects/:id", element: <ProjectDetail /> },
+      { path: "admin/users", element: <AdminUsers /> },
+      { path: "projects", element: <Projects /> },
+      { path: "my-projects", element: <MyProjects /> },
+      { path: "projects/:id", element: <ProjectDetail /> },
 
 
-        { path: "profile", element: <Profile /> },
-        { path: "unauthorized", element: <Unauthorized /> },
-        { path: "*", element: <NotFound /> },
-      ],
-    },
-  ], {
-    future: {
-      v7_relativeSplatPath: true,
-    },
-  });
+      { path: "profile", element: <Profile /> },
+      { path: "unauthorized", element: <Unauthorized /> },
+
+      // Phase-1: Employee Updates
+      ...updatesRoutes,
+
+      { path: "*", element: <NotFound /> },
+
+    ],
+  },
+], {
+  future: {
+    v7_relativeSplatPath: true,
+  },
+});
 
 const AppContent = () => {
   const { isLoading } = useAuth();
-  
+
   return (
     <>
       <AppLoader isLoading={isLoading} />

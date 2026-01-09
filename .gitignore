@@ -53,6 +53,7 @@ desktop.ini
 
 # IDE files
 .vscode/*
+!.vscode/settings.json
 !.vscode/extensions.json
 .idea/
 *.swp

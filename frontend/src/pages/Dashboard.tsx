@@ -16,15 +16,20 @@ import {
   Clock,
   TrendingUp
 } from 'lucide-react';
+import { reportsApi, analyticsApi } from '@/services/api';
+import { DashboardStats, AdminOverviewData, ManagerTeamProgressData, HRWorkforceData, EmployeeSelfData } from '@/types';
 import AnalyticsOverview from '@/components/dashboard/AnalyticsOverview';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { reportsApi } from '@/services/api';
-import { DashboardStats } from '@/types';
+import { UpdatesQuickAccess } from '@/components/dashboard/UpdatesQuickAccess';
+
+
 
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -39,10 +44,41 @@ export default function Dashboard() {
       }
     };
 
+    const fetchAnalytics = async () => {
+      if (!user) return;
+      try {
+        setAnalyticsLoading(true);
+        let data;
+        if (user.role === 'ADMIN') data = { adminOverview: (await analyticsApi.getAdminOverview()).data };
+        else if (user.role === 'MANAGER') data = { managerProgress: (await analyticsApi.getManagerTeamProgress()).data };
+        else if (user.role === 'HR') data = { hrWorkforce: (await analyticsApi.getHRWorkforce()).data };
+        else if (user.role === 'EMPLOYEE') data = { employeeSelf: (await analyticsApi.getEmployeeSelf()).data };
+
+        setAnalyticsData(data);
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+
+    // Feature Flag Debug Log (Dev Only)
+    if (import.meta.env.DEV) {
+      console.log('Update Feature Flags:', {
+        DAILY: import.meta.env.VITE_ENABLE_DAILY_UPDATES,
+        WEEKLY: import.meta.env.VITE_ENABLE_WEEKLY_UPDATES,
+        MONTHLY: import.meta.env.VITE_ENABLE_MONTHLY_UPDATES,
+        ANALYTICS: import.meta.env.VITE_ENABLE_UPDATE_ANALYTICS,
+        REMINDERS: import.meta.env.VITE_ENABLE_UPDATE_REMINDERS,
+      });
+    }
+
     if (user) {
       fetchStats();
+      fetchAnalytics();
     }
   }, [user]);
+
 
   if (authLoading || loading) {
     return (
@@ -117,11 +153,17 @@ export default function Dashboard() {
         </PageHeader>
       </motion.div>
 
+      {/* Employee Updates: High Visibility Access */}
+      <motion.div variants={slideUpVariants} className="z-10 relative">
+        <UpdatesQuickAccess />
+      </motion.div>
+
       {/* Stats Grid */}
       <motion.div
         variants={slideUpVariants}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
+
         <StatCard
           title="Total Employees"
           value={stats?.totalEmployees?.toLocaleString() || '0'}
@@ -153,9 +195,15 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Analytics Overview */}
+
       <motion.div variants={slideUpVariants}>
-        <AnalyticsOverview role={user?.role || ''} />
+        <AnalyticsOverview
+          role={user?.role || ''}
+          analyticsData={analyticsData}
+          loading={analyticsLoading}
+        />
       </motion.div>
+
     </motion.div>
   );
 }

@@ -19,25 +19,25 @@ const corsOptions = {
     const allowedOrigins = config.NODE_ENV === 'production'
       ? ['https://yviems.netlify.app', config.FRONTEND_URL]
       : [
-          'http://localhost:8080',
-          'http://127.0.0.1:8080',
-          'http://localhost:8081',
-          'http://127.0.0.1:8081',
-          'http://localhost:8082',
-          'http://127.0.0.1:8082',
-          'http://localhost:5173',
-          'http://127.0.0.1:5173',
-          'http://localhost:3003',
-          'http://127.0.0.1:3003',
-          'http://localhost:3002',
-          'http://127.0.0.1:3002',
-          'http://localhost:5174',
-          'http://127.0.0.1:5174'
-        ];
-    
+        'http://localhost:8080',
+        'http://127.0.0.1:8080',
+        'http://localhost:8081',
+        'http://127.0.0.1:8081',
+        'http://localhost:8082',
+        'http://127.0.0.1:8082',
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:3003',
+        'http://127.0.0.1:3003',
+        'http://localhost:3002',
+        'http://127.0.0.1:3002',
+        'http://localhost:5174',
+        'http://127.0.0.1:5174'
+      ];
+
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     const isAllowed = allowedOrigins.indexOf(origin) !== -1;
     callback(null, isAllowed);
   },
@@ -122,52 +122,56 @@ app.use('/api/notifications', generalLimiter, require('./routes/notification.rou
 app.use('/api/meetups', generalLimiter, require('./routes/meetup.routes'));
 app.use('/api/calendar-events', generalLimiter, require('./routes/calendar.routes'));
 
+// Phase-0: Employee Updates Module (Feature Flag: OFF by default in UI, but API is live)
+app.use('/api/updates', generalLimiter, require('./modules/updates/updates.routes'));
+
+
 // Health check routes
 app.use('/health', require('./routes/health.routes'));
 
 // Redis test endpoint (for development/testing)
 app.get('/redis-test', async (req, res) => {
-    try {
-        const { redis } = require('@lib/redis');
-        await redis.set('health', 'ok', 'EX', 10);
-        const value = await redis.get('health');
-        res.status(200).json({ 
-            redis: value, 
-            status: 'connected',
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            redis: null,
-            status: 'error',
-            error: error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
+  try {
+    const { redis } = require('@lib/redis');
+    await redis.set('health', 'ok', 'EX', 10);
+    const value = await redis.get('health');
+    res.status(200).json({
+      redis: value,
+      status: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      redis: null,
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Cache stats endpoint (for monitoring)
 app.get('/cache-stats', async (req, res) => {
-    try {
-        const CacheService = require('./services/cache.service');
-        const stats = await CacheService.getStats();
-        res.status(200).json({ 
-            success: true,
-            ...stats,
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false,
-            error: error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
+  try {
+    const CacheService = require('./services/cache.service');
+    const stats = await CacheService.getStats();
+    res.status(200).json({
+      success: true,
+      ...stats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // 404 handler
 app.use((req, res) => {
-    res.status(404).json({ success: false, message: 'API Route not found' });
+  res.status(404).json({ success: false, message: 'API Route not found' });
 });
 
 // Error handler with structured logging
@@ -182,7 +186,7 @@ app.use((err, req, res, next) => {
     role: req.user?.role,
     ip: req.ip
   });
-  
+
   // Use existing error middleware
   errorMiddleware(err, req, res, next);
 });

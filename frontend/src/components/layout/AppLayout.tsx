@@ -43,8 +43,12 @@ import {
   ChevronDown,
   Dot,
   HelpCircle,
-  ShieldCheck
+  ShieldCheck,
+  LayoutTemplate,
+  BookOpenCheck,
+  Cpu
 } from 'lucide-react';
+
 
 interface NavItem {
   title: string;
@@ -64,8 +68,29 @@ const navGroups: NavGroup[] = [
     items: [
       { title: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
       { title: 'Meet-ups', href: '/app/meetups', icon: Users2 },
+      ...(import.meta.env.VITE_ENABLE_DAILY_UPDATES === 'true' ? [
+        { title: 'Daily Updates', href: '/app/updates/daily', icon: ClipboardList }
+      ] : []),
+      ...(import.meta.env.VITE_ENABLE_WEEKLY_UPDATES === 'true' ? [
+        { title: 'Weekly Stand-out', href: '/app/updates/weekly', icon: LayoutTemplate }
+      ] : []),
+      ...(import.meta.env.VITE_ENABLE_MONTHLY_UPDATES === 'true' ? [
+        { title: 'Monthly Updates', href: '/app/updates/monthly', icon: BookOpenCheck }
+      ] : []),
+      ...(import.meta.env.VITE_ENABLE_UPDATE_ANALYTICS === 'true' ? [
+        { title: 'Progress & Analytics', href: '/app/updates/analytics', icon: BarChart3 }
+      ] : []),
+      ...((import.meta.env.VITE_ENABLE_UPDATE_REMINDERS === 'true' ||
+        import.meta.env.VITE_ENABLE_AI_SUMMARIES === 'true' ||
+        import.meta.env.VITE_ENABLE_EXPORTS === 'true') ? [
+        { title: 'Intelligence', href: '/app/updates/automation', icon: Cpu }
+      ] : []),
     ]
   },
+
+
+
+
   {
     label: 'Resources',
     items: [

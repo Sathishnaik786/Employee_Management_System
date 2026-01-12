@@ -62,7 +62,7 @@ export default function Login() {
             />
           </div>
           <div className="flex flex-col">
-            <span className="text-2xl font-black text-white tracking-tighter font-heading">YVI TECH</span>
+            <span className="text-2xl font-black text-white tracking-tighter font-heading">YVI PEOPLE</span>
             <span className="text-[10px] font-black text-primary/80 tracking-[0.3em] uppercase">Enterprise Hub</span>
           </div>
         </div>

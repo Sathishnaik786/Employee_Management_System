@@ -54,7 +54,7 @@ const NotFound = () => {
             Route Trace Failed: {location.pathname}
           </div>
           <div className="h-px w-20 bg-border/40" />
-          <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em]">YVI Tech Enterprise Systems © 2024</p>
+          <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em]">YVI People Enterprise Systems © 2024</p>
         </div>
       </motion.div>
     </div>

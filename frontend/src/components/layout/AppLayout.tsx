@@ -206,7 +206,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   animate={{ opacity: 1, x: 0 }}
                   className="flex flex-col"
                 >
-                  <span className="font-heading font-bold text-lg tracking-[-0.02em] text-white leading-none">YVI TECH</span>
+                  <span className="font-heading font-bold text-lg tracking-[-0.02em] text-white leading-none">YVI PEOPLE</span>
                   <span className="text-[9px] font-semibold text-primary/60 tracking-[0.3em] mt-1 uppercase">Enterprise Hub</span>
                 </motion.div>
               )}
@@ -401,7 +401,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className="mt-4 px-2 flex items-center justify-between text-[10px] font-black text-sidebar-muted/30 uppercase tracking-[0.1em]">
                 <span>v2.4.0-ENT</span>
                 <Dot className="text-primary animate-pulse" />
-                <span>YVI TECH CORP</span>
+                <span>YVI PEOPLE CORP</span>
               </div>
             )}
           </div>

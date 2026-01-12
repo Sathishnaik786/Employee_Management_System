@@ -48,19 +48,29 @@ const corsOptions = {
 };
 
 // Rate limiting
+console.log('Initializing rate limiters with high dev limits...');
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 10000, // Boosted for dev
   message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // More permissive rate limiter for profile endpoint
 const profileLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 120, // Higher limit for profile endpoint
+  windowMs: 15 * 60 * 1000,
+  max: 10000,
   message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Auth specific limiter
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10000,
+  message: 'Too many login attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -68,7 +78,7 @@ const profileLimiter = rateLimit({
 // Middlewares
 app.use(helmet());
 app.use(cors(corsOptions));
-app.use(generalLimiter);
+// Removed global generalLimiter to avoid double-limiting on specific routes
 
 // Compression middleware (gzip responses)
 app.use(compression());
@@ -89,9 +99,9 @@ app.use(cookieParser());
 const { cacheMiddleware } = require('./middlewares/cache.middleware');
 
 // Routes (to be added)
-app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/auth', authLimiter, require('./routes/auth.routes'));
 // Compatibility route for direct auth access
-app.use('/auth', require('./routes/auth.routes'));
+app.use('/auth', authLimiter, require('./routes/auth.routes'));
 
 // Apply different rate limiting for profile endpoint
 app.use('/api/employees/profile', profileLimiter);
@@ -124,6 +134,7 @@ app.use('/api/calendar-events', generalLimiter, require('./routes/calendar.route
 
 // Phase-0: Employee Updates Module (Feature Flag: OFF by default in UI, but API is live)
 app.use('/api/updates', generalLimiter, require('./modules/updates/updates.routes'));
+app.use('/updates', generalLimiter, require('./modules/updates/updates.routes'));
 
 
 // Health check routes

@@ -84,8 +84,8 @@ export const UpdatesQuickAccess: React.FC = () => {
                                 <feature.icon className={`h-5 w-5 ${feature.color}`} />
                             </div>
                             <div className="text-center">
-                                <span className="block text-xs font-black uppercase tracking-tighter">{feature.title}</span>
-                                <ArrowRight className="h-3 w-3 mx-auto mt-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                                <span className="block text-xs font-black uppercase tracking-widest text-slate-900/80 dark:text-white/80 group-hover:text-primary transition-colors">{feature.title}</span>
+                                <ArrowRight className="h-3 w-3 mx-auto mt-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-primary" />
                             </div>
                         </Button>
                     ))}

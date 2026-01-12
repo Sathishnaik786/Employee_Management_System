@@ -5,25 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.96] select-none",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98] select-none",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/95 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20 shadow-md",
-        premium: "bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 bg-[length:200%_auto] text-white hover:bg-[position:right_center] hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-500/25 shadow-lg border-none",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/95 hover:scale-[1.02] hover:shadow-lg hover:shadow-destructive/20 shadow-sm",
-        outline: "border border-border bg-background hover:bg-accent hover:text-accent-foreground hover:scale-[1.02] hover:shadow-md",
-        outlinePremium: "border-2 border-primary/20 bg-background text-primary hover:bg-primary/5 hover:border-primary/40 hover:scale-[1.02] hover:shadow-md transition-all",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:scale-[1.02] hover:shadow-md",
-        glass: "glass-panel hover:bg-white/40 dark:hover:bg-black/60 hover:scale-[1.02] hover:shadow-xl shadow-lg border-white/30 dark:border-white/20",
-        ghost: "hover:bg-accent hover:text-accent-foreground hover:scale-[1.02]",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-colors",
+        premium: "bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-indigo-500/20 transition-all border-none",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
+        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        outlinePremium: "border border-primary/20 bg-background text-primary hover:bg-primary/5 hover:border-primary/40",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        glass: "bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-foreground shadow-sm",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline decoration-primary/30",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-9 rounded-lg px-3",
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3 text-xs",
         lg: "h-11 rounded-xl px-8 text-base",
-        icon: "h-10 w-10",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {

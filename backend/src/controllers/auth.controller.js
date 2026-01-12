@@ -99,7 +99,7 @@ exports.resetPassword = async (req, res, next) => {
         // For Supabase, we need to use the admin client to update the user's password
         // First, we verify the token by getting the user
         const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
-        
+
         if (userError) {
             console.error('Token verification error:', userError);
             return res.status(400).json({ success: false, message: 'Invalid or expired token' });
@@ -136,23 +136,23 @@ exports.createUser = async (req, res, next) => {
         if (req.user?.role !== 'ADMIN') {
             return res.status(403).json({ success: false, message: 'Only admins can create users' });
         }
-        
+
         const { email, role, departmentId, managerId } = req.body;
 
         // Validate required fields
         if (!email || !role) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Email and role are required' 
+            return res.status(400).json({
+                success: false,
+                message: 'Email and role are required'
             });
         }
 
         // Validate role
         const validRoles = ['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE'];
         if (!validRoles.includes(role)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid role. Must be one of: ADMIN, HR, MANAGER, EMPLOYEE' 
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid role. Must be one of: ADMIN, HR, MANAGER, EMPLOYEE'
             });
         }
 
@@ -161,12 +161,12 @@ exports.createUser = async (req, res, next) => {
         if (searchError) {
             console.error('Error searching users:', searchError);
         }
-        
+
         const existingUser = users?.find(user => user.email === email);
         if (existingUser) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'User with this email already exists' 
+            return res.status(400).json({
+                success: false,
+                message: 'User with this email already exists'
             });
         }
 
@@ -179,9 +179,9 @@ exports.createUser = async (req, res, next) => {
 
         if (authError) {
             console.error('Error creating auth user:', authError);
-            return res.status(400).json({ 
-                success: false, 
-                message: authError.message 
+            return res.status(400).json({
+                success: false,
+                message: authError.message
             });
         }
 
@@ -202,9 +202,9 @@ exports.createUser = async (req, res, next) => {
             console.error('Error inserting user record:', userError);
             // Rollback: delete the auth user since DB insert failed
             await supabaseAdmin.auth.admin.deleteUser(userId);
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Failed to create user record' 
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to create user record'
             });
         }
 
@@ -214,10 +214,10 @@ exports.createUser = async (req, res, next) => {
             .select('id')
             .eq('user_id', userId)
             .single();
-        
+
         let employeeRecord;
         let employeeError = null;
-        
+
         if (existingEmployee) {
             // Update existing employee record
             const { data: updateData, error: updateError } = await supabase
@@ -233,7 +233,7 @@ exports.createUser = async (req, res, next) => {
                 .eq('user_id', userId)
                 .select()
                 .single();
-                
+
             employeeRecord = updateData;
             employeeError = updateError;
         } else {
@@ -251,7 +251,7 @@ exports.createUser = async (req, res, next) => {
                 }])
                 .select()
                 .single();
-                
+
             employeeRecord = insertData;
             employeeError = insertError;
         }
@@ -261,9 +261,9 @@ exports.createUser = async (req, res, next) => {
             // Rollback: delete the auth user and user record since employee operation failed
             await supabaseAdmin.auth.admin.deleteUser(userId);
             await supabase.from('users').delete().eq('id', userId);
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Failed to create/update employee record' 
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to create/update employee record'
             });
         }
 
@@ -293,9 +293,9 @@ exports.login = async (req, res, next) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Email and password are required' 
+            return res.status(400).json({
+                success: false,
+                message: 'Email and password are required'
             });
         }
 
@@ -307,9 +307,9 @@ exports.login = async (req, res, next) => {
 
         if (error) {
             console.error('Login error:', error);
-            return res.status(401).json({ 
-                success: false, 
-                message: error.message 
+            return res.status(401).json({
+                success: false,
+                message: error.message
             });
         }
 
@@ -325,9 +325,9 @@ exports.login = async (req, res, next) => {
 
         if (empError) {
             console.error('Employee lookup error:', empError);
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Internal server error' 
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error'
             });
         }
 
@@ -342,6 +342,19 @@ exports.login = async (req, res, next) => {
         // Generate access token
         const token = data.session.access_token;
 
+        let profileImageUrl = employee.profile_image;
+        if (profileImageUrl) {
+            try {
+                const ProfileImageService = require('./profileImage.service');
+                const signedUrl = await ProfileImageService.generateSignedUrl(profileImageUrl);
+                if (signedUrl) {
+                    profileImageUrl = signedUrl;
+                }
+            } catch (urlError) {
+                console.error('Error generating signed URL in login:', urlError);
+            }
+        }
+
         res.status(200).json({
             success: true,
             data: {
@@ -349,7 +362,7 @@ exports.login = async (req, res, next) => {
                     id: user.id,
                     email: user.email,
                     role: employee.role,
-                    profile_image: employee.profile_image, // Include profile image if available
+                    profile_image: profileImageUrl, // Use the signed URL
                     firstName: employee.first_name,
                     lastName: employee.last_name,
                     employeeId: employee.id,
@@ -375,13 +388,13 @@ exports.getMe = async (req, res, next) => {
             .single();
 
         let profileImageUrl = null;
-        
+
         // Generate signed URL if profile_image exists
         if (employee?.profile_image) {
             try {
                 const ProfileImageService = require('./profileImage.service');
                 profileImageUrl = await ProfileImageService.generateSignedUrl(employee.profile_image);
-                
+
                 // If file doesn't exist, clean up invalid path from database
                 if (!profileImageUrl && employee.profile_image) {
                     // Clean up invalid path asynchronously (don't block response)

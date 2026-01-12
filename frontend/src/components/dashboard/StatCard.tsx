@@ -39,12 +39,12 @@ export function StatCard({
         <div className="space-y-3">
           <p className="text-sm font-semibold text-muted-foreground/80 tracking-wide uppercase">{title}</p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-3xl font-bold tracking-tight text-gradient-primary">{value}</h3>
+            <h3 className="text-3xl font-heading font-bold tracking-tight text-foreground tabular-nums">{value}</h3>
           </div>
 
           {change && (
             <div className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ring-1 ring-inset transition-colors",
+              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ring-1 ring-inset transition-colors",
               isPositive && "bg-emerald-500/10 text-emerald-600 ring-emerald-500/20",
               isNegative && "bg-rose-500/10 text-rose-600 ring-rose-500/20",
               !isPositive && !isNegative && "bg-slate-500/10 text-slate-600 ring-slate-500/20"

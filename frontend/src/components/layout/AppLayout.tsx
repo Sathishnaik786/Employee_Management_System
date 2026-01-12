@@ -206,16 +206,16 @@ export function AppLayout({ children }: AppLayoutProps) {
                   animate={{ opacity: 1, x: 0 }}
                   className="flex flex-col"
                 >
-                  <span className="font-black text-lg tracking-tight text-white leading-none">YVI TECH</span>
-                  <span className="text-[10px] font-bold text-primary/70 tracking-[0.2em] mt-0.5">ENTERPRISE</span>
+                  <span className="font-heading font-bold text-lg tracking-[-0.02em] text-white leading-none">YVI TECH</span>
+                  <span className="text-[9px] font-semibold text-primary/60 tracking-[0.3em] mt-1 uppercase">Enterprise Hub</span>
                 </motion.div>
               )}
             </Link>
           </div>
 
           {/* Navigation Area */}
-          <ScrollArea className="flex-1 scrollbar-premium px-3">
-            <div className="py-6 space-y-8">
+          <ScrollArea className="flex-1 scrollbar-premium px-4">
+            <div className="py-8 space-y-10">
               {navGroups.map((group) => {
                 const groupItems = filterItems(group.items);
                 if (groupItems.length === 0) return null;
@@ -227,12 +227,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                     {!collapsed && (
                       <button
                         onClick={() => toggleSection(group.label)}
-                        className="flex items-center justify-between w-full px-4 mb-2 group text-sidebar-muted/40 hover:text-sidebar-foreground transition-colors"
+                        className="flex items-center justify-between w-full px-3 mb-3 group text-sidebar-muted/40 hover:text-sidebar-foreground transition-colors"
                       >
-                        <span className="text-[10px] font-black uppercase tracking-[0.25em]">{group.label}</span>
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-sidebar-muted/40 group-hover:text-primary/70 transition-colors">{group.label}</span>
                         <ChevronDown
-                          size={12}
-                          className={cn("transition-transform duration-300", !isExpanded && "-rotate-90")}
+                          size={10}
+                          className={cn("transition-transform duration-300 opacity-30 group-hover:opacity-100", !isExpanded && "-rotate-90")}
                         />
                       </button>
                     )}
@@ -257,25 +257,25 @@ export function AppLayout({ children }: AppLayoutProps) {
                                       to={item.href}
                                       onClick={() => setMobileOpen(false)}
                                       className={cn(
-                                        "relative flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 group",
-                                        collapsed ? "justify-center mx-1" : "mx-1",
+                                        "relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                                        collapsed ? "justify-center mx-0" : "mx-0",
                                         isActive
-                                          ? "bg-primary/10 text-primary shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
-                                          : "text-sidebar-muted hover:text-white hover:bg-white/5"
+                                          ? "bg-primary/5 text-primary"
+                                          : "text-sidebar-muted/80 hover:text-white hover:bg-white/[0.04]"
                                       )}
                                     >
                                       {/* Active Indicator Bar */}
                                       {isActive && !collapsed && (
                                         <motion.div
                                           layoutId="activeTab"
-                                          className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-1.5 h-6 bg-primary rounded-r-full shadow-[0_0_15px_rgba(37,99,235,0.6)]"
-                                          transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                                          className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-full"
+                                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                                         />
                                       )}
 
                                       <item.icon className={cn(
-                                        "h-[18px] w-[18px] shrink-0 transition-all duration-300",
-                                        isActive ? "text-primary scale-110" : "group-hover:scale-110 group-hover:text-white"
+                                        "h-[18px] w-[18px] shrink-0 transition-all duration-300 align-baseline",
+                                        isActive ? "text-primary opacity-100" : "opacity-60 group-hover:opacity-100 group-hover:text-white"
                                       )} />
 
                                       {!collapsed && (
@@ -283,8 +283,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                                           initial={{ opacity: 0 }}
                                           animate={{ opacity: 1 }}
                                           className={cn(
-                                            "text-sm font-semibold tracking-wide",
-                                            isActive ? "text-white" : "text-sidebar-muted"
+                                            "text-[13px] tracking-tight transition-colors duration-200",
+                                            isActive ? "text-white font-semibold" : "text-sidebar-muted font-medium"
                                           )}
                                         >
                                           {item.title}
@@ -293,7 +293,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
                                       {/* Dot for updates / items - Example */}
                                       {!collapsed && item.title === 'Inbox' && (
-                                        <div className="ml-auto flex items-center justify-center h-5 px-1.5 rounded-full bg-primary/20 text-[10px] font-black text-primary border border-primary/20">
+                                        <div className="ml-auto flex items-center justify-center h-5 px-1.5 rounded-full bg-primary/20 text-[10px] font-semibold text-primary border border-primary/20">
                                           12
                                         </div>
                                       )}
@@ -336,7 +336,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
-                          <span className="text-sm font-black">{initials}</span>
+                          <span className="text-sm font-bold">{initials}</span>
                         </div>
                       )}
                     </div>
@@ -349,11 +349,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                       animate={{ opacity: 1, x: 0 }}
                       className="flex-1 text-left min-w-0"
                     >
-                      <p className="text-xs font-black text-white truncate uppercase tracking-tighter">
+                      <p className="text-sm font-semibold text-white truncate tracking-tight">
                         {user?.firstName} {user?.lastName}
                       </p>
-                      <p className="text-[10px] text-sidebar-muted font-bold truncate mt-0.5 italic flex items-center gap-1">
-                        <ShieldCheck size={10} className="text-primary/60" /> {user?.role}
+                      <p className="text-[10px] text-primary/60 font-medium truncate mt-0.5 uppercase tracking-wider flex items-center gap-1">
+                        <ShieldCheck size={10} /> {user?.role}
                       </p>
                     </motion.div>
                   )}
@@ -368,9 +368,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                 className="w-64 glass-panel-dark border-white/10 rounded-2xl p-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] ml-2"
               >
                 <div className="px-3 py-4 mb-2 rounded-xl bg-white/5 border border-white/5">
-                  <p className="text-[10px] font-black text-primary tracking-[0.2em] mb-1 uppercase">Logged in as</p>
-                  <p className="text-sm font-black text-white">{user?.email}</p>
-                  <p className="text-[10px] font-bold text-muted-foreground mt-1 tracking-wider italic">Signature Verified</p>
+                  <p className="text-[10px] font-semibold text-primary tracking-[0.2em] mb-1 uppercase">Logged in as</p>
+                  <p className="text-sm font-semibold text-white">{user?.email}</p>
+                  <p className="text-[10px] font-medium text-muted-foreground mt-1 tracking-wider italic">Signature Verified</p>
                 </div>
 
                 <DropdownMenuItem asChild className="rounded-xl flex items-center gap-3 p-3 font-bold cursor-pointer group focus:bg-primary/20 focus:text-white">
@@ -444,7 +444,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
 
           {/* Page Details Shadow */}
-          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-muted/30 border border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-muted/30 border border-border/50 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
             <Calendar size={13} className="text-primary" />
             <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
           </div>
@@ -473,7 +473,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               >
                 <MessageCircle size={18} className="group-hover:text-primary transition-colors" />
                 {unreadChatCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-[10px] font-black rounded-full flex items-center justify-center text-white ring-2 ring-background animate-pulse">
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-[10px] font-semibold rounded-full flex items-center justify-center text-white ring-2 ring-background animate-pulse">
                     {unreadChatCount}
                   </span>
                 )}

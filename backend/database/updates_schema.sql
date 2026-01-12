@@ -5,7 +5,7 @@
 -- 1. TABLE: employee_updates
 CREATE TABLE IF NOT EXISTS public.employee_updates (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
+  user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   role text NOT NULL,
   update_type text NOT NULL CHECK (update_type IN ('DAILY', 'WEEKLY', 'MONTHLY')),
   title text,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.employee_updates (
   project_id uuid NULL,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  created_by uuid NOT NULL
+  created_by uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE
 );
 
 -- ---------------------------------------------------------
@@ -76,6 +76,19 @@ CREATE POLICY "User can create own update"
 ON public.employee_updates
 FOR INSERT
 WITH CHECK (auth.uid() = user_id);
+
+-- Helper function to break recursion in RLS
+CREATE OR REPLACE FUNCTION public.check_update_ownership(u_id uuid, check_user_id uuid)
+RETURNS boolean 
+LANGUAGE sql 
+SECURITY DEFINER 
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.employee_updates
+    WHERE id = u_id AND user_id = check_user_id
+  );
+$$;
 
 -- Policy: View allowed updates
 CREATE POLICY "View allowed updates"
@@ -195,10 +208,6 @@ CREATE POLICY "Users can see visibility for their own updates"
 ON public.employee_update_visibility
 FOR SELECT
 USING (
-  EXISTS (
-    SELECT 1
-    FROM public.employee_updates u
-    WHERE u.id = update_id
-      AND u.user_id = auth.uid()
-  )
+  visible_to_user_id = auth.uid()
+  OR public.check_update_ownership(update_id, auth.uid())
 );

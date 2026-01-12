@@ -445,12 +445,13 @@ const ProjectsPage: React.FC = () => {
           <div className="px-10 pb-10">
             {editingProject && (
               <ProjectForm
-                project={editingProject}
+                initialData={editingProject}
                 employees={employees}
                 onSubmit={handleUpdateProject}
                 onCancel={() => { setIsEditDialogOpen(false); setEditingProject(null); }}
               />
             )}
+
           </div>
         </DialogContent>
       </Dialog>

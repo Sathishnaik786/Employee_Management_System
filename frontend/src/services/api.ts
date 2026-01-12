@@ -1,4 +1,4 @@
-import { 
+import {
   User,
   AuthResponse,
   Employee,
@@ -62,7 +62,13 @@ export async function apiCall(
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const data = await res.json();
+  const contentType = res.headers.get('content-type');
+  let data;
+  if (contentType && contentType.includes('application/json')) {
+    data = await res.json();
+  } else {
+    data = { message: await res.text() };
+  }
 
   if (!res.ok) {
     // Create error with status code to allow frontend to handle specific cases
@@ -91,6 +97,10 @@ export const authApi = {
     return apiCall('/auth/reset-password', 'POST', { token, password });
   },
 
+  login: async (credentials: any) => {
+    return apiCall('/auth/login', 'POST', credentials);
+  },
+
   me: async (): Promise<ApiResponse<{ user: User }>> => {
     const token = localStorage.getItem('token') || undefined;
     return apiCall('/auth/me', 'GET', undefined, token);
@@ -114,10 +124,10 @@ export const employeesApi = {
     if (params?.departmentId) queryParams.append('departmentId', params.departmentId);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
-    
+
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/employees?${queryParams.toString()}`, 'GET', undefined, token);
-    
+
     // The backend returns { success: true, data: { data: [...], total: count, page: page, limit: limit, totalPages: totalPages } }
     // So response contains the full response object
     if (response.data && response.data.data && response.data.total !== undefined) {
@@ -147,7 +157,8 @@ export const employeesApi = {
 
   getById: async (id: string): Promise<Employee | undefined> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall(`/employees/${id}`, 'GET', undefined, token);
+    const response = await apiCall(`/employees/${id}`, 'GET', undefined, token);
+    return response.data || response;
   },
 
   create: async (data: Partial<Employee>): Promise<Employee> => {
@@ -190,7 +201,8 @@ export const departmentsApi = {
 
   getById: async (id: string): Promise<Department | undefined> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall(`/departments/${id}`, 'GET', undefined, token);
+    const response = await apiCall(`/departments/${id}`, 'GET', undefined, token);
+    return response.data || response;
   },
 
   create: async (data: Partial<Department>): Promise<Department> => {
@@ -415,10 +427,10 @@ export const projectsApi = {
     if (params?.search) queryParams.append('search', params.search);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
-    
+
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/projects?${queryParams.toString()}`, 'GET', undefined, token);
-    
+
     // The backend returns { data: [...], meta: { total, pages, page, limit } }
     return {
       data: (response.data || []) as Project[],
@@ -438,10 +450,10 @@ export const projectsApi = {
     if (params?.search) queryParams.append('search', params.search);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
-    
+
     const token = localStorage.getItem('token') || undefined;
     const response = await apiCall(`/projects/my-projects?${queryParams.toString()}`, 'GET', undefined, token);
-    
+
     return {
       data: (response.data || []) as Project[],
       meta: response.meta || {
@@ -455,7 +467,8 @@ export const projectsApi = {
 
   getById: async (id: string): Promise<Project | undefined> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall(`/projects/${id}`, 'GET', undefined, token);
+    const response = await apiCall(`/projects/${id}`, 'GET', undefined, token);
+    return response.data || response;
   },
 
   create: async (data: ProjectFormData): Promise<Project> => {

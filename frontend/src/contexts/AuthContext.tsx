@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const profileRequestPromiseRef = useRef<Promise<any> | null>(null);
   const queryClient = useQueryClient();
-  
+
   // Enable real-time query invalidation
   useQueryInvalidation();
 
@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (profileRequestPromiseRef.current) {
       return profileRequestPromiseRef.current;
     }
-    
+
     const requestPromise = (async () => {
       try {
         setIsLoading(true);
@@ -77,31 +77,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         profileRequestPromiseRef.current = null;
       }
     })();
-    
+
     // Store the promise reference to prevent duplicate requests
     profileRequestPromiseRef.current = requestPromise;
-    
+
     return requestPromise;
   };
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3003/api'}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await authApi.login({ email, password });
 
-      const data = await response.json();
-
-      if (data.success && data.data?.token) {
-        localStorage.setItem('token', data.data.token);
+      if (response.success && response.data?.token) {
+        localStorage.setItem('token', response.data.token);
         await fetchUserProfile();
-        return data;
+        return response;
       } else {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(response.message || 'Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -125,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshProfileImage = async () => {
     if (!user) return;
-    
+
     try {
       // Fetch fresh profile data with signed URL from backend
       const response = await authApi.me();

@@ -12,6 +12,18 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Video,
+  Layout,
+  Type,
+  AlignLeft,
+  Link as LinkIcon,
+  Sparkles,
+  Search
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export type MeetupFormMode = "create" | "request";
 
@@ -71,44 +83,65 @@ export const CreateMeetupModal: React.FC<CreateMeetupModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
-      <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto sm:rounded-xl p-4 sm:p-6">
-        <DialogHeader>
-          <DialogTitle>{titleLabel}</DialogTitle>
-          <DialogDescription>{descriptionLabel}</DialogDescription>
+      <DialogContent className="max-w-full sm:max-w-2xl max-h-[95vh] overflow-y-auto sm:rounded-[2rem] p-0 border border-white/10 bg-card/60 backdrop-blur-3xl shadow-premium animate-in zoom-in-95">
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-600 via-primary to-emerald-500" />
+
+        <DialogHeader className="p-6 sm:p-8 pb-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-primary/10 rounded-xl">
+              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+            </div>
+            <DialogTitle className="text-2xl font-heading font-extrabold tracking-tight">
+              {titleLabel}
+            </DialogTitle>
+          </div>
+          <DialogDescription className="text-sm font-medium text-muted-foreground leading-relaxed">
+            {descriptionLabel}
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4 sm:space-y-6">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-800">Title</label>
-            <Input
-              value={values.title}
-              onChange={(e) => handleChange("title", e.target.value)}
-              placeholder="e.g. Sprint Planning, Weekly Standup"
-              required
-            />
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8 pt-0 space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                <Type className="h-3 w-3" /> Meeting Title
+              </label>
+              <Input
+                value={values.title}
+                onChange={(e) => handleChange("title", e.target.value)}
+                placeholder="e.g. Sprint Planning, Weekly Standup"
+                required
+                className="h-12 bg-background/50 border-white/10 focus:ring-primary rounded-xl font-medium"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                <AlignLeft className="h-3 w-3" /> Context & Agenda
+              </label>
+              <Textarea
+                value={values.description}
+                onChange={(e) => handleChange("description", e.target.value)}
+                placeholder="What is this meet-up about?"
+                rows={3}
+                className="bg-background/50 border-white/10 focus:ring-primary rounded-xl font-medium resize-none"
+              />
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-800">Description</label>
-            <Textarea
-              value={values.description}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Add context, agenda, or goals for this meet-up."
-              rows={3}
-            />
-          </div>
-
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-800">Meetup Type</label>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                <Layout className="h-3 w-3" /> Category
+              </label>
               <Select
                 value={values.type}
                 onValueChange={(v) => handleChange("type", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12 bg-background/50 border-white/10 rounded-xl font-medium">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-white/10">
                   <SelectItem value="STANDUP">Standup</SelectItem>
                   <SelectItem value="TRAINING">Training</SelectItem>
                   <SelectItem value="ONE_ON_ONE">1:1</SelectItem>
@@ -117,104 +150,147 @@ export const CreateMeetupModal: React.FC<CreateMeetupModalProps> = ({
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-800">Platform</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                <Video className="h-3 w-3" /> Platform
+              </label>
               <Select
                 value={values.platform}
                 onValueChange={(v) =>
                   handleChange("platform", v as "TEAMS" | "GOOGLE_MEET")
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12 bg-background/50 border-white/10 rounded-xl font-medium">
                   <SelectValue placeholder="Select platform" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TEAMS" className="flex items-center gap-2">
-                    <img 
-                      src="https://www.liblogo.com/img-logo/mi462m3e6-microsoft-teams-logo-microsoft-teams-logo-png-and-vector-logo-download.png" 
-                      alt="Microsoft Teams" 
-                      className="h-4 w-4 object-contain"
-                    />
-                    Microsoft Teams
+                <SelectContent className="rounded-xl border-white/10">
+                  <SelectItem value="TEAMS">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1 bg-indigo-500/10 rounded-md">
+                        <img
+                          src="https://www.liblogo.com/img-logo/mi462m3e6-microsoft-teams-logo-microsoft-teams-logo-png-and-vector-logo-download.png"
+                          alt=""
+                          className="h-3 w-3 object-contain"
+                        />
+                      </div>
+                      <span className="font-medium">Microsoft Teams</span>
+                    </div>
                   </SelectItem>
-                  <SelectItem value="GOOGLE_MEET" className="flex items-center gap-2">
-                    <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Google_Meet_text_logo_%282020%29.svg/1024px-Google_Meet_text_logo_%282020%29.svg.png" 
-                      alt="Google Meet" 
-                      className="h-4 w-4 object-contain"
-                    />
-                    Google Meet
+                  <SelectItem value="GOOGLE_MEET">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1 bg-emerald-500/10 rounded-md">
+                        <img
+                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Google_Meet_text_logo_%282020%29.svg/1024px-Google_Meet_text_logo_%282020%29.svg.png"
+                          alt=""
+                          className="h-3 w-3 object-contain"
+                        />
+                      </div>
+                      <span className="font-medium">Google Meet</span>
+                    </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-800">Meet Link</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+              <LinkIcon className="h-3 w-3" /> Access Link
+            </label>
             <Input
               value={values.link}
               onChange={(e) => handleChange("link", e.target.value)}
-              placeholder="Paste your Teams or Google Meet link"
+              placeholder="Paste your digital meeting link here"
+              className="h-12 bg-background/50 border-white/10 focus:ring-primary rounded-xl font-medium"
             />
           </div>
 
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-800">Date</label>
-              <div className="rounded-lg border border-gray-200 bg-white p-1 sm:p-2">
-                <Calendar
-                  mode="single"
-                  selected={values.date}
-                  onSelect={(date) => date && handleChange("date", date)}
-                  className="w-full max-w-full"
-                />
+          <div className="grid gap-8 grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-start p-6 bg-secondary/20 rounded-[2rem] border border-white/5">
+            <div className="space-y-3">
+              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                <CalendarIcon className="h-3 w-3" /> Select Day
+              </label>
+              <div className="flex justify-center sm:justify-start">
+                <div className="bg-background/80 backdrop-blur-md rounded-2xl border border-white/10 p-2 shadow-inner inline-block">
+                  <Calendar
+                    mode="single"
+                    selected={values.date}
+                    onSelect={(date) => date && handleChange("date", date)}
+                    className="p-0"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <p className="mt-3 sm:mt-5 text-xs font-medium uppercase tracking-wide text-gray-500">
-                Time
-              </p>
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-700">
-                    Start time
-                  </label>
-                  <Input
-                    type="time"
-                    value={values.startTime}
-                    onChange={(e) => handleChange("startTime", e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-700">
-                    End time
-                  </label>
-                  <Input
-                    type="time"
-                    value={values.endTime}
-                    onChange={(e) => handleChange("endTime", e.target.value)}
-                    required
-                  />
+            <div className="hidden lg:block w-px h-full bg-border/20 self-stretch mx-2" />
+
+            <div className="flex-1 space-y-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                  <Clock className="h-3 w-3" /> Timing Configuration
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-bold text-muted-foreground/60 uppercase">
+                      From
+                    </label>
+                    <Input
+                      type="time"
+                      value={values.startTime}
+                      onChange={(e) => handleChange("startTime", e.target.value)}
+                      required
+                      className="h-11 bg-background/50 border-white/10 rounded-xl font-semibold tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-bold text-muted-foreground/60 uppercase">
+                      To
+                    </label>
+                    <Input
+                      type="time"
+                      value={values.endTime}
+                      onChange={(e) => handleChange("endTime", e.target.value)}
+                      required
+                      className="h-11 bg-background/50 border-white/10 rounded-xl font-semibold tabular-nums"
+                    />
+                  </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-500">
-                {values.date &&
-                  `${format(values.date, "EEE, dd MMM yyyy")} • ${values.startTime} - ${
-                    values.endTime
-                  }`}
-              </p>
+
+              <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center gap-4 transition-all hover:bg-primary/10">
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                  <CalendarIcon className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-0.5">Summary</p>
+                  <p className="text-sm font-bold text-foreground tabular-nums">
+                    {format(values.date, "MMM dd, yyyy")}
+                  </p>
+                  <p className="text-xs font-medium text-muted-foreground tabular-nums mt-0.5">
+                    {values.startTime} • {values.endTime}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={!!isSubmitting} className="w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outlinePremium"
+              onClick={onClose}
+              disabled={!!isSubmitting}
+              className="h-12 px-8 rounded-2xl order-2 sm:order-1"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={!!isSubmitting} className="w-full sm:w-auto">
-              {isSubmitting ? "Saving..." : titleLabel}
+            <Button
+              type="submit"
+              disabled={!!isSubmitting}
+              variant="premium"
+              className="h-12 px-10 rounded-2xl order-1 sm:order-2 shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+            >
+              {isSubmitting ? "Processing..." : titleLabel}
             </Button>
           </div>
         </form>

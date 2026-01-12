@@ -4,6 +4,7 @@ import WeeklyStandoutPage from './weekly/WeeklyStandoutPage';
 import MonthlyUpdatePage from './monthly/MonthlyUpdatePage';
 import AnalyticsPage from './analytics/AnalyticsPage';
 import AutomationPage from './automation/AutomationPage';
+import EmployeeUpdatesPage from './EmployeeUpdatesPage';
 
 // Feature Flag Checks
 const isDailyUpdatesEnabled = import.meta.env.VITE_ENABLE_DAILY_UPDATES === 'true';
@@ -51,6 +52,11 @@ if (isAutomationEnabled) {
         element: <AutomationPage />,
     });
 }
+
+routes.push({
+    path: 'updates/employee/:employeeId',
+    element: <EmployeeUpdatesPage />,
+});
 
 export const updatesRoutes: RouteObject[] = routes;
 

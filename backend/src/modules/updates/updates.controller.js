@@ -1,4 +1,5 @@
 const updatesService = require('./updates.service');
+const NotificationService = require('../../controllers/notification.service');
 
 /**
  * Controller for handling employee updates
@@ -24,7 +25,8 @@ class UpdatesController {
                 title,
                 content,
                 project_id,
-                created_by: req.user.id
+                created_by: req.user.id,
+                created_at: req.body.created_at // Allow backdating if provided
             };
 
             const update = await updatesService.createUpdate(updateData, visible_to_user_ids);
@@ -43,7 +45,7 @@ class UpdatesController {
      */
     async getMyUpdates(req, res, next) {
         try {
-            const updates = await updatesService.getMyUpdates(req.user.id, req.query.type);
+            const updates = await updatesService.getMyUpdates(req.user.id, req.query);
             res.status(200).json({
                 success: true,
                 data: updates
@@ -58,7 +60,7 @@ class UpdatesController {
      */
     async getVisibleUpdates(req, res, next) {
         try {
-            const updates = await updatesService.getVisibleUpdates(req.user.id, req.query.type);
+            const updates = await updatesService.getVisibleUpdates(req.user.id, req.query);
             res.status(200).json({
                 success: true,
                 data: updates
@@ -84,6 +86,26 @@ class UpdatesController {
 
             const feedback = await updatesService.addFeedback(feedbackData);
 
+            // Handle Mentions Notification
+            try {
+                if (comment.startsWith('{')) {
+                    const data = JSON.parse(comment);
+                    if (data.mn && Array.isArray(data.mn)) {
+                        for (const mentionedUserId of data.mn) {
+                            if (mentionedUserId === req.user.id) continue;
+                            await NotificationService.notifySystemAlert(
+                                mentionedUserId,
+                                'New Mention',
+                                `${req.user.first_name || 'Someone'} mentioned you in a discussion`,
+                                `/updates` // Generic link
+                            );
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Mention notification error:', e);
+            }
+
             res.status(201).json({
                 success: true,
                 data: feedback
@@ -98,7 +120,7 @@ class UpdatesController {
      */
     async getAnalyticsMe(req, res, next) {
         try {
-            const stats = await updatesService.getAnalyticsMe(req.user.id);
+            const stats = await updatesService.getAnalyticsMe(req.user.id, req.query);
             res.status(200).json({ success: true, data: stats });
         } catch (error) {
             next(error);
@@ -110,7 +132,7 @@ class UpdatesController {
      */
     async getAnalyticsTeam(req, res, next) {
         try {
-            const stats = await updatesService.getAnalyticsTeam(req.user.id);
+            const stats = await updatesService.getAnalyticsTeam(req.user.id, req.query);
             res.status(200).json({ success: true, data: stats });
         } catch (error) {
             next(error);
@@ -126,7 +148,7 @@ class UpdatesController {
             if (req.user.role !== 'ADMIN' && req.user.role !== 'HR') {
                 return res.status(403).json({ success: false, message: 'Unauthorized' });
             }
-            const stats = await updatesService.getAnalyticsOrg();
+            const stats = await updatesService.getAnalyticsOrg(req.query);
 
             res.status(200).json({ success: true, data: stats });
         } catch (error) {
@@ -140,7 +162,7 @@ class UpdatesController {
     async getIntelligenceSummary(req, res, next) {
         try {
             const intelligenceService = require('./intelligence.service');
-            const summary = await intelligenceService.generateSummary(req.user.id, req.query.type || 'MONTHLY');
+            const summary = await intelligenceService.generateSummary(req.user.id, req.query.type || 'MONTHLY', req.query);
             res.status(200).json({ success: true, data: summary });
         } catch (error) {
             next(error);
@@ -169,7 +191,7 @@ class UpdatesController {
      */
     async exportReport(req, res, next) {
         try {
-            const updates = await updatesService.getMyUpdates(req.user.id, req.query.type);
+            const updates = await updatesService.getMyUpdates(req.user.id, req.query);
 
             // Simple CSV-like text export for now
             const exportData = updates.map(u => ({
@@ -184,8 +206,38 @@ class UpdatesController {
             next(error);
         }
     }
+    /**
+     * PUT /api/updates/:id
+     */
+    async updateUpdate(req, res, next) {
+        try {
+            const { id } = req.params;
+            const updateData = req.body;
+            const updated = await updatesService.updateUpdate(id, req.user.id, updateData);
+            res.status(200).json({
+                success: true,
+                data: updated
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * DELETE /api/updates/:id
+     */
+    async deleteUpdate(req, res, next) {
+        try {
+            const { id } = req.params;
+            await updatesService.deleteUpdate(id, req.user.id);
+            res.status(200).json({
+                success: true,
+                message: 'Update deleted successfully'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
-
-
 
 module.exports = new UpdatesController();

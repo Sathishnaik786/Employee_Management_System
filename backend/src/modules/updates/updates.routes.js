@@ -39,6 +39,18 @@ router.post('/automation/reminders', (req, res, next) => updatesController.runRe
 router.get('/governance/export', (req, res, next) => updatesController.exportReport(req, res, next));
 
 /**
+ * PUT /api/updates/:id
+ * Update an existing update
+ */
+router.put('/:id', (req, res, next) => updatesController.updateUpdate(req, res, next));
+
+/**
+ * DELETE /api/updates/:id
+ * Delete an update
+ */
+router.delete('/:id', (req, res, next) => updatesController.deleteUpdate(req, res, next));
+
+/**
  * POST /api/updates/:id/feedback
  * Add feedback to an update
  */

@@ -1,27 +1,44 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { createMonthlyUpdate, getMyMonthlyUpdates } from './monthlyUpdates.api';
+import { createMonthlyUpdate, getMyMonthlyUpdates, updateMonthlyUpdate } from './monthlyUpdates.api';
 import { toast } from 'sonner';
 import { CalendarDays, Rocket, Target, Brain, AlertTriangle, FastForward } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface MonthlyUpdateFormProps {
+    initialData?: {
+        id: string;
+        title: string;
+        created_at: string;
+        content: {
+            month: string;
+            goalsPlanned?: string;
+            goalsAchieved: string;
+            keyContributions: string;
+            learnings?: string;
+            risks?: string;
+            nextMonthGoals?: string;
+        }
+    };
     onSuccess?: () => void;
+    onCancel?: () => void;
 }
 
-const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ onSuccess }) => {
+const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ initialData, onSuccess, onCancel }) => {
+    const isEdit = !!initialData;
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        month: new Date().toISOString().slice(0, 7), // YYYY-MM
-        goalsPlanned: '',
-        goalsAchieved: '',
-        keyContributions: '',
-        learnings: '',
-        risks: '',
-        nextMonthGoals: ''
+        month: initialData?.content.month || new Date().toISOString().slice(0, 7), // YYYY-MM
+        goalsPlanned: initialData?.content.goalsPlanned || '',
+        goalsAchieved: initialData?.content.goalsAchieved || '',
+        keyContributions: initialData?.content.keyContributions || '',
+        learnings: initialData?.content.learnings || '',
+        risks: initialData?.content.risks || '',
+        nextMonthGoals: initialData?.content.nextMonthGoals || ''
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +54,7 @@ const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ onSuccess }) => {
         try {
             // Check for duplicates (Frontend check for UX)
             const myUpdates = await getMyMonthlyUpdates();
-            const existing = myUpdates.data?.find((u: any) => u.content.month === formData.month);
+            const existing = myUpdates.data?.find((u: any) => u.content.month === formData.month && (!isEdit || u.id !== initialData?.id));
 
             if (existing) {
                 toast.error(`You have already submitted a report for ${formData.month}.`);
@@ -48,22 +65,29 @@ const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ onSuccess }) => {
             const payload = {
                 update_type: 'MONTHLY',
                 title: `Monthly Growth Report - ${formData.month}`,
+                created_at: `${formData.month}-01T12:00:00Z`,
                 content: { ...formData }
             };
 
-            await createMonthlyUpdate(payload);
-            toast.success('Monthly update submitted successfully!');
+            if (isEdit && initialData) {
+                await updateMonthlyUpdate(initialData.id, payload);
+                toast.success('Monthly update updated successfully!');
+            } else {
+                await createMonthlyUpdate(payload);
+                toast.success('Monthly update submitted successfully!');
+            }
 
-            // Reset form (except month might be useful to keep if they want to adjust, but better reset)
-            setFormData({
-                month: new Date().toISOString().slice(0, 7),
-                goalsPlanned: '',
-                goalsAchieved: '',
-                keyContributions: '',
-                learnings: '',
-                risks: '',
-                nextMonthGoals: ''
-            });
+            if (!isEdit) {
+                setFormData({
+                    month: new Date().toISOString().slice(0, 7),
+                    goalsPlanned: '',
+                    goalsAchieved: '',
+                    keyContributions: '',
+                    learnings: '',
+                    risks: '',
+                    nextMonthGoals: ''
+                });
+            }
 
             if (onSuccess) onSuccess();
         } catch (error: any) {
@@ -75,22 +99,24 @@ const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ onSuccess }) => {
     };
 
     return (
-        <Card className="w-full max-w-4xl mx-auto shadow-2xl border-indigo-500/10 overflow-hidden bg-card/50 backdrop-blur-sm">
-            <div className="h-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600" />
+        <Card className={cn("w-full max-w-4xl mx-auto shadow-2xl border-indigo-500/10 overflow-hidden bg-card/50 backdrop-blur-sm", isEdit && "border-none shadow-none max-w-none bg-transparent")}>
+            {!isEdit && <div className="h-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600" />}
             <form onSubmit={handleSubmit}>
-                <CardHeader>
-                    <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
-                        <span className="p-2 bg-indigo-500/10 rounded-lg">
-                            <CalendarDays className="h-6 w-6 text-indigo-600" />
-                        </span>
-                        Performance & Growth Report
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                        Document your journey, milestones, and strategic goals for the month.
-                    </p>
-                </CardHeader>
+                {!isEdit && (
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
+                            <span className="p-2 bg-indigo-500/10 rounded-lg">
+                                <CalendarDays className="h-6 w-6 text-indigo-600" />
+                            </span>
+                            Performance & Growth Report
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                            Document your journey, milestones, and strategic goals for the month.
+                        </p>
+                    </CardHeader>
+                )}
 
-                <CardContent className="space-y-8">
+                <CardContent className={cn("space-y-8", isEdit && "pt-6")}>
                     <div className="flex flex-col sm:flex-row gap-6 p-4 bg-secondary/20 rounded-2xl border border-secondary/30">
                         <div className="space-y-2 flex-1">
                             <Label htmlFor="month" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Reporting Month</Label>
@@ -105,7 +131,7 @@ const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ onSuccess }) => {
                         </div>
                         <div className="flex-[2] flex items-center">
                             <p className="text-xs text-muted-foreground italic">
-                                Tip: Monthly reports are critical for performance reviews. Be specific about outcomes.
+                                {isEdit ? "Accuracy in monthly reports ensures your historical impact is properly valued." : "Tip: Monthly reports are critical for performance reviews. Be specific about outcomes."}
                             </p>
                         </div>
                     </div>
@@ -115,25 +141,22 @@ const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ onSuccess }) => {
                             <Label htmlFor="goalsPlanned" className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400">
                                 <Target className="h-4 w-4" /> Goals Planned
                             </Label>
-                            <Textarea
-                                id="goalsPlanned"
-                                placeholder="What were the primary objectives for this month?"
+                            <RichTextEditor
                                 value={formData.goalsPlanned}
-                                onChange={(e) => setFormData({ ...formData, goalsPlanned: e.target.value })}
-                                className="min-h-[120px] resize-none focus:ring-indigo-500 rounded-xl"
+                                onChange={(value) => setFormData({ ...formData, goalsPlanned: value })}
+                                placeholder="What were the primary objectives for this month?"
+                                className="min-h-[120px]"
                             />
                         </div>
                         <div className="space-y-3">
                             <Label htmlFor="goalsAchieved" className="flex items-center gap-2 text-sm font-bold text-indigo-600">
                                 <Rocket className="h-4 w-4" /> Goals Achieved *
                             </Label>
-                            <Textarea
-                                id="goalsAchieved"
-                                placeholder="What results were delivered?"
+                            <RichTextEditor
                                 value={formData.goalsAchieved}
-                                onChange={(e) => setFormData({ ...formData, goalsAchieved: e.target.value })}
-                                className="min-h-[120px] resize-none focus:ring-indigo-500 rounded-xl border-indigo-500/30"
-                                required
+                                onChange={(value) => setFormData({ ...formData, goalsAchieved: value })}
+                                placeholder="What results were delivered?"
+                                className="min-h-[120px]"
                             />
                         </div>
                     </div>
@@ -142,13 +165,11 @@ const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ onSuccess }) => {
                         <Label htmlFor="keyContributions" className="flex items-center gap-2 text-sm font-bold text-purple-600">
                             <Rocket className="h-4 w-4" /> Strategic Contributions *
                         </Label>
-                        <Textarea
-                            id="keyContributions"
-                            placeholder="Highlight significant impact on projects or team processes."
+                        <RichTextEditor
                             value={formData.keyContributions}
-                            onChange={(e) => setFormData({ ...formData, keyContributions: e.target.value })}
-                            className="min-h-[100px] resize-none focus:ring-purple-500 rounded-xl border-purple-500/30"
-                            required
+                            onChange={(value) => setFormData({ ...formData, keyContributions: value })}
+                            placeholder="Highlight significant impact on projects or team processes."
+                            className="min-h-[100px]"
                         />
                     </div>
 
@@ -157,24 +178,22 @@ const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ onSuccess }) => {
                             <Label htmlFor="learnings" className="flex items-center gap-2 text-sm font-bold text-emerald-600">
                                 <Brain className="h-4 w-4" /> Growth & Learnings
                             </Label>
-                            <Textarea
-                                id="learnings"
-                                placeholder="What new skills or knowledge did you acquire?"
+                            <RichTextEditor
                                 value={formData.learnings}
-                                onChange={(e) => setFormData({ ...formData, learnings: e.target.value })}
-                                className="min-h-[100px] resize-none focus:ring-emerald-500 rounded-xl"
+                                onChange={(value) => setFormData({ ...formData, learnings: value })}
+                                placeholder="What new skills or knowledge did you acquire?"
+                                className="min-h-[100px]"
                             />
                         </div>
                         <div className="space-y-3">
                             <Label htmlFor="risks" className="flex items-center gap-2 text-sm font-bold text-rose-600">
                                 <AlertTriangle className="h-4 w-4" /> Blockers & Risks
                             </Label>
-                            <Textarea
-                                id="risks"
-                                placeholder="What hindered your progress or poses a future risk?"
+                            <RichTextEditor
                                 value={formData.risks}
-                                onChange={(e) => setFormData({ ...formData, risks: e.target.value })}
-                                className="min-h-[100px] resize-none focus:ring-rose-500 rounded-xl"
+                                onChange={(value) => setFormData({ ...formData, risks: value })}
+                                placeholder="What hindered your progress or poses a future risk?"
+                                className="min-h-[100px]"
                             />
                         </div>
                     </div>
@@ -183,23 +202,27 @@ const MonthlyUpdateForm: React.FC<MonthlyUpdateFormProps> = ({ onSuccess }) => {
                         <Label htmlFor="nextMonthGoals" className="flex items-center gap-2 text-sm font-bold text-blue-600">
                             <FastForward className="h-4 w-4" /> Next Month Objectives
                         </Label>
-                        <Textarea
-                            id="nextMonthGoals"
-                            placeholder="What are the key priorities for the upcoming month?"
+                        <RichTextEditor
                             value={formData.nextMonthGoals}
-                            onChange={(e) => setFormData({ ...formData, nextMonthGoals: e.target.value })}
-                            className="min-h-[100px] resize-none focus:ring-blue-500 rounded-xl bg-blue-50/10"
+                            onChange={(value) => setFormData({ ...formData, nextMonthGoals: value })}
+                            placeholder="What are the key priorities for the upcoming month?"
+                            className="min-h-[100px]"
                         />
                     </div>
                 </CardContent>
 
-                <CardFooter className="bg-secondary/10 border-t border-border/50 py-6">
+                <CardFooter className={cn("bg-secondary/10 border-t border-border/50 py-6 flex gap-2", isEdit && "bg-transparent border-none")}>
+                    {onCancel && (
+                        <Button type="button" variant="ghost" onClick={onCancel} disabled={loading}>
+                            Cancel
+                        </Button>
+                    )}
                     <Button
                         type="submit"
                         className="w-full sm:w-auto ml-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-6 px-10 rounded-2xl shadow-xl shadow-indigo-500/20"
                         disabled={loading}
                     >
-                        {loading ? 'Processing...' : 'Authorize & Submit Monthly Report'}
+                        {loading ? 'Processing...' : isEdit ? 'Save Changes' : 'Authorize & Submit Monthly Report'}
                     </Button>
                 </CardFooter>
             </form>

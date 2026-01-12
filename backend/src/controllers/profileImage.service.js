@@ -88,7 +88,7 @@ class ProfileImageService {
       const pathIndex = urlParts.indexOf('profile-images');
       if (pathIndex !== -1) {
         const filePath = urlParts.slice(pathIndex + 1).join('/');
-        
+
         const { error } = await supabaseAdmin
           .storage
           .from('profile-images')
@@ -113,7 +113,7 @@ class ProfileImageService {
   async generateSignedUrl(filePath, expiresIn = 3600) {
     try {
       if (!filePath) return null;
-      
+
       const { data, error } = await supabaseAdmin
         .storage
         .from('profile-images')
@@ -137,6 +137,33 @@ class ProfileImageService {
         return null;
       }
       console.error('Error in generateSignedUrl:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate multiple signed URLs for profile images
+   * @param {string[]} filePaths - Array of file paths in storage
+   * @param {number} expiresIn - Number of seconds until the URLs expire (default 3600)
+   * @returns {Promise<Object[]>} - Array of objects containing path and signedUrl
+   */
+  async generateSignedUrls(filePaths, expiresIn = 3600) {
+    try {
+      if (!filePaths || filePaths.length === 0) return [];
+
+      const { data, error } = await supabaseAdmin
+        .storage
+        .from('profile-images')
+        .createSignedUrls(filePaths, expiresIn);
+
+      if (error) {
+        console.error('Error generating multiple signed URLs:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in generateSignedUrls:', error);
       throw error;
     }
   }

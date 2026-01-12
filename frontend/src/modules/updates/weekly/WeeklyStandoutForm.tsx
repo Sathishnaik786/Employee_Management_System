@@ -1,26 +1,72 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createWeeklyUpdate } from './weeklyUpdates.api';
+import { Input } from '@/components/ui/input';
+import { createWeeklyUpdate, updateWeeklyUpdate } from './weeklyUpdates.api';
 import { toast } from 'sonner';
-import { Star } from 'lucide-react';
+import { Star, ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface WeeklyStandoutFormProps {
+    initialData?: {
+        id: string;
+        title: string;
+        created_at: string;
+        content: {
+            achievements: string;
+            plannedVsDone: string;
+            challenges?: string;
+            nextWeekPlan?: string;
+            selfRating?: number;
+            week_start?: string;
+            week_end?: string;
+        }
+    };
     onSuccess?: () => void;
+    onCancel?: () => void;
 }
 
-const WeeklyStandoutForm: React.FC<WeeklyStandoutFormProps> = ({ onSuccess }) => {
+const WeeklyStandoutForm: React.FC<WeeklyStandoutFormProps> = ({ initialData, onSuccess, onCancel }) => {
+    const isEdit = !!initialData;
     const [loading, setLoading] = useState(false);
+
+    // Helper to get dates
+    const getInitialDates = () => {
+        const content = initialData?.content as any;
+        if (content?.week_start && content?.week_end) {
+            return {
+                start: content.week_start as string,
+                end: content.week_end as string
+            };
+        }
+
+        const now = new Date();
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+        const monday = new Date(now.setDate(diff));
+        const friday = new Date(monday);
+        friday.setDate(monday.getDate() + 4);
+
+        return {
+            start: monday.toISOString().split('T')[0],
+            end: friday.toISOString().split('T')[0]
+        };
+    };
+
+    const initialDates = getInitialDates();
+
     const [formData, setFormData] = useState({
-        achievements: '',
-        plannedVsDone: '',
-        challenges: '',
-        nextWeekPlan: '',
-        selfRating: '4',
-        title: `Weekly Stand-out - Week ${new Date().toLocaleDateString()}`
+        achievements: initialData?.content.achievements || '',
+        plannedVsDone: initialData?.content.plannedVsDone || '',
+        challenges: initialData?.content.challenges || '',
+        nextWeekPlan: initialData?.content.nextWeekPlan || '',
+        selfRating: initialData?.content.selfRating?.toString() || '4',
+        weekStart: initialDates.start,
+        weekEnd: initialDates.end,
+        title: initialData?.title || `Weekly Stand-out - ${new Date().toLocaleDateString()}`
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -30,30 +76,51 @@ const WeeklyStandoutForm: React.FC<WeeklyStandoutFormProps> = ({ onSuccess }) =>
             return;
         }
 
+        if (!formData.weekStart || !formData.weekEnd) {
+            toast.error('Please select both start and end dates for the week.');
+            return;
+        }
+
+        if (new Date(formData.weekEnd) < new Date(formData.weekStart)) {
+            toast.error('End date cannot be earlier than start date.');
+            return;
+        }
+
         setLoading(true);
         try {
             const payload = {
                 update_type: 'WEEKLY',
-                title: formData.title,
+                title: `Weekly Reflection: ${formData.weekStart} to ${formData.weekEnd}`,
+                created_at: new Date(formData.weekStart).toISOString(),
                 content: {
                     achievements: formData.achievements,
                     plannedVsDone: formData.plannedVsDone,
                     challenges: formData.challenges,
                     nextWeekPlan: formData.nextWeekPlan,
-                    selfRating: parseInt(formData.selfRating)
+                    selfRating: parseInt(formData.selfRating),
+                    week_start: formData.weekStart,
+                    week_end: formData.weekEnd
                 }
             };
 
-            await createWeeklyUpdate(payload);
-            toast.success('Weekly stand-out submitted successfully!');
-            setFormData({
-                achievements: '',
-                plannedVsDone: '',
-                challenges: '',
-                nextWeekPlan: '',
-                selfRating: '4',
-                title: `Weekly Stand-out - Week ${new Date().toLocaleDateString()}`
-            });
+            if (isEdit && initialData) {
+                await updateWeeklyUpdate(initialData.id, payload);
+                toast.success('Weekly standout updated successfully!');
+            } else {
+                await createWeeklyUpdate(payload);
+                toast.success('Weekly stand-out submitted successfully!');
+            }
+
+            if (!isEdit) {
+                setFormData({
+                    ...formData,
+                    achievements: '',
+                    plannedVsDone: '',
+                    challenges: '',
+                    nextWeekPlan: '',
+                    selfRating: '4',
+                });
+            }
             if (onSuccess) onSuccess();
         } catch (error: any) {
             console.error('Error submitting weekly update:', error);
@@ -64,62 +131,118 @@ const WeeklyStandoutForm: React.FC<WeeklyStandoutFormProps> = ({ onSuccess }) =>
     };
 
     return (
-        <Card className="w-full max-w-3xl mx-auto shadow-xl border-primary/10 overflow-hidden">
-            <div className="h-2 bg-gradient-to-r from-primary via-indigo-500 to-purple-600" />
+        <Card className={cn("w-full max-w-3xl mx-auto shadow-xl border-primary/10 overflow-hidden", isEdit && "border-none shadow-none max-w-none")}>
+            {!isEdit && <div className="h-2 bg-gradient-to-r from-primary via-indigo-500 to-purple-600" />}
             <form onSubmit={handleSubmit}>
-                <CardHeader>
-                    <CardTitle className="text-2xl font-bold tracking-tight">
-                        Week End Stand-out
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Reflect on your accomplishments and plan for the next cycle.
-                    </p>
-                </CardHeader>
-                <CardContent className="space-y-6">
+                {!isEdit && (
+                    <CardHeader>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                            <div className="space-y-1">
+                                <CardTitle className="text-2xl font-bold tracking-tight">
+                                    Week End Stand-out
+                                </CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Reflect on your accomplishments and plan for the next cycle.
+                                </p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto p-3 bg-secondary/30 rounded-xl border border-primary/10">
+                                <div className="flex-1 min-w-[140px]">
+                                    <Label htmlFor="weekStart" className="text-[10px] font-black uppercase tracking-widest text-primary mb-1.5 block">Week Start</Label>
+                                    <Input
+                                        id="weekStart"
+                                        type="date"
+                                        value={formData.weekStart}
+                                        onChange={(e) => setFormData({ ...formData, weekStart: e.target.value })}
+                                        className="h-9 font-bold bg-background border-primary/20"
+                                        required
+                                    />
+                                </div>
+                                <div className="hidden sm:flex items-center justify-center pt-5">
+                                    <ArrowRight className="h-4 w-4 text-primary/40" />
+                                </div>
+                                <div className="flex-1 min-w-[140px]">
+                                    <Label htmlFor="weekEnd" className="text-[10px] font-black uppercase tracking-widest text-primary mb-1.5 block">Week End</Label>
+                                    <Input
+                                        id="weekEnd"
+                                        type="date"
+                                        value={formData.weekEnd}
+                                        onChange={(e) => setFormData({ ...formData, weekEnd: e.target.value })}
+                                        className="h-9 font-bold bg-background border-primary/20"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </CardHeader>
+                )}
+                <CardContent className={cn("space-y-6", isEdit && "pt-6")}>
+                    {isEdit && (
+                        <div className="flex flex-col sm:flex-row items-center gap-3 w-full p-4 bg-secondary/30 rounded-2xl border border-primary/10 mb-8">
+                            <div className="flex-1">
+                                <Label htmlFor="weekStart" className="text-[10px] font-black uppercase tracking-widest text-primary mb-1.5 block">Week Start</Label>
+                                <Input
+                                    id="weekStart"
+                                    type="date"
+                                    value={formData.weekStart}
+                                    onChange={(e) => setFormData({ ...formData, weekStart: e.target.value })}
+                                    className="h-10 font-bold bg-background border-primary/20"
+                                    required
+                                />
+                            </div>
+                            <div className="hidden sm:flex items-center justify-center pt-5">
+                                <ArrowRight className="h-4 w-4 text-primary/40" />
+                            </div>
+                            <div className="flex-1">
+                                <Label htmlFor="weekEnd" className="text-[10px] font-black uppercase tracking-widest text-primary mb-1.5 block">Week End</Label>
+                                <Input
+                                    id="weekEnd"
+                                    type="date"
+                                    value={formData.weekEnd}
+                                    onChange={(e) => setFormData({ ...formData, weekEnd: e.target.value })}
+                                    className="h-10 font-bold bg-background border-primary/20"
+                                    required
+                                />
+                            </div>
+                        </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="achievements" className="text-sm font-bold uppercase tracking-wider text-primary">🏆 Key Achievements *</Label>
-                            <Textarea
-                                id="achievements"
-                                placeholder="What are you most proud of this week?"
+                            <RichTextEditor
                                 value={formData.achievements}
-                                onChange={(e) => setFormData({ ...formData, achievements: e.target.value })}
-                                className="min-h-[120px] resize-none focus:ring-primary border-primary/20"
-                                required
+                                onChange={(value) => setFormData({ ...formData, achievements: value })}
+                                placeholder="What are you most proud of this week?"
+                                className="min-h-[120px]"
                             />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="plannedVsDone" className="text-sm font-bold uppercase tracking-wider text-green-600">📊 Planned vs Completed *</Label>
-                            <Textarea
-                                id="plannedVsDone"
-                                placeholder="What did you plan vs what actually got done?"
+                            <RichTextEditor
                                 value={formData.plannedVsDone}
-                                onChange={(e) => setFormData({ ...formData, plannedVsDone: e.target.value })}
-                                className="min-h-[120px] resize-none focus:ring-green-500 border-green-500/20"
-                                required
+                                onChange={(value) => setFormData({ ...formData, plannedVsDone: value })}
+                                placeholder="What did you plan vs what actually got done?"
+                                className="min-h-[120px]"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="challenges" className="text-sm font-bold uppercase tracking-wider text-amber-600">🚧 Challenges Encountered</Label>
-                        <Textarea
-                            id="challenges"
-                            placeholder="Any roadblocks or lessons learned?"
+                        <RichTextEditor
                             value={formData.challenges}
-                            onChange={(e) => setFormData({ ...formData, challenges: e.target.value })}
-                            className="min-h-[100px] resize-none focus:ring-amber-500 border-amber-500/20"
+                            onChange={(value) => setFormData({ ...formData, challenges: value })}
+                            placeholder="Any roadblocks or lessons learned?"
+                            className="min-h-[100px]"
                         />
                     </div>
 
                     <div className="space-y-2">
                         <Label htmlFor="nextWeekPlan" className="text-sm font-bold uppercase tracking-wider text-indigo-600">🔜 Next Week's Priorities</Label>
-                        <Textarea
-                            id="nextWeekPlan"
-                            placeholder="What's the main focus for next week?"
+                        <RichTextEditor
                             value={formData.nextWeekPlan}
-                            onChange={(e) => setFormData({ ...formData, nextWeekPlan: e.target.value })}
-                            className="min-h-[100px] resize-none focus:ring-indigo-500 border-indigo-500/20"
+                            onChange={(value) => setFormData({ ...formData, nextWeekPlan: value })}
+                            placeholder="What's the main focus for next week?"
+                            className="min-h-[100px]"
                         />
                     </div>
 
@@ -147,13 +270,18 @@ const WeeklyStandoutForm: React.FC<WeeklyStandoutFormProps> = ({ onSuccess }) =>
                         </div>
                     </div>
                 </CardContent>
-                <CardFooter className="bg-secondary/5 border-t border-border/50 pt-6">
+                <CardFooter className={cn("bg-secondary/5 border-t border-border/50 pt-6 flex gap-2", isEdit && "bg-transparent border-none")}>
+                    {onCancel && (
+                        <Button type="button" variant="ghost" onClick={onCancel} disabled={loading}>
+                            Cancel
+                        </Button>
+                    )}
                     <Button
                         type="submit"
                         className="w-full sm:w-auto ml-auto bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 px-8"
                         disabled={loading}
                     >
-                        {loading ? 'Submitting...' : 'Post Weekly Stand-out'}
+                        {loading ? 'Submitting...' : isEdit ? 'Update Entry' : 'Post Weekly Stand-out'}
                     </Button>
                 </CardFooter>
             </form>

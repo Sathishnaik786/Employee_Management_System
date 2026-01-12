@@ -97,14 +97,32 @@ class UpdateIntelligenceService {
      * Generate an AI summary for a user based on their daily/weekly updates
      * (Simulated AI Logic)
      */
-    async generateSummary(userId, type = 'MONTHLY') {
-        const { data: updates, error } = await supabaseAdmin
+    async generateSummary(userId, type = 'MONTHLY', filters = {}) {
+        const { date, week, month } = filters;
+
+        let query = supabaseAdmin
             .from('employee_updates')
             .select('*')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
+            .eq('user_id', userId);
 
-        if (error || updates.length === 0) return null;
+        if (date) {
+            query = query.gte('created_at', `${date}T00:00:00Z`).lte('created_at', `${date}T23:59:59Z`);
+        } else if (month) {
+            const [year, m] = month.split('-');
+            const startDate = `${month}-01T00:00:00Z`;
+            const lastDay = new Date(year, m, 0).getDate();
+            const endDate = `${month}-${lastDay}T23:59:59Z`;
+            query = query.gte('created_at', startDate).lte('created_at', endDate);
+        } else if (week) {
+            const start = new Date(week);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 7);
+            query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+        }
+
+        const { data: updates, error } = await query.order('created_at', { ascending: false });
+
+        if (error || !updates || updates.length === 0) return null;
 
         const sourceUpdates = updates.filter(u =>
             type === 'MONTHLY' ? u.update_type === 'WEEKLY' : u.update_type === 'DAILY'

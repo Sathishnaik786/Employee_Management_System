@@ -1,10 +1,16 @@
 import { apiCall } from "@/services/api";
 
-export const getMyAnalytics = () =>
-    apiCall("/updates/analytics/me", "GET");
+export const getMyAnalytics = (filters: any = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return apiCall(`/updates/analytics/me${params ? '?' + params : ''}`, "GET");
+};
 
-export const getTeamAnalytics = () =>
-    apiCall("/updates/analytics/team", "GET");
+export const getTeamAnalytics = (filters: any = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return apiCall(`/updates/analytics/team${params ? '?' + params : ''}`, "GET");
+};
 
-export const getOrgAnalytics = () =>
-    apiCall("/updates/analytics/org", "GET");
+export const getOrgAnalytics = (filters: any = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return apiCall(`/updates/analytics/org${params ? '?' + params : ''}`, "GET");
+};

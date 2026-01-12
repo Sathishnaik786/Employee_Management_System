@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -159,15 +160,22 @@ export default function MeetupsPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between bg-card/30 p-6 sm:p-8 rounded-[2rem] border border-white/10 backdrop-blur-sm shadow-premium">
         <PageHeader
           title="Meet-ups"
-          description="Manage and join your upcoming team meet-ups."
+          description="Coordinate and participate in upcoming organizational events & syncs."
+          className="mb-0"
         />
-        <div className="w-full md:w-auto">
-          <Button onClick={handleOpenModal} className="w-full" disabled={loading}>
-            {loading ? "Loading..." : primaryButtonLabel}
+        <div className="w-full lg:w-auto">
+          <Button
+            onClick={handleOpenModal}
+            variant="premium"
+            size="lg"
+            className="w-full lg:px-10 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-[1.03]"
+            disabled={loading}
+          >
+            {loading ? "Initializing..." : primaryButtonLabel}
           </Button>
         </div>
       </div>
@@ -183,16 +191,21 @@ export default function MeetupsPage() {
 
       <div className="space-y-3">
         {loading && (
-          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-            {[...Array(3)].map((_, idx) => (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {[...Array(6)].map((_, idx) => (
               <div
                 key={idx}
-                className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm"
+                className="card-premium p-6 space-y-4"
               >
-                <Skeleton className="mb-3 h-4 w-3/4" />
-                <Skeleton className="mb-2 h-3 w-1/2" />
-                <Skeleton className="mb-2 h-3 w-1/3" />
-                <Skeleton className="h-8 w-24" />
+                <div className="flex justify-between">
+                  <Skeleton className="h-6 w-3/4 rounded-lg bg-muted/40" />
+                  <Skeleton className="h-6 w-1/4 rounded-full bg-muted/30" />
+                </div>
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-1/2 bg-muted/20" />
+                  <Skeleton className="h-4 w-1/3 bg-muted/20" />
+                </div>
+                <Skeleton className="h-10 w-full rounded-xl bg-muted/30 mt-4" />
               </div>
             ))}
           </div>
@@ -205,29 +218,33 @@ export default function MeetupsPage() {
         )}
 
         {!loading && !error && approvedMeetups.length === 0 && (
-          <div className="rounded-lg border border-dashed border-gray-200 bg-white/60 p-6 text-center text-sm text-gray-500">
-            <div className="mx-auto mb-3 h-12 w-12 text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-full w-full">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          <div className="rounded-[2.5rem] border border-dashed border-primary/20 bg-background/40 p-12 lg:p-20 text-center shadow-inner">
+            <div className="mx-auto mb-6 h-20 w-20 rounded-3xl bg-primary/5 flex items-center justify-center text-primary/40">
+              <CalendarIcon className="h-10 w-10" />
             </div>
-            No meet-ups scheduled yet. 
-            <span className="font-medium text-primary">
+            <h3 className="text-xl font-heading font-extrabold tracking-tight mb-2">No Active Meet-ups</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto mb-8 font-medium">
+              Synchronize with your team by initiating a new event or requesting a slot.
+            </p>
+            <Button
+              variant="outlinePremium"
+              onClick={handleOpenModal}
+              className="rounded-xl px-8"
+            >
               {primaryButtonLabel}
-            </span>
-            to get started.
+            </Button>
           </div>
         )}
 
         {!loading && !error && approvedMeetups.length > 0 && (
-          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {approvedMeetups.map((meetup) => {
               const originalMeetup = meetups.find(m => m.id === meetup.id);
               return (
-                <MeetupCard 
-                  key={meetup.id} 
-                  meetup={meetup} 
-                  onJoin={() => handleJoinMeet(originalMeetup)} 
+                <MeetupCard
+                  key={meetup.id}
+                  meetup={meetup}
+                  onJoin={() => handleJoinMeet(originalMeetup)}
                 />
               );
             })}

@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import tailwindAnimate from "tailwindcss-animate";
+import typography from "@tailwindcss/typography";
 
 export default {
   darkMode: ["class"],
@@ -14,8 +16,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        sans: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        heading: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        mono: ["'JetBrains Mono'", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -86,11 +89,17 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "var(--token-radius-xl)",
+        "2xl": "var(--token-radius-2xl)",
       },
       boxShadow: {
-        card: "var(--shadow-md)",
-        "card-hover": "var(--shadow-lg)",
-        elevated: "var(--shadow-xl)",
+        premium: "var(--shadow-premium)",
+        xs: "var(--token-shadow-xs)",
+        sm: "var(--token-shadow-sm)",
+        md: "var(--token-shadow-md)",
+        lg: "var(--token-shadow-lg)",
+        xl: "var(--token-shadow-xl)",
+        "2xl": "var(--token-shadow-2xl)",
       },
       keyframes: {
         "accordion-down": {
@@ -128,5 +137,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindAnimate, typography],
 } satisfies Config;

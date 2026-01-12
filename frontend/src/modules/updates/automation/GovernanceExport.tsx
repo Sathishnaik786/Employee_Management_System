@@ -4,18 +4,30 @@ import { Button } from '@/components/ui/button';
 import { FileDown, FileJson, FileText, CheckCircle2 } from 'lucide-react';
 import { exportUpdates } from './automation.api';
 import { toast } from 'sonner';
+import UpdatesTimeFilter from '../components/UpdatesTimeFilter';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const GovernanceExport: React.FC = () => {
     const [exporting, setExporting] = useState(false);
+    const [filterMode, setFilterMode] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY'>('MONTHLY');
+    const [filterValue, setFilterValue] = useState<string>('');
 
     const handleExport = async (type?: string) => {
         setExporting(true);
         try {
-            const res = await exportUpdates(type);
+            const filters: any = {};
+            if (type) filters.type = type;
+            if (filterValue) {
+                if (filterMode === 'DAILY') filters.date = filterValue;
+                if (filterMode === 'WEEKLY') filters.week = filterValue;
+                if (filterMode === 'MONTHLY') filters.month = filterValue;
+            }
+
+            const res = await exportUpdates(filters);
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res.data, null, 2));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", `YVI_EMS_Export_${type || 'ALL'}_${new Date().toISOString().slice(0, 10)}.json`);
+            downloadAnchorNode.setAttribute("download", `YVI_EMS_Export_${type || 'ALL'}_${filterValue || new Date().toISOString().slice(0, 10)}.json`);
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -39,6 +51,20 @@ const GovernanceExport: React.FC = () => {
             </CardHeader>
 
             <CardContent className="space-y-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-background/40 rounded-2xl border border-indigo-500/10 mb-4">
+                    <div className="flex flex-col gap-2">
+                        <span className="text-[10px] font-black uppercase text-muted-foreground ml-1">Time Range Filter</span>
+                        <Tabs value={filterMode} onValueChange={(v: any) => { setFilterMode(v); setFilterValue(''); }} className="bg-secondary/30 p-1 rounded-xl w-fit">
+                            <TabsList className="bg-transparent h-7">
+                                <TabsTrigger value="DAILY" className="text-[10px] font-bold uppercase tracking-tighter rounded-lg h-5">Day</TabsTrigger>
+                                <TabsTrigger value="WEEKLY" className="text-[10px] font-bold uppercase tracking-tighter rounded-lg h-5">Week</TabsTrigger>
+                                <TabsTrigger value="MONTHLY" className="text-[10px] font-bold uppercase tracking-tighter rounded-lg h-5">Month</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    </div>
+                    <UpdatesTimeFilter mode={filterMode} value={filterValue} onChange={setFilterValue} />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
                         { id: 'DAILY', label: 'Daily Logs', icon: FileText },
@@ -68,7 +94,7 @@ const GovernanceExport: React.FC = () => {
                         </div>
                         <div>
                             <h4 className="text-sm font-black">Full Knowledge Portability</h4>
-                            <p className="text-xs text-muted-foreground">Download all updates currently visible to you in a single batch.</p>
+                            <p className="text-xs text-muted-foreground">Download all updates filtered by range.</p>
                         </div>
                     </div>
                     <Button

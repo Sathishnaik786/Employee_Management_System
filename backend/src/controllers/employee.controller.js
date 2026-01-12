@@ -35,6 +35,7 @@ const mapEmployee = (emp) => {
         emergencyContact: emp.emergency_contact,
         emergencyPhone: emp.emergency_phone,
         managerId: emp.manager_id,
+        userId: emp.user_id,
         profile_image: emp.profile_image, // Map profile_image field
         avatar: emp.profile_image, // Also map to avatar for compatibility
         department: emp.department_name ? {

@@ -66,8 +66,8 @@ const EmployeeUpdatesPage: React.FC = () => {
                 if (empRes) {
                     setEmployee(empRes);
 
-                    // Filter updates for this specific employee using their user_id
-                    const filterId = empRes.user_id;
+                    // Filter updates for this specific employee using their userId
+                    const filterId = empRes.userId;
 
                     setUpdates({
                         daily: (dailyRes.data || []).filter((u: any) => u.user_id === filterId),

@@ -168,14 +168,14 @@ exports.getAll = async (req, res, next) => {
             query = query.eq('department_id', departmentId);
         }
 
-        if (req.user.role === 'MANAGER' && req.user.employee) {
+        if (req.user.role === 'MANAGER' && req.user.employeeId) {
             const { data: teamIds } = await supabase
                 .from('employees')
                 .select('id')
-                .eq('manager_id', req.user.employee.id);
+                .eq('manager_id', req.user.employeeId);
 
             if (teamIds) {
-                query = query.in('id', teamIds.map(t => t.id).concat(req.user.employee.id));
+                query = query.in('id', teamIds.map(t => t.id).concat(req.user.employeeId));
             }
         }
 

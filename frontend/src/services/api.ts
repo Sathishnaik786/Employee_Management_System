@@ -163,12 +163,14 @@ export const employeesApi = {
 
   create: async (data: Partial<Employee>): Promise<Employee> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall('/employees', 'POST', data, token);
+    const response = await apiCall('/employees', 'POST', data, token);
+    return response.data || response;
   },
 
   update: async (id: string, data: Partial<Employee>): Promise<Employee> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall(`/employees/${id}`, 'PUT', data, token);
+    const response = await apiCall(`/employees/${id}`, 'PUT', data, token);
+    return response.data || response;
   },
 
   // Profile-specific endpoints
@@ -180,7 +182,8 @@ export const employeesApi = {
 
   updateProfile: async (data: Partial<Employee>): Promise<Employee> => {
     const token = localStorage.getItem('token') || undefined;
-    return apiCall('/employees/profile', 'PUT', data, token);
+    const response = await apiCall('/employees/profile', 'PUT', data, token);
+    return response.data || response;
   },
 
   delete: async (id: string): Promise<void> => {

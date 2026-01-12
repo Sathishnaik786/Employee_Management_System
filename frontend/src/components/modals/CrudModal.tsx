@@ -29,7 +29,11 @@ export function CrudModal({ open, onOpenChange, title, description, children, si
       <DialogContent className={sizeClasses[size]}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : (
+            <DialogDescription className="sr-only">Modal for {title}</DialogDescription>
+          )}
         </DialogHeader>
         {children}
       </DialogContent>

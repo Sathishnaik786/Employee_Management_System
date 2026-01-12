@@ -51,18 +51,27 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
     const fetchData = async () => {
       try {
         setLoading(true);
+        // Only fetch all employees if the user has a privileged role (ADMIN, HR, MANAGER)
+        // Regular employees don't have permission to see everyone and can't change their manager anyway
+        const empsPromise = hasRole(['ADMIN', 'HR', 'MANAGER'])
+          ? employeesApi.getAll({})
+          : Promise.resolve({ data: [] });
+
         const [depts, emps] = await Promise.all([
           departmentsApi.getAll(),
-          employeesApi.getAll({}),
+          empsPromise,
         ]);
         setDepartments(depts);
         setManagers(emps.data || []);
       } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load departments and employees',
-          variant: 'destructive',
-        });
+        // Log error but don't show toast for 403s on employee list as it's often irrelevant for regular users
+        if ((error as any).status !== 403) {
+          toast({
+            title: 'Error',
+            description: 'Failed to load configuration data',
+            variant: 'destructive',
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -218,11 +227,11 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
               <FormItem>
                 <FormLabel>Salary</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
+                  <Input
+                    {...field}
+                    type="number"
                     onChange={(e) => field.onChange(Number(e.target.value))}
-                    disabled={isFieldDisabled('salary')} 
+                    disabled={isFieldDisabled('salary')}
                   />
                 </FormControl>
                 <FormMessage />

@@ -39,12 +39,12 @@ const authMiddleware = async (req, res, next) => {
     req.user = {
       id: data.user.id,
       email: data.user.email,
-      role: employee.role,
+      role: employee.role?.toUpperCase() || 'EMPLOYEE',
       employeeId: employee.id,
       firstName: employee.first_name,
       lastName: employee.last_name,
     };
-    
+
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);

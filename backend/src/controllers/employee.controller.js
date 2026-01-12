@@ -50,7 +50,7 @@ exports.getProfile = async (req, res, next) => {
     try {
         const { data, error } = await supabase
             .from('employees')
-            .select('*, department:departments(*)')
+            .select('*, department:departments!department_id(*)')
             .eq('user_id', req.user.id)
             .single();
 
@@ -154,7 +154,7 @@ exports.getAll = async (req, res, next) => {
 
         let query = supabase
             .from('employees')
-            .select('*, department:departments(*)', { count: 'exact' });
+            .select('*, department:departments!department_id(*)', { count: 'exact' });
 
         if (search) {
             query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%`);
@@ -257,7 +257,7 @@ exports.getById = async (req, res, next) => {
         // Fetch from database
         const { data, error } = await supabase
             .from('employees')
-            .select('*, department:departments(*), manager:employees(*)')
+            .select('*, department:departments!department_id(*), manager:employees!manager_id(*)')
             .eq('id', id)
             .single();
 

@@ -1,4 +1,4 @@
-const { supabase } = require('@lib/supabase');
+const { supabase, supabaseAdmin } = require('@lib/supabase');
 const multer = require('multer');
 const NotificationService = require('./notification.service');
 const ProfileImageService = require('./profileImage.service');
@@ -140,7 +140,7 @@ exports.updateProfile = async (req, res, next) => {
 
         console.log('Updating profile with fields:', Object.keys(allowedFields));
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('employees')
             .update(allowedFields)
             .eq('user_id', req.user.id)
@@ -402,7 +402,9 @@ exports.update = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'No fields provided for update' });
         }
 
-        const { data, error } = await supabase
+        console.log(`Updating employee ${id} with fields:`, Object.keys(dbData));
+
+        const { data, error } = await supabaseAdmin
             .from('employees')
             .update(dbData)
             .eq('id', id)

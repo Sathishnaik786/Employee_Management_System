@@ -85,15 +85,27 @@ export default function Profile() {
         state, country, position
       };
 
+      console.log('Submitting profile update:', profileData);
       const updatedEmployee = await employeesApi.updateProfile(profileData);
+      console.log('Update successful, received:', updatedEmployee);
+
       setEmployee(updatedEmployee);
       if (updatedEmployee.profile_image) updateProfileImage(updatedEmployee.profile_image);
 
       toast({ title: 'Success', description: 'Identity configuration updated' });
       setIsModalOpen(false);
       await fetchProfileData();
-    } catch (error) {
-      toast({ title: 'Error', description: 'Configuration sync failed', variant: 'destructive' });
+    } catch (error: any) {
+      console.error('Update profile error details:', {
+        message: error.message,
+        status: error.status,
+        data: error.response?.data
+      });
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Configuration sync failed. Please check your session.',
+        variant: 'destructive'
+      });
       throw error;
     }
   };

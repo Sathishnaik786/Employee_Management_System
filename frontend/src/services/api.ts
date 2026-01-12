@@ -56,11 +56,14 @@ export async function apiCall(
     headers.Authorization = `Bearer ${dynamicToken}`;
   }
 
+  console.log(`API [${method}] ${url} - initiating...`);
   const res = await fetch(`${API_BASE_URL}${url}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
+
+  console.log(`API [${method}] ${url} - Status: ${res.status}`);
 
   const contentType = res.headers.get('content-type');
   let data;

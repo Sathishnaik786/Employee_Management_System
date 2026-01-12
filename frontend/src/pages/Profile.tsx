@@ -78,7 +78,7 @@ export default function Profile() {
       const fieldsToMap = [
         'firstName', 'lastName', 'dateOfBirth', 'dateOfJoining', 'zipCode',
         'emergencyContact', 'emergencyPhone', 'phone', 'address', 'city',
-        'state', 'country', 'position'
+        'state', 'country', 'position', 'departmentId', 'managerId', 'salary', 'status'
       ];
 
       fieldsToMap.forEach(field => {

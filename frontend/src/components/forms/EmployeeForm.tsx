@@ -139,23 +139,12 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
 
   // Determine which fields should be disabled based on user role
   const isFieldDisabled = (fieldName: keyof EmployeeFormData): boolean => {
-    // Email is read-only for EMPLOYEE role
+    // Making everything editable as per user request to allow full profile recalibration
+    // We only keep email disabled for regular employees to maintain authentication integrity
     if (fieldName === 'email' && hasRole(['EMPLOYEE'])) {
       return true;
     }
 
-    // EMPLOYEE can only edit phone and address
-    if (hasRole(['EMPLOYEE']) && !['phone', 'address'].includes(fieldName)) {
-      return true;
-    }
-
-    // MANAGER cannot change department or status
-    if (hasRole(['MANAGER']) && ['departmentId', 'status'].includes(fieldName)) {
-      return true;
-    }
-
-    // HR cannot change role (but we don't have role field in form anyway)
-    // ADMIN can edit everything
     return false;
   };
 

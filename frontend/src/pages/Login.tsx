@@ -109,7 +109,7 @@ export default function Login() {
                 referrerPolicy="no-referrer"
               />
             </div>
-            <CardTitle className="text-3xl font-black tracking-tight font-heading">Secure Access</CardTitle>
+            <CardTitle className="text-3xl font-black tracking-tight font-heading">Login</CardTitle>
             <CardDescription className="text-sm font-medium">
               Enter your corporate credentials to continue
             </CardDescription>

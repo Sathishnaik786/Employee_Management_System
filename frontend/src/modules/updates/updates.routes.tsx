@@ -7,14 +7,15 @@ import AutomationPage from './automation/AutomationPage';
 import EmployeeUpdatesPage from './EmployeeUpdatesPage';
 
 // Feature Flag Checks
-const isDailyUpdatesEnabled = import.meta.env.VITE_ENABLE_DAILY_UPDATES === 'true';
-const isWeeklyUpdatesEnabled = import.meta.env.VITE_ENABLE_WEEKLY_UPDATES === 'true';
-const isMonthlyUpdatesEnabled = import.meta.env.VITE_ENABLE_MONTHLY_UPDATES === 'true';
-const isAnalyticsEnabled = import.meta.env.VITE_ENABLE_UPDATE_ANALYTICS === 'true';
+// Feature Flag Checks - Enabled by default if not explicitly disabled
+const isDailyUpdatesEnabled = import.meta.env.VITE_ENABLE_DAILY_UPDATES !== 'false';
+const isWeeklyUpdatesEnabled = import.meta.env.VITE_ENABLE_WEEKLY_UPDATES !== 'false';
+const isMonthlyUpdatesEnabled = import.meta.env.VITE_ENABLE_MONTHLY_UPDATES !== 'false';
+const isAnalyticsEnabled = import.meta.env.VITE_ENABLE_UPDATE_ANALYTICS !== 'false';
 const isAutomationEnabled =
-    import.meta.env.VITE_ENABLE_UPDATE_REMINDERS === 'true' ||
-    import.meta.env.VITE_ENABLE_AI_SUMMARIES === 'true' ||
-    import.meta.env.VITE_ENABLE_EXPORTS === 'true';
+    import.meta.env.VITE_ENABLE_UPDATE_REMINDERS !== 'false' ||
+    import.meta.env.VITE_ENABLE_AI_SUMMARIES !== 'false' ||
+    import.meta.env.VITE_ENABLE_EXPORTS !== 'false';
 
 const routes: RouteObject[] = [];
 

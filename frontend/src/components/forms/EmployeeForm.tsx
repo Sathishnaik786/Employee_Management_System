@@ -47,6 +47,32 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
     },
   });
 
+  // Reset form when employee data is loaded or changed
+  useEffect(() => {
+    if (employee) {
+      form.reset({
+        firstName: employee.firstName || '',
+        lastName: employee.lastName || '',
+        email: employee.email || '',
+        phone: employee.phone || '',
+        departmentId: employee.departmentId || '',
+        position: employee.position || '',
+        salary: employee.salary || 0,
+        dateOfBirth: employee.dateOfBirth || '',
+        dateOfJoining: employee.dateOfJoining || '',
+        address: employee.address || '',
+        city: employee.city || '',
+        state: employee.state || '',
+        country: employee.country || '',
+        zipCode: employee.zipCode || '',
+        emergencyContact: employee.emergencyContact || '',
+        emergencyPhone: employee.emergencyPhone || '',
+        status: employee.status || 'ACTIVE',
+        managerId: employee.managerId || '',
+      });
+    }
+  }, [employee, form]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -81,14 +107,17 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
   }, [toast]);
 
   const handleSubmit: SubmitHandler<EmployeeFormData> = async (data) => {
+    console.log('EmployeeForm: Submission started with data:', data);
     try {
       setLoading(true);
       await onSubmit(data);
+      console.log('EmployeeForm: onSubmit callback completed');
       toast({
         title: 'Success',
         description: employee ? 'Employee updated successfully' : 'Employee created successfully',
       });
-    } catch (error: unknown) {
+    } catch (error: any) {
+      console.error('EmployeeForm: Submission failed:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to save employee',
@@ -97,6 +126,15 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
     } finally {
       setLoading(false);
     }
+  };
+
+  const onInvalid = (errors: any) => {
+    console.error('EmployeeForm: Validation failed:', errors);
+    toast({
+      title: 'Validation Error',
+      description: 'Please check the form for missing or invalid data.',
+      variant: 'destructive',
+    });
   };
 
   // Determine which fields should be disabled based on user role
@@ -123,7 +161,7 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit, onInvalid)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}

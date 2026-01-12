@@ -73,21 +73,22 @@ export default function Profile() {
 
   const handleFormSubmit = async (data: EmployeeFormData) => {
     try {
-      const {
-        firstName, lastName, dateOfBirth, dateOfJoining, zipCode,
-        emergencyContact, emergencyPhone, phone, address, city,
-        state, country, position
-      } = data;
+      // Map fields and handle empty strings (send null instead of empty string for dates/nullable fields)
+      const profileData: any = {};
+      const fieldsToMap = [
+        'firstName', 'lastName', 'dateOfBirth', 'dateOfJoining', 'zipCode',
+        'emergencyContact', 'emergencyPhone', 'phone', 'address', 'city',
+        'state', 'country', 'position'
+      ];
 
-      const profileData: Partial<EmployeeFormData> = {
-        firstName, lastName, dateOfBirth, dateOfJoining, zipCode,
-        emergencyContact, emergencyPhone, phone, address, city,
-        state, country, position
-      };
+      fieldsToMap.forEach(field => {
+        const val = (data as any)[field];
+        profileData[field] = (val === '' || val === undefined) ? null : val;
+      });
 
-      console.log('Submitting profile update:', profileData);
+      console.log('Submitting profile update payload:', profileData);
       const updatedEmployee = await employeesApi.updateProfile(profileData);
-      console.log('Update successful, received:', updatedEmployee);
+      console.log('Update successful, received results:', updatedEmployee);
 
       setEmployee(updatedEmployee);
       if (updatedEmployee.profile_image) updateProfileImage(updatedEmployee.profile_image);

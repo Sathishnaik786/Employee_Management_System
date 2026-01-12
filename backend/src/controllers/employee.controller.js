@@ -103,6 +103,7 @@ exports.updateProfile = async (req, res, next) => {
         const fieldMap = {
             firstName: 'first_name',
             lastName: 'last_name',
+            email: 'email',
             dateOfBirth: 'date_of_birth',
             dateOfJoining: 'date_of_joining',
             zipCode: 'zip_code',
@@ -131,7 +132,7 @@ exports.updateProfile = async (req, res, next) => {
         });
 
         // Also check if any snake_case fields were sent directly
-        const snakeFields = ['phone', 'address', 'city', 'state', 'country', 'position', 'department_id', 'manager_id', 'salary', 'status', 'role'];
+        const snakeFields = ['phone', 'address', 'city', 'state', 'country', 'position', 'department_id', 'manager_id', 'salary', 'status', 'role', 'email'];
         snakeFields.forEach(field => {
             if (body[field] !== undefined) {
                 allowedFields[field] = body[field];
@@ -368,6 +369,7 @@ exports.update = async (req, res, next) => {
         const fieldMap = {
             firstName: 'first_name',
             lastName: 'last_name',
+            email: 'email',
             dateOfBirth: 'date_of_birth',
             dateOfJoining: 'date_of_joining',
             departmentId: 'department_id',

@@ -76,7 +76,7 @@ export default function Profile() {
       // Map fields and handle empty strings (send null instead of empty string for dates/nullable fields)
       const profileData: any = {};
       const fieldsToMap = [
-        'firstName', 'lastName', 'dateOfBirth', 'dateOfJoining', 'zipCode',
+        'firstName', 'lastName', 'email', 'dateOfBirth', 'dateOfJoining', 'zipCode',
         'emergencyContact', 'emergencyPhone', 'phone', 'address', 'city',
         'state', 'country', 'position', 'departmentId', 'managerId', 'salary', 'status'
       ];

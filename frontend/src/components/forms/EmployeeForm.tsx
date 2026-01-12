@@ -139,12 +139,7 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
 
   // Determine which fields should be disabled based on user role
   const isFieldDisabled = (fieldName: keyof EmployeeFormData): boolean => {
-    // Making everything editable as per user request to allow full profile recalibration
-    // We only keep email disabled for regular employees to maintain authentication integrity
-    if (fieldName === 'email' && hasRole(['EMPLOYEE'])) {
-      return true;
-    }
-
+    // Everything is now editable as per user request
     return false;
   };
 

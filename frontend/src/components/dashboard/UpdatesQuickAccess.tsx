@@ -20,7 +20,7 @@ export const UpdatesQuickAccess: React.FC = () => {
             title: 'Daily Update',
             icon: ClipboardList,
             href: '/app/updates/daily',
-            enabled: import.meta.env.VITE_ENABLE_DAILY_UPDATES === 'true',
+            enabled: import.meta.env.VITE_ENABLE_DAILY_UPDATES !== 'false',
             color: 'text-blue-500'
         },
         {
@@ -28,7 +28,7 @@ export const UpdatesQuickAccess: React.FC = () => {
             title: 'Weekly Report',
             icon: LayoutTemplate,
             href: '/app/updates/weekly',
-            enabled: import.meta.env.VITE_ENABLE_WEEKLY_UPDATES === 'true',
+            enabled: import.meta.env.VITE_ENABLE_WEEKLY_UPDATES !== 'false',
             color: 'text-emerald-500'
         },
         {
@@ -36,7 +36,7 @@ export const UpdatesQuickAccess: React.FC = () => {
             title: 'Monthly Review',
             icon: BookOpenCheck,
             href: '/app/updates/monthly',
-            enabled: import.meta.env.VITE_ENABLE_MONTHLY_UPDATES === 'true',
+            enabled: import.meta.env.VITE_ENABLE_MONTHLY_UPDATES !== 'false',
             color: 'text-purple-500'
         },
         {
@@ -44,7 +44,7 @@ export const UpdatesQuickAccess: React.FC = () => {
             title: 'Analytics',
             icon: BarChart3,
             href: '/app/updates/analytics',
-            enabled: import.meta.env.VITE_ENABLE_UPDATE_ANALYTICS === 'true',
+            enabled: import.meta.env.VITE_ENABLE_UPDATE_ANALYTICS !== 'false',
             color: 'text-amber-500'
         },
         {
@@ -53,9 +53,9 @@ export const UpdatesQuickAccess: React.FC = () => {
             icon: Cpu,
             href: '/app/updates/automation',
             enabled: (
-                import.meta.env.VITE_ENABLE_UPDATE_REMINDERS === 'true' ||
-                import.meta.env.VITE_ENABLE_AI_SUMMARIES === 'true' ||
-                import.meta.env.VITE_ENABLE_EXPORTS === 'true'
+                import.meta.env.VITE_ENABLE_UPDATE_REMINDERS !== 'false' ||
+                import.meta.env.VITE_ENABLE_AI_SUMMARIES !== 'false' ||
+                import.meta.env.VITE_ENABLE_EXPORTS !== 'false'
             ),
             color: 'text-indigo-500'
         }

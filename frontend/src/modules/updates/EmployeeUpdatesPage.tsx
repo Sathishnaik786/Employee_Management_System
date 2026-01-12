@@ -65,17 +65,16 @@ const EmployeeUpdatesPage: React.FC = () => {
 
                 if (empRes) {
                     setEmployee(empRes);
+
+                    // Filter updates for this specific employee using their user_id
+                    const filterId = empRes.user_id;
+
+                    setUpdates({
+                        daily: (dailyRes.data || []).filter((u: any) => u.user_id === filterId),
+                        weekly: (weeklyRes.data || []).filter((u: any) => u.user_id === filterId),
+                        monthly: (monthlyRes.data || []).filter((u: any) => u.user_id === filterId)
+                    });
                 }
-
-                // Filter updates for this specific employee
-                // Some APIs return id as userId, some as user_id. We check both.
-                const filterId = employeeId;
-
-                setUpdates({
-                    daily: (dailyRes.data || []).filter((u: any) => u.user_id === filterId),
-                    weekly: (weeklyRes.data || []).filter((u: any) => u.user_id === filterId),
-                    monthly: (monthlyRes.data || []).filter((u: any) => u.user_id === filterId)
-                });
             } catch (error) {
                 console.error('Error fetching employee updates:', error);
             } finally {

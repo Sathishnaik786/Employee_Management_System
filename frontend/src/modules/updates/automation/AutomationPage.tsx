@@ -8,9 +8,9 @@ import { Cpu, Sparkles, FileDown, BellRing } from 'lucide-react';
 
 
 const AutomationPage: React.FC = () => {
-    const isRemindersEnabled = import.meta.env.VITE_ENABLE_UPDATE_REMINDERS === 'true';
-    const isAISummariesEnabled = import.meta.env.VITE_ENABLE_AI_SUMMARIES === 'true';
-    const isExportsEnabled = import.meta.env.VITE_ENABLE_EXPORTS === 'true';
+    const isRemindersEnabled = import.meta.env.VITE_ENABLE_UPDATE_REMINDERS !== 'false';
+    const isAISummariesEnabled = import.meta.env.VITE_ENABLE_AI_SUMMARIES !== 'false';
+    const isExportsEnabled = import.meta.env.VITE_ENABLE_EXPORTS !== 'false';
 
     return (
         <div className="space-y-12 animate-in fade-in duration-700 max-w-6xl mx-auto pb-20">

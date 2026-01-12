@@ -96,29 +96,49 @@ exports.getProfile = async (req, res, next) => {
 // Update current user's profile
 exports.updateProfile = async (req, res, next) => {
     try {
-        const { firstName, lastName, dateOfBirth, dateOfJoining, zipCode, emergencyContact, emergencyPhone, phone, address, city, state, country, ...rest } = req.body;
+        const body = req.body;
+        console.log(`Processing profile update for user ${req.user.id}`);
 
-        // Only allow updating specific fields for profile (not role, department, manager, etc.)
+        // Strict mapping of frontend fields to database columns
+        const fieldMap = {
+            firstName: 'first_name',
+            lastName: 'last_name',
+            dateOfBirth: 'date_of_birth',
+            dateOfJoining: 'date_of_joining',
+            zipCode: 'zip_code',
+            emergencyContact: 'emergency_contact',
+            emergencyPhone: 'emergency_phone',
+            phone: 'phone',
+            address: 'address',
+            city: 'city',
+            state: 'state',
+            country: 'country',
+            position: 'position'
+        };
+
         const allowedFields = {};
-        if (firstName !== undefined) allowedFields.first_name = firstName;
-        if (lastName !== undefined) allowedFields.last_name = lastName;
-        if (dateOfBirth !== undefined) allowedFields.date_of_birth = dateOfBirth;
-        if (dateOfJoining !== undefined) allowedFields.date_of_joining = dateOfJoining;
-        if (zipCode !== undefined) allowedFields.zip_code = zipCode;
-        if (emergencyContact !== undefined) allowedFields.emergency_contact = emergencyContact;
-        if (emergencyPhone !== undefined) allowedFields.emergency_phone = emergencyPhone;
-        if (phone !== undefined) allowedFields.phone = phone;
-        if (address !== undefined) allowedFields.address = address;
-        if (city !== undefined) allowedFields.city = city;
-        if (state !== undefined) allowedFields.state = state;
-        if (country !== undefined) allowedFields.country = country;
 
-        // Also allow updating any other fields from rest, but be careful about sensitive ones
-        Object.keys(rest).forEach(key => {
-            if (!['role', 'department_id', 'manager_id', 'user_id', 'id', 'email', 'status'].includes(key)) {
-                allowedFields[key] = rest[key];
+        // Map fields that we explicitly allow users to change themselves
+        Object.keys(fieldMap).forEach(key => {
+            if (body[key] !== undefined) {
+                allowedFields[fieldMap[key]] = body[key];
             }
         });
+
+        // Also check if any snake_case fields were sent directly
+        const snakeFields = ['phone', 'address', 'city', 'state', 'country', 'position'];
+        snakeFields.forEach(field => {
+            if (body[field] !== undefined) {
+                allowedFields[field] = body[field];
+            }
+        });
+
+        if (Object.keys(allowedFields).length === 0) {
+            console.warn('No valid fields provided for profile update');
+            return res.status(400).json({ success: false, message: 'No valid fields for update' });
+        }
+
+        console.log('Updating profile with fields:', Object.keys(allowedFields));
 
         const { data, error } = await supabase
             .from('employees')
@@ -127,7 +147,10 @@ exports.updateProfile = async (req, res, next) => {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase update error in updateProfile:', error);
+            throw error;
+        }
 
         // Generate signed URL if profile_image exists
         if (data.profile_image) {
@@ -141,8 +164,10 @@ exports.updateProfile = async (req, res, next) => {
             }
         }
 
+        console.log(`Profile successfully updated for user ${req.user.id}`);
         res.status(200).json({ success: true, data: mapEmployee(data) });
     } catch (err) {
+        console.error('Final catch in updateProfile:', err);
         next(err);
     }
 };
@@ -331,24 +356,50 @@ exports.create = async (req, res, next) => {
 exports.update = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { firstName, lastName, dateOfBirth, dateOfJoining, departmentId, zipCode, emergencyContact, emergencyPhone, managerId, role, ...rest } = req.body;
+        const body = req.body;
+        console.log(`Processing administrative update for employee ${id}`);
 
-        const dbData = {
-            ...rest,
-            first_name: firstName,
-            last_name: lastName,
-            date_of_birth: dateOfBirth,
-            date_of_joining: dateOfJoining,
-            department_id: departmentId,
-            zip_code: zipCode,
-            emergency_contact: emergencyContact,
-            emergency_phone: emergencyPhone,
-            manager_id: managerId
+        // Strict mapping of frontend fields to database columns
+        const fieldMap = {
+            firstName: 'first_name',
+            lastName: 'last_name',
+            dateOfBirth: 'date_of_birth',
+            dateOfJoining: 'date_of_joining',
+            departmentId: 'department_id',
+            zipCode: 'zip_code',
+            emergencyContact: 'emergency_contact',
+            emergencyPhone: 'emergency_phone',
+            managerId: 'manager_id',
+            role: 'role',
+            status: 'status',
+            salary: 'salary',
+            phone: 'phone',
+            address: 'address',
+            city: 'city',
+            state: 'state',
+            country: 'country',
+            position: 'position'
         };
 
-        // Only add role to update if it's explicitly provided
-        if (role !== undefined) {
-            dbData.role = role;
+        const dbData = {};
+
+        // Map provided fields to their respective database columns
+        Object.keys(fieldMap).forEach(key => {
+            if (body[key] !== undefined) {
+                dbData[fieldMap[key]] = body[key];
+            }
+        });
+
+        // Also copy any direct snake_case fields from the body that weren't mapped
+        const directFields = ['status', 'salary', 'phone', 'address', 'city', 'state', 'country', 'position', 'profile_image'];
+        directFields.forEach(field => {
+            if (body[field] !== undefined && dbData[field] === undefined) {
+                dbData[field] = body[field];
+            }
+        });
+
+        if (Object.keys(dbData).length === 0) {
+            return res.status(400).json({ success: false, message: 'No fields provided for update' });
         }
 
         const { data, error } = await supabase
@@ -358,7 +409,10 @@ exports.update = async (req, res, next) => {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase update error in update:', error);
+            throw error;
+        }
 
         // Generate signed URL if profile_image exists
         if (data.profile_image) {
@@ -373,19 +427,23 @@ exports.update = async (req, res, next) => {
         }
 
         // If role was changed, notify the user
-        if (role !== undefined) {
-            // Get the user ID from the employee record
+        if (body.role !== undefined) {
             if (data.user_id) {
                 await NotificationService.notifyRoleChanged(data.user_id, data.user_id);
             }
         }
 
         // Invalidate cache after update
-        await CacheService.delete(`employee:${id}`);
-        await CacheService.invalidateEntity('employee');
+        try {
+            await CacheService.delete(`employee:${id}`);
+            await CacheService.invalidateEntity('employee');
+        } catch (cacheError) {
+            console.warn('Cache invalidation failed after update:', cacheError);
+        }
 
         res.status(200).json({ success: true, data: mapEmployee(data) });
     } catch (err) {
+        console.error('Final catch in update:', err);
         next(err);
     }
 };

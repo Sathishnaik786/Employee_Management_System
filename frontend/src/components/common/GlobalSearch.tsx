@@ -23,7 +23,7 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const isMobileView = useIsMobile();
@@ -40,10 +40,10 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    // Mock results based on user role
+    // Mock results based on user permissions
     const mockResults: SearchResult[] = [];
 
-    if (user?.role === 'ADMIN' || user?.role === 'HR') {
+    if (hasPermission('ems:employees:view') || hasPermission('ems:employees:manage')) {
       mockResults.push(
         { id: '1', type: 'employee', title: 'John Doe', subtitle: 'Software Engineer', href: '/app/employees/1' },
         { id: '2', type: 'employee', title: 'Jane Smith', subtitle: 'HR Manager', href: '/app/employees/2' },
@@ -52,7 +52,7 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
       );
     }
 
-    if (user?.role === 'ADMIN' || user?.role === 'MANAGER') {
+    if (hasPermission('ems:projects:view') || hasPermission('ems:projects:manage')) {
       mockResults.push(
         { id: '5', type: 'project', title: 'Website Redesign', href: '/app/projects/1' },
         { id: '6', type: 'project', title: 'Mobile App Development', href: '/app/projects/2' },
@@ -60,7 +60,7 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
       );
     }
 
-    if (user?.role === 'EMPLOYEE') {
+    if (hasPermission('ems:projects:employee-view')) {
       mockResults.push(
         { id: '8', type: 'task', title: 'Complete documentation', href: '/app/projects/1/tasks/2' },
         { id: '9', type: 'project', title: 'Client Project', href: '/app/my-projects/1' }
@@ -84,7 +84,7 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
     return () => {
       clearTimeout(handler);
     };
-  }, [query, user?.role]);
+  }, [query, user?.role, hasPermission]);
 
   // Handle clicks outside to close search
   useEffect(() => {

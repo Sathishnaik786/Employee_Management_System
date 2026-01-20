@@ -16,8 +16,8 @@ import {
 } from 'lucide-react';
 import { AdminOverviewData, ManagerTeamProgressData, HRWorkforceData, EmployeeSelfData } from '@/types';
 
+
 interface AnalyticsOverviewProps {
-  role: string;
   analyticsData?: {
     adminOverview?: AdminOverviewData;
     managerProgress?: ManagerTeamProgressData;
@@ -27,7 +27,18 @@ interface AnalyticsOverviewProps {
   loading?: boolean;
 }
 
-function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOverviewProps) {
+interface AnalyticsOverviewWithPermissionsProps {
+  analyticsData?: {
+    adminOverview?: AdminOverviewData;
+    managerProgress?: ManagerTeamProgressData;
+    hrWorkforce?: HRWorkforceData;
+    employeeSelf?: EmployeeSelfData;
+  };
+  loading?: boolean;
+  hasPermission: (permission: string) => boolean;
+}
+
+function AnalyticsOverview({ analyticsData, loading = false, hasPermission }: AnalyticsOverviewWithPermissionsProps) {
   if (!analyticsData) {
     return null;
   }
@@ -47,7 +58,7 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
           animate="animate"
           className="contents"
         >
-          {role === 'ADMIN' && analyticsData.adminOverview && (
+          {hasPermission('ems:analytics:admin') && analyticsData.adminOverview && (
             <>
               <AnalyticsStatCard
                 title="Total Employees"
@@ -79,7 +90,7 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
             </>
           )}
 
-          {role === 'MANAGER' && analyticsData.managerProgress && (
+          {hasPermission('ems:analytics:manager') && analyticsData.managerProgress && (
             <>
               <AnalyticsStatCard
                 title="Team Size"
@@ -111,7 +122,7 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
             </>
           )}
 
-          {role === 'HR' && analyticsData.hrWorkforce && (
+          {hasPermission('ems:analytics:hr') && analyticsData.hrWorkforce && (
             <>
               <AnalyticsStatCard
                 title="New Hires"
@@ -144,7 +155,7 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
             </>
           )}
 
-          {role === 'EMPLOYEE' && analyticsData.employeeSelf && (
+          {hasPermission('ems:analytics:employee') && analyticsData.employeeSelf && (
             <>
               <AnalyticsStatCard
                 title="My Work Items"
@@ -184,4 +195,4 @@ function AnalyticsOverview({ role, analyticsData, loading = false }: AnalyticsOv
   );
 }
 
-export default AnalyticsOverview;
+export { AnalyticsOverview };

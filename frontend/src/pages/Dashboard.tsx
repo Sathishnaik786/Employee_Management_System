@@ -1,209 +1,103 @@
-import { useState, useEffect } from 'react';
-import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { DashboardLayout } from '@/dashboards/DashboardLayout';
+import { getDashboardConfig } from '@/dashboards/config';
+import { useDashboardData } from '@/dashboards/useDashboardData';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
-import { staggerContainer, slideUpVariants } from '@/animations/motionVariants';
-import {
-  Users,
-  Calendar,
-  FileText,
-  DollarSign,
-  UserCheck,
-  UserX,
-  Clock,
-  TrendingUp
-} from 'lucide-react';
-import { reportsApi, analyticsApi } from '@/services/api';
-import { DashboardStats, AdminOverviewData, ManagerTeamProgressData, HRWorkforceData, EmployeeSelfData } from '@/types';
-import AnalyticsOverview from '@/components/dashboard/AnalyticsOverview';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { UpdatesQuickAccess } from '@/components/dashboard/UpdatesQuickAccess';
+import { slideUpVariants } from '@/animations/motionVariants';
 
-
+// UI V2 Imports
+import { ENABLE_UI_V2, canUseUIV2 } from '@/config/uiFlags';
+import AdminDashboardV2 from '@/ui-v2/dashboard/AdminDashboardV2';
+import ManagementDashboardV2 from '@/ui-v2/dashboard/ManagementDashboardV2';
+import PrincipalDashboardV2 from '@/ui-v2/dashboard/PrincipalDashboardV2';
+import V2ErrorBoundary from '@/ui-v2/utils/V2ErrorBoundary';
 
 export default function Dashboard() {
   const { user, isLoading: authLoading } = useAuth();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true);
-        const data = await reportsApi.getDashboardStats();
-        setStats(data);
-      } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // ----------------------------------------------------------------------
+  // UI-V2 EARLY EXIT: Feature Flag & Role Check
+  // ----------------------------------------------------------------------
+  if (!authLoading && user && ENABLE_UI_V2 && canUseUIV2(user.role)) {
+    // Cast to string to handle 'SUPER_ADMIN' which might be missing from strict Role type
+    const userRole = user.role as string;
 
-    const fetchAnalytics = async () => {
-      if (!user) return;
-      try {
-        setAnalyticsLoading(true);
-        let data;
-        if (user.role === 'ADMIN') data = { adminOverview: (await analyticsApi.getAdminOverview()).data };
-        else if (user.role === 'MANAGER') data = { managerProgress: (await analyticsApi.getManagerTeamProgress()).data };
-        else if (user.role === 'HR') data = { hrWorkforce: (await analyticsApi.getHRWorkforce()).data };
-        else if (user.role === 'EMPLOYEE') data = { employeeSelf: (await analyticsApi.getEmployeeSelf()).data };
-
-        setAnalyticsData(data);
-      } catch (error) {
-        console.error('Error fetching analytics data:', error);
-      } finally {
-        setAnalyticsLoading(false);
-      }
-    };
-
-    // Feature Flag Debug Log (Dev Only)
-    if (import.meta.env.DEV) {
-      console.log('Update Feature Flags:', {
-        DAILY: import.meta.env.VITE_ENABLE_DAILY_UPDATES,
-        WEEKLY: import.meta.env.VITE_ENABLE_WEEKLY_UPDATES,
-        MONTHLY: import.meta.env.VITE_ENABLE_MONTHLY_UPDATES,
-        ANALYTICS: import.meta.env.VITE_ENABLE_UPDATE_ANALYTICS,
-        REMINDERS: import.meta.env.VITE_ENABLE_UPDATE_REMINDERS,
-      });
+    switch (userRole) {
+      case 'ADMIN':
+      case 'SUPER_ADMIN':
+        return (
+          <V2ErrorBoundary>
+            <AdminDashboardV2 />
+          </V2ErrorBoundary>
+        );
+      case 'MANAGEMENT':
+        return (
+          <V2ErrorBoundary>
+            <ManagementDashboardV2 />
+          </V2ErrorBoundary>
+        );
+      case 'PRINCIPAL':
+        return (
+          <V2ErrorBoundary>
+            <PrincipalDashboardV2 />
+          </V2ErrorBoundary>
+        );
+      default:
+        // Fallback or explicit handling if a role passes canUseUIV2 but isn't handled here
+        break;
     }
+  }
+  // ----------------------------------------------------------------------
 
-    if (user) {
-      fetchStats();
-      fetchAnalytics();
-    }
+  const dashboardConfig = useMemo(() => {
+    if (!user) return null;
+    return getDashboardConfig(user.role);
   }, [user]);
 
+  const { data, loading: dataLoading } = useDashboardData(user?.role || '');
 
-  if (authLoading || loading) {
+  if (authLoading || dataLoading) {
     return (
-      <div className="p-6 space-y-8 animate-fade-in">
-        <div className="flex justify-between items-center bg-card/30 p-6 rounded-2xl border border-border/40 backdrop-blur-sm shadow-sm">
-          <div className="space-y-2">
-            <Skeleton className="h-9 w-64 rounded-lg bg-muted/40" />
-            <Skeleton className="h-4 w-96 rounded-md bg-muted/30" />
-          </div>
-          <Skeleton className="h-10 w-32 rounded-xl bg-muted/40" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-2xl border border-border/40 bg-card/30 p-6 space-y-4 shadow-sm">
-              <div className="flex justify-between items-center">
-                <Skeleton className="h-4 w-24 rounded bg-muted/40" />
-                <Skeleton className="h-10 w-10 rounded-xl bg-muted/30" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-16 rounded-lg bg-muted/40" />
-                <Skeleton className="h-4 w-20 rounded bg-muted/30" />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="rounded-2xl border border-border/40 bg-card/30 p-6 shadow-sm">
-          <Skeleton className="h-6 w-48 mb-4 rounded bg-muted/40" />
-          <Skeleton className="h-80 w-full rounded-xl bg-muted/30" />
+      <div className="p-8 space-y-8">
+        <Skeleton className="h-32 w-full rounded-[2rem]" />
+        <div className="grid grid-cols-12 gap-6">
+          <Skeleton className="col-span-12 md:col-span-4 h-40 rounded-2xl" />
+          <Skeleton className="col-span-12 md:col-span-4 h-40 rounded-2xl" />
+          <Skeleton className="col-span-12 md:col-span-4 h-40 rounded-2xl" />
+          <Skeleton className="col-span-12 h-96 rounded-2xl" />
         </div>
       </div>
     );
   }
 
-  if (!user) {
+  if (!user || !dashboardConfig) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
-        <div className="w-16 h-16 rounded-full bg-rose-500/10 flex items-center justify-center mb-4 text-rose-500">
-          <UserX size={32} />
-        </div>
-        <h2 className="text-2xl font-bold tracking-tight mb-2">Access Denied</h2>
-        <p className="text-muted-foreground max-w-sm">Please log in to your account with authorized credentials to view the dashboard analytics.</p>
-        <Button className="mt-6" variant="outlinePremium">Go to Sign In</Button>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-muted-foreground uppercase tracking-widest font-black text-xs">Access Denied: Protocol Unauthorized</p>
       </div>
     );
   }
 
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      variants={staggerContainer}
-      className="p-6 lg:p-8 space-y-8 bg-background/30 rounded-3xl backdrop-blur-[2px]"
-    >
-      <motion.div variants={slideUpVariants}>
+    <div className="p-6 lg:p-10 space-y-10 max-w-[1600px] mx-auto">
+      <motion.div variants={slideUpVariants} initial="initial" animate="animate">
         <PageHeader
-          title="Overview"
-          description={`Welcome back, ${user.firstName || user.email}! Here's what's happening today.`}
-          className="bg-header-gradient p-8 rounded-3xl border border-border/30 shadow-premium mb-0"
-        >
-          <div className="flex items-center gap-3">
-            <Button variant="outlinePremium" size="sm" className="hidden sm:flex">
-              <Calendar className="mr-2 h-4 w-4" />
-              Schedule
-            </Button>
-            <Button variant="premium" size="sm">
-              <TrendingUp className="mr-2 h-4 w-4" />
-              Generate Report
-            </Button>
-          </div>
-        </PageHeader>
-      </motion.div>
-
-      {/* Employee Updates: High Visibility Access */}
-      <motion.div variants={slideUpVariants} className="z-10 relative">
-        <UpdatesQuickAccess />
-      </motion.div>
-
-      {/* Stats Grid */}
-      <motion.div
-        variants={slideUpVariants}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-      >
-
-        <StatCard
-          title="Total Employees"
-          value={stats?.totalEmployees?.toLocaleString() || '0'}
-          icon={Users}
-          change="+2.4% vs last month"
-          changeType="positive"
-        />
-        <StatCard
-          title="Pending Leaves"
-          value={stats?.pendingLeaves?.toLocaleString() || '0'}
-          icon={FileText}
-          change="+12% vs last month"
-          changeType="negative"
-        />
-        <StatCard
-          title="Present Today"
-          value={stats?.presentToday?.toLocaleString() || '0'}
-          icon={UserCheck}
-          change="+1.5% vs average"
-          changeType="positive"
-        />
-        <StatCard
-          title="Attendance Rate"
-          value={`${stats?.attendanceRate?.toFixed(1) || '0'}%`}
-          icon={TrendingUp}
-          change="+0.8% vs last week"
-          changeType="neutral"
+          title={`Welcome, ${user.profile?.full_name || user.firstName || user.email?.split('@')[0] || 'User'}`}
+          description={`Strategic Overview for ${user.role} role. Institutional signal is stable.`}
+          className="bg-header-gradient p-10 rounded-[2.5rem] border border-white/10 shadow-premium"
         />
       </motion.div>
 
-      {/* Analytics Overview */}
-
-      <motion.div variants={slideUpVariants}>
-        <AnalyticsOverview
-          role={user?.role || ''}
-          analyticsData={analyticsData}
-          loading={analyticsLoading}
-        />
-      </motion.div>
-
-    </motion.div>
+      <DashboardLayout
+        config={dashboardConfig}
+        data={data}
+        onWidgetAction={(widgetId, actionId) => {
+          console.log(`Action triggered on widget ${widgetId}: ${actionId}`);
+        }}
+      />
+    </div>
   );
 }

@@ -1,111 +1,155 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PageHeader } from '@/components/layout/PageHeader';
-import { StatusBadge } from '@/components/common/StatusBadge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { leavesApi } from '@/services/api';
+import { useLeaves } from '@/hooks/useLeaves';
+import { PERMISSIONS } from '@/access/permissions';
+import { Can } from '@/access/Can';
 import { LeaveRequest, LeaveFormData } from '@/types';
 import { Plus, Check, X, Calendar, ClipboardList, AlertCircle, Clock, ChevronRight } from 'lucide-react';
 import { LeaveForm } from '@/components/forms/LeaveForm';
 import { CrudModal } from '@/components/modals/CrudModal';
-import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { staggerContainer, slideUpVariants, scaleInVariants } from '@/animations/motionVariants';
+import { staggerContainer, slideUpVariants } from '@/animations/motionVariants';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+import { DataGrid } from '@/components/data-grid/DataGrid';
+import { ColumnConfig } from '@/components/data-grid/types';
 
 export default function Leaves() {
-  const { toast } = useToast();
-  const { user, isLoading: authLoading } = useAuth();
-  const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user, hasPermission, isLoading: authLoading } = useAuth();
+  const {
+    items: leaves,
+    meta,
+    isLoading: loading,
+    handlePageChange,
+    approveLeave,
+    rejectLeave,
+    createLeave
+  } = useLeaves({ limit: 8 });
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLeave, setEditingLeave] = useState<LeaveRequest | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const fetchLeaves = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await leavesApi.getAll();
-      setLeaves(response.data || []);
-    } catch (error: any) {
-      console.error('Error fetching leaves:', error);
-      const errorMessage = error.message || 'Failed to fetch leave requests';
-      setError(errorMessage);
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-      setLeaves([]);
-    } finally {
-      setLoading(false);
+  const columns: ColumnConfig<LeaveRequest>[] = [
+    {
+      id: 'employee',
+      label: 'Employee',
+      accessor: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary font-black text-xs shadow-inner">
+            {row.employee?.firstName[0]}{row.employee?.lastName[0]}
+          </div>
+          <span className="font-bold">{row.employee?.firstName} {row.employee?.lastName}</span>
+        </div>
+      )
+    },
+    {
+      id: 'leaveType',
+      label: 'Type',
+      accessor: (row) => (
+        <Badge variant="secondary" className="bg-muted/50 rounded-lg text-[10px] font-black uppercase tracking-widest px-2 py-0.5">
+          {row.leaveType?.name}
+        </Badge>
+      )
+    },
+    {
+      id: 'dates',
+      label: 'Duration',
+      accessor: (row) => (
+        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
+          <Clock size={12} className="text-primary/60" />
+          {row.startDate} - {row.endDate}
+        </div>
+      )
+    },
+    {
+      id: 'days',
+      label: 'Days',
+      accessor: (row) => (
+        <span className="text-xs font-black text-primary/80 uppercase tracking-widest">{row.totalDays} Days</span>
+      )
+    },
+    {
+      id: 'reason',
+      label: 'Reason',
+      accessor: (row) => (
+        <div className="text-xs text-muted-foreground max-w-[200px] truncate italic">
+          "{row.reason}"
+        </div>
+      )
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      accessor: (row) => <StatusBadge status={row.status} />
+    },
+    {
+      id: 'actions',
+      label: 'Actions',
+      className: "text-right",
+      accessor: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          {row.status === 'PENDING' && (
+            <Can permission={PERMISSIONS.LEAVES_APPROVE}>
+              <div className="flex gap-1.5">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10 shadow-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleApproveLeave(row.id);
+                  }}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8 text-rose-600 border-rose-500/20 hover:bg-rose-500/10 shadow-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRejectLeave(row.id);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </Can>
+          )}
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+            <ChevronRight size={16} />
+          </Button>
+        </div>
+      )
     }
-  };
-
-  useEffect(() => {
-    fetchLeaves();
-  }, []);
+  ];
 
   const handleApplyLeave = () => {
     setEditingLeave(null);
     setIsModalOpen(true);
   };
 
-  const handleApproveLeave = async (leaveId: string) => {
-    try {
-      await leavesApi.approve(leaveId, user?.id || '', 'Leave approved');
-      toast({
-        title: 'Success',
-        description: 'Leave request approved',
-      });
-      fetchLeaves();
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to approve leave request',
-        variant: 'destructive',
-      });
-    }
+  const handleApproveLeave = async (id: string) => {
+    await approveLeave(id);
   };
 
-  const handleRejectLeave = async (leaveId: string) => {
-    try {
-      await leavesApi.reject(leaveId, user?.id || '', 'Leave rejected');
-      toast({
-        title: 'Success',
-        description: 'Leave request rejected',
-      });
-      fetchLeaves();
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to reject leave request',
-        variant: 'destructive',
-      });
-    }
+  const handleRejectLeave = async (id: string) => {
+    await rejectLeave(id);
   };
 
   const handleFormSubmit = async (data: LeaveFormData) => {
-    try {
-      if (editingLeave) {
-        // Handle update if implemented
-      } else {
-        await leavesApi.apply({
-          employeeId: user?.employeeId || '',
-          leaveTypeId: data.leaveTypeId,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          reason: data.reason,
-        });
-      }
-      setIsModalOpen(false);
-      fetchLeaves();
-    } catch (error: any) {
-      throw error;
-    }
+    await createLeave({
+      ...data,
+      employeeId: user?.employeeId,
+      status: 'PENDING'
+    });
+    setIsModalOpen(false);
   };
 
   const stats = useMemo(() => ({
@@ -203,100 +247,41 @@ export default function Leaves() {
       </motion.div>
 
       <motion.div variants={slideUpVariants}>
-        <Card className="border-border/30 shadow-premium overflow-hidden bg-white/40 backdrop-blur-md rounded-3xl">
-          <CardHeader className="px-8 py-6 border-b border-border/20 bg-muted/10">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
-                <ClipboardList size={20} className="text-primary" />
-                Request History
-              </CardTitle>
-              <Badge variant="outline" className="bg-background/50">{leaves.length} Total</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border/20">
-              <AnimatePresence mode="popLayout">
-                {loading ? (
-                  <div className="p-12 text-center">
-                    <div className="animate-spin h-8 w-8 border-3 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-                    <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Synchronizing...</p>
-                  </div>
-                ) : leaves.length > 0 ? (
-                  leaves.map((leave, idx) => (
-                    <motion.div
-                      key={leave.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.04 }}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 hover:bg-muted/30 transition-all group"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
-                          <Calendar size={20} />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="font-black text-foreground group-hover:text-primary transition-colors">
-                            {leave.employee?.firstName} {leave.employee?.lastName}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-tighter">
-                            <Badge variant="secondary" className="bg-muted/50 rounded-lg">{leave.leaveType?.name}</Badge>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Clock size={12} />
-                              {leave.startDate} to {leave.endDate}
-                            </span>
-                            <span className="text-primary/70">({leave.totalDays} Days)</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-2 bg-muted/30 p-2 rounded-lg border border-border/10">
-                            <AlertCircle size={10} className="inline mr-1 opacity-50" />
-                            {leave.reason}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 mt-4 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end">
-                        <StatusBadge status={leave.status} />
-
-                        {leave.status === 'PENDING' && (user.role === 'ADMIN' || user.role === 'MANAGER' || user.role === 'HR') && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="icon"
-                              variant="outlinePremium"
-                              className="h-10 w-10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10 shadow-sm"
-                              onClick={() => handleApproveLeave(leave.id)}
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="h-10 w-10 text-rose-600 border-rose-500/20 hover:bg-rose-500/10 shadow-sm"
-                              onClick={() => handleRejectLeave(leave.id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary group/btn h-10 w-10">
-                          <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="p-20 text-center">
-                    <div className="w-20 h-20 bg-muted/40 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-muted-foreground/30 shadow-inner">
-                      <ClipboardList size={40} />
-                    </div>
-                    <p className="text-xl font-black text-foreground uppercase tracking-widest">No Active Requests</p>
-                    <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">There are currently no leave requests in the queue. Everything is handled.</p>
-                  </div>
-                )}
-              </AnimatePresence>
-            </div>
-          </CardContent>
-        </Card>
+        <DataGrid
+          title="Leaves"
+          columns={columns}
+          data={leaves}
+          isLoading={loading}
+          getRowId={(row) => row.id}
+          page={meta.page}
+          totalPages={meta.totalPages}
+          onPageChange={handlePageChange}
+          onSortChange={() => { }} // Not implemented in leaves hook yet
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          bulkActions={[
+            {
+              label: 'Approve Selected',
+              icon: <Check size={10} />,
+              variant: 'premium',
+              permission: PERMISSIONS.LEAVES_APPROVE,
+              onClick: async (ids) => {
+                for (const id of ids) await approveLeave(id);
+                setSelectedIds([]);
+              }
+            },
+            {
+              label: 'Reject Selected',
+              icon: <X size={10} />,
+              variant: 'outline',
+              permission: PERMISSIONS.LEAVES_APPROVE,
+              onClick: async (ids) => {
+                for (const id of ids) await rejectLeave(id);
+                setSelectedIds([]);
+              }
+            }
+          ]}
+        />
       </motion.div>
     </motion.div>
   );

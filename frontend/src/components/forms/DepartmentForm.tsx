@@ -17,7 +17,7 @@ interface DepartmentFormProps {
 }
 
 export function DepartmentForm({ department, onSubmit, onCancel }: DepartmentFormProps) {
-  const { user: _user, hasRole } = useAuth();
+  const { user: _user, hasPermission } = useAuth();
   const { toast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ export function DepartmentForm({ department, onSubmit, onCancel }: DepartmentFor
 
   useEffect(() => {
     // Only fetch employees if user has permission to assign managers
-    if (hasRole(['ADMIN', 'HR'])) {
+    if (hasPermission('ems:departments:manage')) {
       const fetchEmployees = async () => {
         try {
           setLoading(true);
@@ -51,7 +51,7 @@ export function DepartmentForm({ department, onSubmit, onCancel }: DepartmentFor
 
       fetchEmployees();
     }
-  }, [hasRole, toast]);
+  }, [hasPermission, toast]);
 
   const handleSubmit: SubmitHandler<DepartmentFormData> = async (data) => {
     try {
@@ -73,7 +73,7 @@ export function DepartmentForm({ department, onSubmit, onCancel }: DepartmentFor
   };
 
   // Determine if form should be readonly
-  const isReadOnly = !hasRole(['ADMIN', 'HR']);
+  const isReadOnly = !hasPermission('ems:departments:manage');
 
   return (
     <Form {...form}>
@@ -106,7 +106,7 @@ export function DepartmentForm({ department, onSubmit, onCancel }: DepartmentFor
           )}
         />
 
-        {hasRole(['ADMIN', 'HR']) && (
+        {hasPermission('ems:departments:manage') && (
           <FormField
             control={form.control}
             name="managerId"

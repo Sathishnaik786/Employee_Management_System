@@ -18,7 +18,7 @@ interface EmployeeFormProps {
 }
 
 export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps) {
-  const { user, hasRole } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { toast } = useToast();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [managers, setManagers] = useState<Employee[]>([]);
@@ -79,16 +79,16 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
         setLoading(true);
         // Only fetch all employees if the user has a privileged role (ADMIN, HR, MANAGER)
         // Regular employees don't have permission to see everyone and can't change their manager anyway
-        const empsPromise = hasRole(['ADMIN', 'HR', 'MANAGER'])
+        const empsPromise = hasPermission('ems:employees:view')
           ? employeesApi.getAll({})
           : Promise.resolve({ data: [] });
 
-        const [depts, emps] = await Promise.all([
+        const [deptsRes, empsRes] = await Promise.all([
           departmentsApi.getAll(),
           empsPromise,
         ]);
-        setDepartments(depts);
-        setManagers(emps.data || []);
+        setDepartments(deptsRes.data || []);
+        setManagers(empsRes.data || []);
       } catch (error) {
         // Log error but don't show toast for 403s on employee list as it's often irrelevant for regular users
         if ((error as any).status !== 403) {

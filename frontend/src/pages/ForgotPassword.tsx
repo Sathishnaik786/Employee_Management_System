@@ -34,11 +34,11 @@ export default function ForgotPassword() {
 
     setIsCheckingEmail(true);
     setEmailError('');
-    
+
     try {
       // Call the API to check if the email exists
       const response = await authApi.checkEmailExists(email);
-      
+
       if (response.success && response.data.exists) {
         setIsEmailValid(true);
         setEmailError('');
@@ -58,17 +58,17 @@ export default function ForgotPassword() {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
-    
+
     // Clear previous error
     if (emailError) {
       setEmailError('');
     }
-    
+
     // Clear previous timeout
     if ((handleEmailChange as any).timeoutId) {
       clearTimeout((handleEmailChange as any).timeoutId);
     }
-    
+
     // Check email validity after user stops typing for 500ms
     if (value) {
       (handleEmailChange as any).timeoutId = setTimeout(() => {
@@ -81,7 +81,7 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       toast({
         title: 'Validation Error',
@@ -110,7 +110,7 @@ export default function ForgotPassword() {
     }
 
     setIsLoading(true);
-    
+
     try {
       await authApi.forgotPassword(email);
       setIsSubmitted(true);
@@ -134,24 +134,24 @@ export default function ForgotPassword() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-            <img 
-                        src="/logo.png"
-                        alt="YVI Employee MS Logo" 
-                        className="h-7 w-7 object-contain text-primary-foreground"
-                        loading="eager"
-                        referrerPolicy="no-referrer"
-                      />
+            <img
+              src="/elms-logo.svg"
+              alt="ELMS Logo"
+              className="h-7 w-7 object-contain text-primary-foreground"
+              loading="eager"
+              referrerPolicy="no-referrer"
+            />
           </div>
         </div>
-        
+
         <Card className="shadow-card">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold">
               {isSubmitted ? 'Check Your Email' : 'Forgot Password?'}
             </CardTitle>
             <CardDescription>
-              {isSubmitted 
-                ? 'If an account exists with this email, a password reset link has been sent.' 
+              {isSubmitted
+                ? 'If an account exists with this email, a password reset link has been sent.'
                 : 'Enter your email address and we will send you a link to reset your password.'}
             </CardDescription>
           </CardHeader>
@@ -208,7 +208,7 @@ export default function ForgotPassword() {
                     <p className="text-sm text-destructive">{emailError}</p>
                   )}
                 </div>
-                
+
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
                     <>
@@ -219,10 +219,10 @@ export default function ForgotPassword() {
                     'Send Reset Link'
                   )}
                 </Button>
-                
+
                 <div className="text-center pt-4">
-                  <Link 
-                    to="/login" 
+                  <Link
+                    to="/login"
                     className="inline-flex items-center text-sm text-primary hover:underline"
                   >
                     <ArrowLeft className="mr-1 h-4 w-4" />

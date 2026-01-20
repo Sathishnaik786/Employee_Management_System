@@ -12,32 +12,26 @@ const loggingMiddleware = require('./middlewares/logger.middleware');
 
 const app = express();
 
+/**
+ * IERS - Integrated Resource & Education System
+ * Main Application Configuration
+ */
+
 // CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // Production-safe allowlist for CORS
     const allowedOrigins = config.NODE_ENV === 'production'
-      ? ['https://yviems.netlify.app', config.FRONTEND_URL]
+      ? ['https://elms-hub.netlify.app', config.FRONTEND_URL] // Note: Change to iers URL in production
       : [
         'http://localhost:8080',
         'http://127.0.0.1:8080',
-        'http://localhost:8081',
-        'http://127.0.0.1:8081',
-        'http://localhost:8082',
-        'http://127.0.0.1:8082',
         'http://localhost:5173',
         'http://127.0.0.1:5173',
         'http://localhost:3003',
-        'http://127.0.0.1:3003',
-        'http://localhost:3002',
-        'http://127.0.0.1:3002',
-        'http://localhost:5174',
-        'http://127.0.0.1:5174'
+        'http://127.0.0.1:3003'
       ];
 
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-
     const isAllowed = allowedOrigins.indexOf(origin) !== -1;
     callback(null, isAllowed);
   },
@@ -48,29 +42,18 @@ const corsOptions = {
 };
 
 // Rate limiting
-console.log('Initializing rate limiters with high dev limits...');
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10000, // Boosted for dev
-  message: 'Too many requests from this IP, please try again later.',
+  max: 5000,
+  message: 'Too many requests from this IP.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// More permissive rate limiter for profile endpoint
-const profileLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10000,
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// Auth specific limiter
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10000,
-  message: 'Too many login attempts, please try again later.',
+  max: 100,
+  message: 'Too many login attempts.',
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -78,15 +61,9 @@ const authLimiter = rateLimit({
 // Middlewares
 app.use(helmet());
 app.use(cors(corsOptions));
-// Removed global generalLimiter to avoid double-limiting on specific routes
-
-// Compression middleware (gzip responses)
 app.use(compression());
-
-// Structured logging middleware (before routes)
 app.use(loggingMiddleware);
 
-// HTTP request logging (morgan - for compatibility)
 if (config.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -95,115 +72,101 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Cache middleware (optional - can be applied per route)
-const { cacheMiddleware } = require('./middlewares/cache.middleware');
+// --- CORE ROUTES ---
 
-// Routes (to be added)
+// Auth System (IERS Refactored)
 app.use('/api/auth', authLimiter, require('./routes/auth.routes'));
-// Compatibility route for direct auth access
-app.use('/auth', authLimiter, require('./routes/auth.routes'));
-
-// Apply different rate limiting for profile endpoint
-app.use('/api/employees/profile', profileLimiter);
-app.use('/employees/profile', profileLimiter);
-
-// Apply general rate limiting for other employee routes
-app.use('/api/employees', generalLimiter, cacheMiddleware(), require('./routes/employee.routes'));
-app.use('/employees', generalLimiter, cacheMiddleware(), require('./routes/employee.routes'));
-
-// Apply general rate limiting to other routes
-app.use('/api/departments', generalLimiter, require('./routes/department.routes'));
-app.use('/departments', generalLimiter, require('./routes/department.routes'));
-app.use('/api/attendance', generalLimiter, require('./routes/attendance.routes'));
-app.use('/attendance', generalLimiter, require('./routes/attendance.routes'));
-app.use('/api/leaves', generalLimiter, require('./routes/leave.routes'));
-app.use('/leaves', generalLimiter, require('./routes/leave.routes'));
-app.use('/api/documents', generalLimiter, require('./routes/document.routes'));
-app.use('/documents', generalLimiter, require('./routes/document.routes'));
-app.use('/api/reports', generalLimiter, require('./routes/report.routes'));
-app.use('/reports', generalLimiter, require('./routes/report.routes'));
-app.use('/api/projects', generalLimiter, require('./routes/project.routes'));
-app.use('/projects', generalLimiter, require('./routes/project.routes'));
-
-app.use('/api/analytics', generalLimiter, require('@analytics/analytics.routes'));
-app.use('/analytics', generalLimiter, require('@analytics/analytics.routes'));
-app.use('/api/chat', generalLimiter, require('./routes/chat.routes'));
-app.use('/chat', generalLimiter, require('./routes/chat.routes'));
-app.use('/api/notifications', generalLimiter, require('./routes/notification.routes'));
-app.use('/notifications', generalLimiter, require('./routes/notification.routes'));
-app.use('/api/meetups', generalLimiter, require('./routes/meetup.routes'));
-app.use('/meetups', generalLimiter, require('./routes/meetup.routes'));
-app.use('/api/calendar-events', generalLimiter, require('./routes/calendar.routes'));
-app.use('/calendar-events', generalLimiter, require('./routes/calendar.routes'));
-
-// Phase-0: Employee Updates Module (Feature Flag: OFF by default in UI, but API is live)
-app.use('/api/updates', generalLimiter, require('./modules/updates/updates.routes'));
-app.use('/updates', generalLimiter, require('./modules/updates/updates.routes'));
-
-
-// Health check routes
 app.use('/health', require('./routes/health.routes'));
 
-// Redis test endpoint (for development/testing)
+// --- IERS MODULES ---
+
+// 1. System & RBAC
+app.use('/api/iers/system', generalLimiter, require('./modules/iers/system/system.routes'));
+
+// 2. Academic Masters
+app.use('/api/iers/students', generalLimiter, require('./modules/iers/student/student.routes'));
+app.use('/api/iers/faculty', generalLimiter, require('./modules/iers/faculty/faculty.routes'));
+
+// 3. PhD Lifecycle & Academic Workflows
+app.use('/api/iers/phd', generalLimiter, require('./modules/iers/phd/phd.routes'));
+app.use('/api/iers/workflows', generalLimiter, require('./modules/iers/workflow/workflow.routes'));
+app.use('/api/iers/rac', generalLimiter, require('./modules/iers/rac_rrc/rac.routes'));
+app.use('/api/iers/rrc', generalLimiter, require('./modules/iers/rac_rrc/rrc.routes'));
+
+// 4. Institutional & Compliance (NAAC)
+app.use('/api/iers/naac/iiqa', generalLimiter, require('./modules/iers/naac/iiqa.routes'));
+app.use('/api/iers/naac/ssr', generalLimiter, require('./modules/iers/naac/ssr.routes'));
+app.use('/api/iers/naac/dvv', generalLimiter, require('./modules/iers/naac/dvv.routes'));
+
+// 5. Career & Growth
+app.use('/api/iers/placement', generalLimiter, require('./modules/iers/placement_training/placement.routes'));
+app.use('/api/iers/training', generalLimiter, require('./modules/iers/placement_training/training.routes'));
+
+// --- INFRASTRUCTURE ---
+
+// Redis test endpoint
 app.get('/redis-test', async (req, res) => {
   try {
     const { redis } = require('@lib/redis');
-    await redis.set('health', 'ok', 'EX', 10);
-    const value = await redis.get('health');
-    res.status(200).json({
-      redis: value,
-      status: 'connected',
-      timestamp: new Date().toISOString()
-    });
+    await redis.set('iers-health', 'ok', 'EX', 10);
+    const value = await redis.get('iers-health');
+    res.status(200).json({ status: 'connected', redis: value });
   } catch (error) {
-    res.status(500).json({
-      redis: null,
-      status: 'error',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Cache stats endpoint (for monitoring)
-app.get('/cache-stats', async (req, res) => {
-  try {
-    const CacheService = require('./services/cache.service');
-    const stats = await CacheService.getStats();
-    res.status(200).json({
-      success: true,
-      ...stats,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json({ status: 'error', error: error.message });
   }
 });
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'API Route not found' });
+  res.status(404).json({ success: false, message: 'IERS API Endpoint Not Found' });
 });
 
-// Error handler with structured logging
+// Global Error Handler
 app.use((err, req, res, next) => {
-  // Log error with structured logger
-  logger.error('Unhandled error', {
+  logger.error('IERS_SYSTEM_ERROR', {
     error: err.message,
     stack: err.stack,
     url: req.originalUrl,
     method: req.method,
-    userId: req.user?.id,
-    role: req.user?.role,
-    ip: req.ip
+    userId: req.user?.id
   });
-
-  // Use existing error middleware
   errorMiddleware(err, req, res, next);
 });
 
+// --- PERMISSION INTEGRITY CHECK (STARTUP) ---
+if (false && config.NODE_ENV !== 'production') {
+  setTimeout(() => {
+    logger.info('--- IERS PERMISSION INTEGRITY SCAN ---');
+    const unprotectedRoutes = [];
+
+    app._router.stack.forEach((middleware) => {
+      if (middleware.route) {
+        // Simple routes
+      } else if (middleware.name === 'router') {
+        // Router modules
+        middleware.handle.stack.forEach((handler) => {
+          if (handler.route) {
+            const path = handler.route.path;
+            const methods = Object.keys(handler.route.methods);
+            const hasPermissionMiddleware = handler.route.stack.some(s =>
+              s.name === 'authorize' || s.name === 'checkPermission'
+            );
+
+            if (!hasPermissionMiddleware && !path.includes('auth') && !path.includes('health') && path !== '/') {
+              unprotectedRoutes.push(`${methods.join(',').toUpperCase()} ${path}`);
+            }
+          }
+        });
+      }
+    });
+
+    if (unprotectedRoutes.length > 0) {
+      logger.warn('PERM_INTEGRITY_ALERT: Unprotected business endpoints detected!', { routes: unprotectedRoutes });
+    } else {
+      logger.info('✅ All business endpoints are protected by protocol-based authorization.');
+    }
+  }, 1000);
+}
+
 module.exports = app;
+

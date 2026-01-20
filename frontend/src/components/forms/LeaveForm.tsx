@@ -18,7 +18,7 @@ interface LeaveFormProps {
 }
 
 export function LeaveForm({ leave, employeeId, onSubmit, onCancel }: LeaveFormProps) {
-  const { user, hasRole } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { toast } = useToast();
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -79,7 +79,7 @@ export function LeaveForm({ leave, employeeId, onSubmit, onCancel }: LeaveFormPr
   };
 
   // Determine if we're in approval mode (Manager/HR/Admin)
-  const isApprovalMode = hasRole(['MANAGER', 'HR', 'ADMIN']) && leave && leave.status === 'PENDING';
+  const isApprovalMode = hasPermission('ems:leaves:approve') && leave && leave.status === 'PENDING';
 
   return (
     <Form {...form}>

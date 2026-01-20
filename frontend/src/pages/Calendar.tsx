@@ -8,11 +8,21 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EventDetailsModal, CalendarEventDetails } from "@/components/modals/EventDetailsModal";
-import { calendarApi, type CalendarEventApiModel } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type CalendarView = "dayGridMonth" | "timeGridWeek" | "timeGridDay";
+
+interface CalendarEventApiModel {
+  id: string;
+  title: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  platform: 'GOOGLE_MEET' | 'TEAMS';
+  status: 'APPROVED' | 'PENDING';
+  meet_link?: string;
+}
 
 export default function CalendarPage() {
   const calendarRef = useRef<FullCalendar | null>(null);
@@ -31,8 +41,50 @@ export default function CalendarPage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await calendarApi.getEvents();
-        setEvents(Array.isArray(data) ? data : []);
+
+        // IERS Mock Calendar Events
+        const mockEvents: CalendarEventApiModel[] = [
+          {
+            id: '1',
+            title: 'DRC Meeting - PhD Admissions',
+            description: 'Doctoral Research Committee meeting to review new PhD applications',
+            start_time: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+            end_time: new Date(Date.now() + 90000000).toISOString(),
+            platform: 'GOOGLE_MEET',
+            status: 'APPROVED',
+            meet_link: 'https://meet.google.com/iers-drc-meeting'
+          },
+          {
+            id: '2',
+            title: 'RAC Review - Alice Stark',
+            description: 'Research Advisory Committee quarterly review',
+            start_time: new Date(Date.now() + 172800000).toISOString(), // 2 days from now
+            end_time: new Date(Date.now() + 176400000).toISOString(),
+            platform: 'TEAMS',
+            status: 'APPROVED',
+            meet_link: 'https://teams.microsoft.com/iers-rac'
+          },
+          {
+            id: '3',
+            title: 'NAAC IIQA Coordination',
+            description: 'IQAC meeting for IIQA submission planning',
+            start_time: new Date(Date.now() + 259200000).toISOString(), // 3 days from now
+            end_time: new Date(Date.now() + 262800000).toISOString(),
+            platform: 'GOOGLE_MEET',
+            status: 'APPROVED'
+          },
+          {
+            id: '4',
+            title: 'Faculty Development Program',
+            description: 'Monthly faculty training and development session',
+            start_time: new Date(Date.now() + 604800000).toISOString(), // 1 week from now
+            end_time: new Date(Date.now() + 612000000).toISOString(),
+            platform: 'TEAMS',
+            status: 'PENDING'
+          }
+        ];
+
+        setEvents(mockEvents);
       } catch (err) {
         console.error("Failed to load calendar events", err);
         setError(err instanceof Error ? err.message : "Unable to load calendar events right now.");
@@ -81,7 +133,7 @@ export default function CalendarPage() {
     const { timeText, event } = eventContent;
     // Extract platform from event extendedProps if available
     const platform = event.extendedProps?.platform;
-    
+
     return (
       <div className="flex flex-col rounded-md border border-gray-200 bg-white px-2 py-1 shadow-sm min-h-10">
         {timeText && (
@@ -89,16 +141,16 @@ export default function CalendarPage() {
         )}
         <div className="flex items-center gap-1">
           {platform === 'GOOGLE_MEET' && (
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Google_Meet_text_logo_%282020%29.svg/1024px-Google_Meet_text_logo_%282020%29.svg.png" 
-              alt="Google Meet" 
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Google_Meet_text_logo_%282020%29.svg/1024px-Google_Meet_text_logo_%282020%29.svg.png"
+              alt="Google Meet"
               className="h-3 w-3 object-contain"
             />
           )}
           {platform === 'TEAMS' && (
-            <img 
-              src="https://www.liblogo.com/img-logo/mi462m3e6-microsoft-teams-logo-microsoft-teams-logo-png-and-vector-logo-download.png" 
-              alt="Microsoft Teams" 
+            <img
+              src="https://www.liblogo.com/img-logo/mi462m3e6-microsoft-teams-logo-microsoft-teams-logo-png-and-vector-logo-download.png"
+              alt="Microsoft Teams"
               className="h-3 w-3 object-contain"
             />
           )}

@@ -1,15 +1,17 @@
-import React, { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState, useRef, ReactNode, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authApi } from '@/services/api';
+import { authService } from '@/services/auth.service';
 import { Role } from '@/types';
 import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
+import { createPermissionResolver, PermissionResolver } from '@/access/permission-resolver';
+import { Permission } from '@/access/permissions';
 
 interface AuthUser {
   id: string;
   email: string | null;
   role: Role;
   profile_image?: string;
+  permissions?: string[];
   [key: string]: any;
 }
 
@@ -19,27 +21,30 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<any>;
   logout: () => void;
-  hasRole: (role: string | string[]) => boolean;
+  hasRole: (role: string | string[]) => boolean; // Deprecated, use hasPermission
+  hasPermission: (permission: Permission | string) => boolean;
+  hasAnyPermission: (permissions: (Permission | string)[]) => boolean;
+  hasAllPermissions: (permissions: (Permission | string)[]) => boolean;
   updateProfileImage: (image: string) => void;
   refreshProfileImage: () => Promise<void>;
+  resolvedPermissions: string[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const profileRequestPromiseRef = useRef<Promise<any> | null>(null);
   const queryClient = useQueryClient();
 
-  // Enable real-time query invalidation
+  // Create permission resolver in-memory
+  const resolver = useMemo(() => {
+    return createPermissionResolver(user?.role || null, user?.permissions || []);
+  }, [user?.role, user?.permissions]);
+
   useQueryInvalidation();
 
-  // Check if user is already logged in on initial load
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -50,44 +55,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const fetchUserProfile = async () => {
-    // Prevent duplicate requests by returning the existing promise if one is in flight
-    if (profileRequestPromiseRef.current) {
-      return profileRequestPromiseRef.current;
-    }
+    if (profileRequestPromiseRef.current) return profileRequestPromiseRef.current;
 
     const requestPromise = (async () => {
       try {
         setIsLoading(true);
-        // Use the me() endpoint to get user profile
-        const response = await authApi.me();
+        const response = await authService.me();
         if (response.success && response.data?.user) {
-          setUser(response.data.user);
+          setUser(response.data.user as any);
         } else {
-          // If me() endpoint doesn't exist or fails, clear token
           localStorage.removeItem('token');
+          setUser(null);
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
-        // Clear token if there's an error
         localStorage.removeItem('token');
         setUser(null);
       } finally {
         setIsLoading(false);
-        // Clear the reference after the request completes
         profileRequestPromiseRef.current = null;
       }
     })();
 
-    // Store the promise reference to prevent duplicate requests
     profileRequestPromiseRef.current = requestPromise;
-
     return requestPromise;
   };
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await authApi.login({ email, password });
-
+      const response = await authService.login({ email, password });
       if (response.success && response.data?.token) {
         localStorage.setItem('token', response.data.token);
         await fetchUserProfile();
@@ -104,66 +100,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    queryClient.clear();
   };
 
-  const updateProfileImage = (image: string) => {
-    if (user) {
-      setUser({
-        ...user,
-        profile_image: image,
-      });
-    }
-  };
-
-  const refreshProfileImage = async () => {
-    if (!user) return;
-
-    try {
-      // Fetch fresh profile data with signed URL from backend
-      const response = await authApi.me();
-      if (response.success && response.data?.user) {
-        const updatedUser = response.data.user;
-        // Only update if profile_image actually changed to prevent unnecessary re-renders
-        if (updatedUser.profile_image !== user.profile_image) {
-          setUser({
-            ...user,
-            profile_image: updatedUser.profile_image,
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error refreshing profile image:', error);
-      // Don't throw - fail silently to avoid breaking the UI
-    }
-  };
-
-  const value = {
+  const value = useMemo(() => ({
     user,
     isLoading,
     isAuthenticated: !!user,
     login,
     logout,
     hasRole: (role: string | string[]) => {
-      if (Array.isArray(role)) {
-        return role.includes(user?.role || '');
-      }
+      if (Array.isArray(role)) return role.includes(user?.role || '');
       return user?.role === role;
     },
-    updateProfileImage,
-    refreshProfileImage,
-  };
+    hasPermission: (p: Permission | string) => resolver.hasPermission(p),
+    hasAnyPermission: (p: (Permission | string)[]) => resolver.hasAnyPermission(p),
+    hasAllPermissions: (p: (Permission | string)[]) => resolver.hasAllPermissions(p),
+    updateProfileImage: (image: string) => {
+      if (user) setUser({ ...user, profile_image: image });
+    },
+    refreshProfileImage: async () => {
+      if (!user) return;
+      try {
+        const response = await authService.me();
+        if (response.success && response.data?.user) {
+          const updatedUser = response.data.user;
+          if (updatedUser.profile_image !== user.profile_image) {
+            setUser({ ...user, profile_image: updatedUser.profile_image });
+          }
+        }
+      } catch (error) {
+        console.error('Error refreshing profile image:', error);
+      }
+    },
+    resolvedPermissions: resolver.getResolvedPermissions(),
+  }), [user, isLoading, resolver]);
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

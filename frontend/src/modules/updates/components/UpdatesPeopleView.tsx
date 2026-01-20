@@ -26,7 +26,7 @@ export const UpdatesPeopleView: React.FC<UpdatesPeopleViewProps> = ({ defaultTyp
     const [monthlyUpdates, setMonthlyUpdates] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const { user } = useAuth();
+    const { user, hasPermission } = useAuth();
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -56,13 +56,13 @@ export const UpdatesPeopleView: React.FC<UpdatesPeopleViewProps> = ({ defaultTyp
     const filteredEmployees = useMemo(() => {
         return employees.filter(emp => {
             const matchesSearch = `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                emp.position.toLowerCase().includes(searchTerm.toLowerCase());
+                (emp.position || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-            if (user?.role === 'EMPLOYEE') {
-                return matchesSearch && (emp.userId === user.id || emp.departmentId === (user as any).employee?.departmentId);
+            if (hasPermission('ems:updates:employee-view')) {
+                return matchesSearch && user && (emp.userId === user.id || emp.departmentId === (user as any).employee?.departmentId);
             }
-            if (user?.role === 'MANAGER') {
-                return matchesSearch && (emp.managerId === user.id || emp.userId === user.id);
+            if (hasPermission('ems:updates:manager-view')) {
+                return matchesSearch && user && (emp.managerId === user.id || emp.userId === user.id);
             }
             return matchesSearch;
         });

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,106 +50,58 @@ import {
 } from 'lucide-react';
 
 
-interface NavItem {
-  title: string;
-  href: string;
-  icon: React.ElementType;
-  roles?: string[];
-}
-
-interface NavGroup {
-  label: string;
-  items: NavItem[];
-}
-
-const navGroups: NavGroup[] = [
-  {
-    label: 'Overview',
-    items: [
-      { title: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
-      { title: 'Meet-ups', href: '/app/meetups', icon: Users2 },
-      ...(import.meta.env.VITE_ENABLE_DAILY_UPDATES !== 'false' ? [
-        { title: 'Daily Updates', href: '/app/updates/daily', icon: ClipboardList }
-      ] : []),
-      ...(import.meta.env.VITE_ENABLE_WEEKLY_UPDATES !== 'false' ? [
-        { title: 'Weekly Stand-out', href: '/app/updates/weekly', icon: LayoutTemplate }
-      ] : []),
-      ...(import.meta.env.VITE_ENABLE_MONTHLY_UPDATES !== 'false' ? [
-        { title: 'Monthly Updates', href: '/app/updates/monthly', icon: BookOpenCheck }
-      ] : []),
-      ...(import.meta.env.VITE_ENABLE_UPDATE_ANALYTICS !== 'false' ? [
-        { title: 'Progress & Analytics', href: '/app/updates/analytics', icon: BarChart3 }
-      ] : []),
-      ...((import.meta.env.VITE_ENABLE_UPDATE_REMINDERS !== 'false' ||
-        import.meta.env.VITE_ENABLE_AI_SUMMARIES !== 'false' ||
-        import.meta.env.VITE_ENABLE_EXPORTS !== 'false') ? [
-        { title: 'Intelligence', href: '/app/updates/automation', icon: Cpu }
-      ] : []),
-    ]
-  },
-
-
-
-
-  {
-    label: 'Resources',
-    items: [
-      { title: 'Employees', href: '/app/employees', icon: Users, roles: ['ADMIN', 'HR', 'MANAGER'] },
-      { title: 'Departments', href: '/app/departments', icon: Building2 },
-      { title: 'Attendance', href: '/app/attendance', icon: Clock },
-      { title: 'Leaves', href: '/app/leaves', icon: Calendar },
-      { title: 'Calendar', href: '/app/calendar', icon: Calendar },
-    ]
-  },
-  {
-    label: 'Execution',
-    items: [
-      { title: 'Projects', href: '/app/projects', icon: FolderKanban, roles: ['ADMIN', 'MANAGER'] },
-      { title: 'My Projects', href: '/app/my-projects', icon: FolderOpen, roles: ['EMPLOYEE'] },
-    ]
-  },
-  {
-    label: 'Intelligence',
-    items: [
-      { title: 'Documents', href: '/app/documents', icon: FileText, roles: ['ADMIN', 'HR'] },
-      { title: 'Reports', href: '/app/reports', icon: BarChart3, roles: ['ADMIN', 'HR', 'MANAGER'] },
-      { title: 'Admin Users', href: '/app/admin/users', icon: Users, roles: ['ADMIN'] },
-    ]
-  }
-];
+import { navConfig, filterNavByPermissions } from '@/navigation/nav.config';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
 }
 
+import { toast } from 'sonner';
+import { phdApi } from '@/services/api';
+
 export function AppLayout({ children }: AppLayoutProps) {
   const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [unreadChatCount, setUnreadChatCount] = useState(2);
+  const [drcStageStatus, setDrcStageStatus] = useState({
+    interview: false,
+    evaluation: false,
+  });
+
+  useEffect(() => {
+    if (user?.role === 'DRC_MEMBER' || user?.role === 'ADMIN') {
+      phdApi.getAll().then(res => {
+        if (res.success) {
+          const apps = res.data;
+          setDrcStageStatus({
+            interview: apps.some((a: any) => ['QUALIFIED', 'INTERVIEW_SCHEDULED', 'INTERVIEW_COMPLETED'].includes(a.status)),
+            evaluation: apps.some((a: any) => ['INTERVIEW_COMPLETED', 'EVALUATED'].includes(a.status))
+          });
+        }
+      }).catch(err => console.error('DRC state sync failed', err));
+    }
+  }, [user]);
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
-    const saved = localStorage.getItem('yvi_sidebar_sections');
+    const saved = localStorage.getItem('elms_sidebar_sections');
     return saved ? JSON.parse(saved) : { Overview: true, Resources: true, Execution: true, Intelligence: true };
   });
 
   const toggleSection = (label: string) => {
     setExpandedSections(prev => {
       const next = { ...prev, [label]: !prev[label] };
-      localStorage.setItem('yvi_sidebar_sections', JSON.stringify(next));
+      localStorage.setItem('elms_sidebar_sections', JSON.stringify(next));
       return next;
     });
   };
 
-  const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
+  const filteredNavGroups = useMemo(() => {
+    return filterNavByPermissions(navConfig, hasPermission, user?.role);
+  }, [hasPermission, user?.role]);
 
-  const filterItems = (items: NavItem[]) => {
-    return items.filter(item => {
-      if (!item.roles) return true;
-      return user && item.roles.includes(user.role);
-    });
-  };
+  const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
 
   return (
     <div className="h-screen flex w-full bg-background text-foreground overflow-hidden font-sans antialiased">
@@ -206,7 +158,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   animate={{ opacity: 1, x: 0 }}
                   className="flex flex-col"
                 >
-                  <span className="font-heading font-bold text-lg tracking-[-0.02em] text-white leading-none">YVI PEOPLE</span>
+                  <span className="font-heading font-bold text-lg tracking-[-0.02em] text-white leading-none">ELMS</span>
                   <span className="text-[9px] font-semibold text-primary/60 tracking-[0.3em] mt-1 uppercase">Enterprise Hub</span>
                 </motion.div>
               )}
@@ -216,10 +168,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           {/* Navigation Area */}
           <ScrollArea className="flex-1 scrollbar-premium px-4">
             <div className="py-8 space-y-10">
-              {navGroups.map((group) => {
-                const groupItems = filterItems(group.items);
-                if (groupItems.length === 0) return null;
-
+              {filteredNavGroups.map((group) => {
                 const isExpanded = expandedSections[group.label] !== false;
 
                 return (
@@ -247,21 +196,31 @@ export function AppLayout({ children }: AppLayoutProps) {
                             transition={{ duration: 0.2, ease: "easeInOut" }}
                             className="overflow-hidden space-y-1"
                           >
-                            {groupItems.map((item) => {
+                            {group.items.map((item) => {
                               const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
+                              const isDisabled = (item.title === 'Interview Scheduling' && !drcStageStatus.interview) ||
+                                (item.title === 'Evaluation Forms' && !drcStageStatus.evaluation);
 
                               return (
                                 <Tooltip key={item.href}>
                                   <TooltipTrigger asChild>
                                     <Link
-                                      to={item.href}
-                                      onClick={() => setMobileOpen(false)}
+                                      to={isDisabled ? '#' : item.href}
+                                      onClick={(e) => {
+                                        if (isDisabled) {
+                                          e.preventDefault();
+                                          toast.info("This stage unlocks after successful scrutiny.");
+                                          return;
+                                        }
+                                        setMobileOpen(false);
+                                      }}
                                       className={cn(
                                         "relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
                                         collapsed ? "justify-center mx-0" : "mx-0",
                                         isActive
                                           ? "bg-primary/5 text-primary"
-                                          : "text-sidebar-muted/80 hover:text-white hover:bg-white/[0.04]"
+                                          : "text-sidebar-muted/80 hover:text-white hover:bg-white/[0.04]",
+                                        isDisabled && "opacity-40 grayscale pointer-events-auto cursor-not-allowed"
                                       )}
                                     >
                                       {/* Active Indicator Bar */}
@@ -350,7 +309,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                       className="flex-1 text-left min-w-0"
                     >
                       <p className="text-sm font-semibold text-white truncate tracking-tight">
-                        {user?.firstName} {user?.lastName}
+                        {user?.profile?.full_name || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.email?.split('@')[0]}
                       </p>
                       <p className="text-[10px] text-primary/60 font-medium truncate mt-0.5 uppercase tracking-wider flex items-center gap-1">
                         <ShieldCheck size={10} /> {user?.role}
@@ -401,7 +360,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className="mt-4 px-2 flex items-center justify-between text-[10px] font-black text-sidebar-muted/30 uppercase tracking-[0.1em]">
                 <span>v2.4.0-ENT</span>
                 <Dot className="text-primary animate-pulse" />
-                <span>YVI PEOPLE CORP</span>
+                <span>ELMS HUB</span>
               </div>
             )}
           </div>
@@ -435,11 +394,11 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="lg:hidden mr-4">
             <Link to="/app/dashboard" className="flex items-center gap-2">
               <img
-                src="/logo.png"
+                src="/elms-logo.svg"
                 alt="Logo"
                 className="w-8 h-8 object-contain rounded-lg shadow-lg"
               />
-              <span className="font-bold text-lg tracking-tighter">YVI</span>
+              <span className="font-bold text-lg tracking-tighter">ELMS</span>
             </Link>
           </div>
 

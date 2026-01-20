@@ -1,13 +1,23 @@
 import { useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
-import { documentsApi, employeesApi } from '@/services/api';
-import { Document, DocumentType, Employee } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
+
+// Local types for Document management
+export type DocumentType = 'ID_PROOF' | 'ADDRESS_PROOF' | 'EDUCATION' | 'EXPERIENCE' | 'CONTRACT' | 'OTHER';
+
+export interface Document {
+  id: string;
+  type: DocumentType;
+  name: string;
+  url: string;
+  uploadedAt: string;
+  employeeId?: string;
+}
 
 interface DocumentFormProps {
   document?: Document;
@@ -17,9 +27,10 @@ interface DocumentFormProps {
 }
 
 export function DocumentForm({ document, employeeId: initialEmployeeId, onSubmit, onCancel }: DocumentFormProps) {
-  const { user, hasRole } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { toast } = useToast();
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  // Using generic user list instead of employees
+  const [targetUsers, setTargetUsers] = useState<{ id: string, firstName: string, lastName: string }[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -29,26 +40,18 @@ export function DocumentForm({ document, employeeId: initialEmployeeId, onSubmit
   }>({
     defaultValues: {
       type: 'OTHER',
-      employeeId: initialEmployeeId || user?.employeeId || '',
+      employeeId: initialEmployeeId || (user && (hasPermission('ems:documents:student-upload') || hasPermission('ems:documents:faculty-upload')) ? user.id : '') || '',
     },
   });
 
-  // Fetch employees for HR/Admin to select
-  const fetchEmployees = async () => {
-    if (hasRole(['HR', 'ADMIN']) && employees.length === 0) {
-      try {
-        setLoading(true);
-        const response = await employeesApi.getAll({});
-        setEmployees(response.data || []);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load employees',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
+  // Fetch users for Admin to select
+  const fetchTargetUsers = async () => {
+    if (hasPermission('ems:documents:manage') && targetUsers.length === 0) {
+      // Mock selection list for IERS
+      setTargetUsers([
+        { id: '1', firstName: 'Alice', lastName: 'Stark' },
+        { id: '2', firstName: 'Robert', lastName: 'Oppenheimer' }
+      ]);
     }
   };
 
@@ -68,23 +71,23 @@ export function DocumentForm({ document, employeeId: initialEmployeeId, onSubmit
       return;
     }
 
-    // Validate employee selection for HR/Admin
-    if (hasRole(['HR', 'ADMIN']) && !data.employeeId) {
+    // Validate user selection for Admin
+    if (hasPermission('ems:documents:manage') && !data.employeeId) {
       toast({
         title: 'Error',
-        description: 'Please select an employee',
+        description: 'Please select a text user',
         variant: 'destructive',
       });
       return;
     }
 
-    // For employees, they can only upload for themselves
-    const targetEmployeeId = hasRole(['EMPLOYEE']) ? user?.employeeId : data.employeeId;
+    // For non-admins, they can only upload for themselves
+    const targetId = hasPermission('ems:documents:manage') ? data.employeeId : user?.id;
 
-    if (!targetEmployeeId) {
+    if (!targetId) {
       toast({
         title: 'Error',
-        description: 'Employee ID is required',
+        description: 'Target User ID is required',
         variant: 'destructive',
       });
       return;
@@ -92,7 +95,7 @@ export function DocumentForm({ document, employeeId: initialEmployeeId, onSubmit
 
     try {
       setLoading(true);
-      await onSubmit({ file, type: data.type, employeeId: targetEmployeeId });
+      await onSubmit({ file, type: data.type, employeeId: targetId });
       toast({
         title: 'Success',
         description: 'Document uploaded successfully',
@@ -108,8 +111,8 @@ export function DocumentForm({ document, employeeId: initialEmployeeId, onSubmit
     }
   };
 
-  // Determine if employee selection should be shown
-  const showEmployeeSelection = hasRole(['HR', 'ADMIN']) && !initialEmployeeId;
+  // Determine if user selection should be shown
+  const showUserSelection = hasPermission('ems:documents:manage') && !initialEmployeeId;
 
   return (
     <Form {...form}>
@@ -140,23 +143,23 @@ export function DocumentForm({ document, employeeId: initialEmployeeId, onSubmit
           )}
         />
 
-        {showEmployeeSelection && (
+        {showUserSelection && (
           <FormField
             control={form.control}
             name="employeeId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Employee</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} onOpenChange={(open) => open && fetchEmployees()}>
+                <FormLabel>Target User</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} onOpenChange={(open) => open && fetchTargetUsers()}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select employee" />
+                      <SelectValue placeholder="Select user" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.firstName} {employee.lastName}
+                    {targetUsers.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.firstName} {u.lastName}
                       </SelectItem>
                     ))}
                   </SelectContent>

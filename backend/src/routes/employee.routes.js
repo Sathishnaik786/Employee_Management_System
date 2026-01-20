@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const employeeController = require('@controllers/employee.controller');
 const authMiddleware = require('@middlewares/auth.middleware');
-const roleMiddleware = require('@middlewares/role.middleware');
+const { requirePermission, requireAnyPermission } = require('@middlewares/permission.middleware');
 
 router.use(authMiddleware);
 
@@ -11,13 +11,13 @@ router.get('/profile', employeeController.getProfile);
 router.put('/profile', employeeController.updateProfile);
 
 // Profile image upload endpoint
-router.post('/profile/image', employeeController.uploadProfileImage);
+router.post('/profile/image', requirePermission('ems:employees:update'), employeeController.uploadProfileImage);
 
-// Regular employee endpoints with role restrictions
-router.get('/', roleMiddleware(['ADMIN', 'HR', 'MANAGER']), employeeController.getAll);
-router.get('/:id', employeeController.getById);
-router.post('/', roleMiddleware(['ADMIN', 'HR']), employeeController.create);
-router.put('/:id', roleMiddleware(['ADMIN', 'HR', 'MANAGER']), employeeController.update);
-router.delete('/:id', roleMiddleware(['ADMIN', 'HR']), employeeController.delete);
+// Regular employee endpoints with permission restrictions
+router.get('/', requireAnyPermission(['ems:employees:view']), employeeController.getAll);
+router.get('/:id', requirePermission('ems:employees:view'), employeeController.getById);
+router.post('/', requirePermission('ems:employees:create'), employeeController.create);
+router.put('/:id', requirePermission('ems:employees:update'), employeeController.update);
+router.delete('/:id', requirePermission('ems:employees:delete'), employeeController.delete);
 
 module.exports = router;

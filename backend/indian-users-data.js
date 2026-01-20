@@ -1,0 +1,20 @@
+module.exports = [
+    { role: 'STUDENT', name: 'Rahul Sharma', email: 'rahul@iers.edu', iers_id: 'S2026-001', dept: 'CSE' },
+    { role: 'FACULTY', name: 'Dr. Priya Iyer', email: 'priya@iers.edu', iers_id: 'FAC-CS-001', dept: 'CSE' },
+    { role: 'GUIDE', name: 'Dr. Anjali Desai', email: 'anjali@iers.edu', iers_id: 'G-2026-01', dept: 'CSE' },
+    { role: 'DRC_MEMBER', name: 'Dr. Suresh Reddy', email: 'suresh@iers.edu', iers_id: 'DRC-01', dept: 'CSE' },
+    { role: 'RAC_MEMBER', name: 'Prof. Amit Patel', email: 'amit@iers.edu', iers_id: 'RAC-01', dept: 'ECE' },
+    { role: 'RRC_MEMBER', name: 'Dr. Neha Gupta', email: 'neha@iers.edu', iers_id: 'RRC-01', dept: 'MECH' },
+    { role: 'ADJUDICATOR', name: 'Dr. Arjun Singh', email: 'arjun@iers.edu', iers_id: 'ADJ-01', dept: 'EXTERNAL' },
+    { role: 'ADMIN', name: 'Vikram Malhotra', email: 'vikram@iers.edu', iers_id: 'ADM-001', dept: 'ADMIN' },
+    { role: 'PRINCIPAL', name: 'Prof. Lakshmi Narayan', email: 'lakshmi@iers.edu', iers_id: 'PRN-01', dept: 'ADMIN' },
+    { role: 'MANAGEMENT', name: 'Rajesh Kumar', email: 'rajesh@iers.edu', iers_id: 'MGT-01', dept: 'BOARD' },
+    { role: 'DEPT_ADMIN', name: 'Sunita Menon', email: 'sunita@iers.edu', iers_id: 'DA-CS-01', dept: 'CSE' },
+    { role: 'FINANCE', name: 'Anil Verma', email: 'anil@iers.edu', iers_id: 'FIN-01', dept: 'ACCOUNTS' },
+    { role: 'IQAC_MEMBER', name: 'Meera Nair', email: 'meera@iers.edu', iers_id: 'IQAC-01', dept: 'QA' },
+    { role: 'DVV_VERIFIER', name: 'Karan Johar', email: 'karan@iers.edu', iers_id: 'DVV-01', dept: 'QA' },
+    { role: 'EXTERNAL_REVIEWER', name: 'Dr. Simon D\'Souza', email: 'simon@iers.edu', iers_id: 'EXT-01', dept: 'EXTERNAL' },
+    { role: 'PLACEMENT_OFFICER', name: 'Ravi Shastri', email: 'ravi@iers.edu', iers_id: 'PLACE-01', dept: 'T&P' },
+    { role: 'RECRUITER', name: 'Sneha Patel', email: 'sneha@infosys.com', iers_id: 'REC-01', dept: 'EXTERNAL' },
+    { role: 'MENTOR', name: 'Dr. Kavita Krishnan', email: 'kavita@iers.edu', iers_id: 'MEN-01', dept: 'HUMANITIES' }
+];

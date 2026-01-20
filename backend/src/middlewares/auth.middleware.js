@@ -1,54 +1,73 @@
-const { supabase, supabaseAdmin } = require('@lib/supabase');
+const { supabase, supabaseAdmin, getUserClient } = require('@lib/supabase');
+const PermissionService = require('@services/permission.service');
+const logger = require('@lib/logger');
 
+/**
+ * IERS Security Middleware
+ * 
+ * 1. Validates Supabase JWT
+ * 2. Resolves IERS Identity (iers_users table)
+ * 3. Populates RBAC Permissions
+ * 4. Injects RLS-bound Supabase Client
+ */
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Authentication required' });
+    return res.status(401).json({ success: false, message: 'IERS Authentication Required' });
   }
 
   const token = authHeader.split(' ')[1];
 
   try {
-    const { data, error } = await supabase.auth.getUser(token);
+    // 1. Verify token with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.getUser(token);
 
-    if (error || !data?.user) {
-      console.log('Invalid token:', error?.message || 'No user data');
-      return res.status(401).json({ message: 'Invalid token' });
+    if (authError || !authData?.user) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired IERS session' });
     }
 
-    // Load employee mapping to get role - use admin client to bypass RLS during auth
-    const { data: employee, error: empError } = await supabaseAdmin
-      .from('employees')
+    const { user: authUser } = authData;
+
+    // 2. Resolve IERS Identity (Bypassing RLS for identity resolution)
+    const { data: iersUser, error: iersError } = await supabaseAdmin
+      .from('iers_users')
       .select('*')
-      .eq('user_id', data.user.id)
+      .eq('id', authUser.id)
       .maybeSingle();
 
-    if (empError) {
-      console.error('Employee lookup error:', empError);
-      return res.status(500).json({ message: 'Internal server error' });
+    if (iersError) {
+      logger.error('CRITICAL: IERS Identity resolution failed', { userId: authUser.id, error: iersError.message });
+      return res.status(500).json({ success: false, message: 'IERS Security Fault' });
     }
 
-    if (!employee) {
-      console.log('No employee record found for user:', data.user.id);
+    if (!iersUser) {
       return res.status(403).json({
-        message: 'Permission denied: User exists but is not mapped to an employee record',
+        success: false,
+        message: 'IERS Identity Mismatch: This account is not registered in the educational database.'
       });
     }
 
+    // 3. Populate Permissions (PBAC)
+    const permissions = await PermissionService.getFinalPermissions(authUser.id, iersUser.role);
+
+    // 4. Attach Identity Context to Request Object
     req.user = {
-      id: data.user.id,
-      email: data.user.email,
-      role: employee.role?.toUpperCase() || 'EMPLOYEE',
-      employeeId: employee.id,
-      firstName: employee.first_name,
-      lastName: employee.last_name,
+      id: authUser.id,
+      email: authUser.email,
+      role: iersUser.role?.toUpperCase(),
+      fullName: iersUser.full_name,
+      iersId: iersUser.iers_id,
+      permissions: permissions || []
     };
+
+    // 5. Attach RLS-compatible client for downstream operations
+    req.supabase = getUserClient(token);
 
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    logger.error('IERS_AUTH_FATAL', { error: error.message });
+    return res.status(500).json({ success: false, message: 'Internal security protocol failure' });
   }
 };
 

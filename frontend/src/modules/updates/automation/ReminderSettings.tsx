@@ -9,8 +9,8 @@ import { triggerReminders } from './automation.api';
 import { useAuth } from '@/contexts/AuthContext';
 
 const ReminderSettings: React.FC = () => {
-    const { user } = useAuth();
-    const isAdmin = user?.role === 'ADMIN' || user?.role === 'HR';
+    const { user, hasPermission } = useAuth();
+    const isAdmin = hasPermission('ems:automation:admin') || hasPermission('ems:automation:hr');
     const [loading, setLoading] = useState(false);
 
 

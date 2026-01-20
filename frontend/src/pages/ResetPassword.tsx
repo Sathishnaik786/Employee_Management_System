@@ -36,7 +36,7 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!token) {
       toast({
         title: 'Error',
@@ -45,7 +45,7 @@ export default function ResetPassword() {
       });
       return;
     }
-    
+
     if (!password || !confirmPassword) {
       toast({
         title: 'Validation Error',
@@ -54,7 +54,7 @@ export default function ResetPassword() {
       });
       return;
     }
-    
+
     if (password !== confirmPassword) {
       toast({
         title: 'Validation Error',
@@ -63,7 +63,7 @@ export default function ResetPassword() {
       });
       return;
     }
-    
+
     if (password.length < 6) {
       toast({
         title: 'Validation Error',
@@ -74,7 +74,7 @@ export default function ResetPassword() {
     }
 
     setIsLoading(true);
-    
+
     try {
       await authApi.resetPassword(token, password);
       setIsSuccess(true);
@@ -99,16 +99,16 @@ export default function ResetPassword() {
         <div className="w-full max-w-md">
           <div className="flex justify-center mb-6">
             <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-              <img 
-                          src="/logo.png"
-                          alt="YVI Employee MS Logo" 
-                          className="h-7 w-7 object-contain text-primary-foreground"
-                          loading="eager"
-                          referrerPolicy="no-referrer"
-                        />
+              <img
+                src="/elms-logo.svg"
+                alt="ELMS Logo"
+                className="h-7 w-7 object-contain text-primary-foreground"
+                loading="eager"
+                referrerPolicy="no-referrer"
+              />
             </div>
           </div>
-          
+
           <Card className="shadow-card">
             <CardHeader className="space-y-1 text-center">
               <CardTitle className="text-2xl font-bold">Password Reset Successful</CardTitle>
@@ -135,16 +135,16 @@ export default function ResetPassword() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-            <img 
-                        src="/logo.png"
-                        alt="YVI Employee MS Logo" 
-                        className="h-7 w-7 object-contain text-primary-foreground"
-                        loading="eager"
-                        referrerPolicy="no-referrer"
-                      />
+            <img
+              src="/elms-logo.svg"
+              alt="ELMS Logo"
+              className="h-7 w-7 object-contain text-primary-foreground"
+              loading="eager"
+              referrerPolicy="no-referrer"
+            />
           </div>
         </div>
-        
+
         <Card className="shadow-card">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
@@ -174,7 +174,7 @@ export default function ResetPassword() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
                 <div className="relative">
@@ -195,7 +195,7 @@ export default function ResetPassword() {
                   </button>
                 </div>
               </div>
-              
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>

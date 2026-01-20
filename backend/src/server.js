@@ -16,23 +16,23 @@ const server = http.createServer(app);
 
 // CORS origins configuration - should match Express CORS configuration
 const corsOrigins = config.NODE_ENV === 'production'
-  ? [config.FRONTEND_URL, 'https://yviems.netlify.app'].filter(Boolean)
+  ? [config.FRONTEND_URL, 'https://elms-hub.netlify.app'].filter(Boolean)
   : [
-      'http://localhost:8080',
-      'http://127.0.0.1:8080',
-      'http://localhost:8081',
-      'http://127.0.0.1:8081',
-      'http://localhost:8082',
-      'http://127.0.0.1:8082',
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-      'http://localhost:3003',
-      'http://127.0.0.1:3003',
-      'http://localhost:3002',
-      'http://127.0.0.1:3002',
-      'http://localhost:5174',
-      'http://127.0.0.1:5174'
-    ];
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+    'http://localhost:8081',
+    'http://127.0.0.1:8081',
+    'http://localhost:8082',
+    'http://127.0.0.1:8082',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3003',
+    'http://127.0.0.1:3003',
+    'http://localhost:3002',
+    'http://127.0.0.1:3002',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174'
+  ];
 
 const io = new Server(server, {
   cors: {
@@ -105,21 +105,25 @@ server.listen(PORT, '0.0.0.0', () => {
     socketRedisAdapter: redisAdapterEnabled ? 'enabled' : 'disabled',
     redisMode,
   });
+
+  // FR-PHD-SLA: Start the periodic SLA audit engine
+  const SLAService = require('@services/sla.service');
+  SLAService.start(3600000); // Audit every 1 hour
 });
 
 server.on('error', (error) => {
-    if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use. Please kill the process using it or use a different port.`);
-    } else {
-        console.error('Server error:', error);
-    }
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Please kill the process using it or use a different port.`);
+  } else {
+    console.error('Server error:', error);
+  }
 });
 
 // Prevent immediate exit
 process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
+  console.error('Uncaught Exception:', err);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });

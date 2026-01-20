@@ -4,6 +4,7 @@ const authController = require('@controllers/auth.controller');
 const authMiddleware = require('@middlewares/auth.middleware');
 const requireRole = require('@middlewares/role.middleware');
 
+console.log('Auth controller methods:', Object.keys(authController));
 router.post('/login', authController.login); // Add the login endpoint
 router.post('/check-email', authController.checkEmailExists);
 router.post('/forgot-password', authController.forgotPassword);

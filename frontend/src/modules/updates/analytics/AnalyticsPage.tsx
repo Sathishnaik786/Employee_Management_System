@@ -9,8 +9,8 @@ import { LineChart, Users, BarChart } from 'lucide-react';
 
 const AnalyticsPage: React.FC = () => {
     const { user, isLoading } = useAuth();
-    const isAdmin = user?.role === 'ADMIN';
-    const isManager = user?.role === 'MANAGER' || user?.role === 'HR';
+    const isAdmin = hasPermission('ems:analytics:admin');
+    const isManager = hasPermission('ems:analytics:manager') || hasPermission('ems:analytics:hr');
 
     const [activeTab, setActiveTab] = useState('personal');
 

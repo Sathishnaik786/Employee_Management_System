@@ -41,6 +41,7 @@ interface CommentItemProps {
     isReply?: boolean;
     isPinned?: boolean;
     userCache: Record<string, UserProfile>;
+    hasPermission?: (permission: string) => boolean;
 }
 
 export const CommentItem: React.FC<CommentItemProps> = ({
@@ -52,7 +53,8 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     onPin,
     isReply = false,
     isPinned = false,
-    userCache
+    userCache,
+    hasPermission
 }) => {
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
@@ -108,7 +110,14 @@ export const CommentItem: React.FC<CommentItemProps> = ({
         });
     };
 
-    const isAdminOrManager = (role: string) => role === 'ADMIN' || role === 'MANAGER' || role === 'HR';
+    const isAdminOrManager = (role: string) => {
+      // If hasPermission function is available, use it
+      if (hasPermission) {
+        return hasPermission('ems:comments:admin') || hasPermission('ems:comments:manager') || hasPermission('ems:comments:hr');
+      }
+      // Fallback to role-based check if no permission function available
+      return role === 'ADMIN' || role === 'MANAGER' || role === 'HR';
+    };
     const profileRole = (profile as any).role || 'EMPLOYEE';
     const isSpecialUser = isAdminOrManager(profileRole);
 

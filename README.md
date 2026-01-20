@@ -1,8 +1,8 @@
-# YVI Enterprise Workforce System (EWS) - Employee Management Platform
+# ELMS - Enterprise Learning Hub
 
 ## Project Overview
 
-The YVI Enterprise Workforce System (EWS) is a comprehensive, role-based employee management platform designed for enterprise organizations. This modern full-stack application provides secure, scalable management of employees, departments, projects, attendance, leaves, and documents with robust role-based access control (RBAC).
+The ELMS (Enterprise Learning Hub) is a comprehensive, role-based employee management platform designed for enterprise organizations. This modern full-stack application provides secure, scalable management of employees, departments, projects, attendance, leaves, and documents with robust role-based access control (RBAC).
 
 ### Key Features
 
@@ -336,7 +336,7 @@ npm run dev
 
 ## Contributing
 
-We welcome contributions to improve the YVI EWS platform. Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
+We welcome contributions to improve the ELMS platform. Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
 
 ## Security
 

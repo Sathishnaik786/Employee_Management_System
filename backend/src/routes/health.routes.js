@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { redis } = require('@lib/redis');
-const { supabase } = require('@lib/supabase');
+const { supabase, supabaseAdmin } = require('@lib/supabase');
 const CacheService = require('../services/cache.service');
 const config = require('@config');
 
@@ -36,13 +36,13 @@ router.get('/', async (req, res) => {
 
   // Check Database connection
   try {
-    const { data, error } = await supabase
-      .from('users')
+    const { data, error } = await supabaseAdmin
+      .from('iers_users')
       .select('count')
       .limit(1);
-    
+
     if (error) throw error;
-    
+
     health.services.database = {
       status: 'healthy',
       connected: true
@@ -76,7 +76,7 @@ router.get('/', async (req, res) => {
   );
 
   const statusCode = health.status === 'ok' && allHealthy ? 200 : 503;
-  
+
   res.status(statusCode).json(health);
 });
 
@@ -84,9 +84,9 @@ router.get('/', async (req, res) => {
  * Simple health check (for load balancers)
  */
 router.get('/ping', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString() 
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString()
   });
 });
 

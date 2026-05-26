@@ -1,6 +1,7 @@
 import { create, all } from 'mathjs';
 
 const math = create(all, {});
+console.log('[BOOT] Payroll Formula Evaluator Engine initialized successfully with mathjs.');
 
 export interface FormulaVariables {
   [key: string]: number;

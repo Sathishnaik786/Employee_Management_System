@@ -44,7 +44,9 @@
     "winston": "^3.11.0",
     "winston-daily-rotate-file": "^4.7.1",
     "xlsx": "^0.18.5",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -56,8 +58,6 @@
     "dayjs": "^1.11.20",
     "mathjs": "^15.2.0",
     "nodemon": "^3.1.14",
-    "ts-node": "^10.9.2",
-    "typescript": "^6.0.3",
     "uuid": "^14.0.0"
   }
 }

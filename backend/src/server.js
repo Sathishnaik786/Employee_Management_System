@@ -1,5 +1,26 @@
+// [BOOT] Registering global exception handlers at the absolute top
+process.on('uncaughtException', (err) => {
+  console.error('[BOOT_CRITICAL] Uncaught Exception at startup:', err.stack || err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[BOOT_CRITICAL] Unhandled Rejection at startup:', promise, 'reason:', reason?.stack || reason);
+  process.exit(1);
+});
+
+console.log('[BOOT] Exception handlers registered.');
+
 require('dotenv').config();
 require('module-alias/register');
+
+console.log('[BOOT] Environment variables audit:');
+const requiredEnvs = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'JWT_SECRET'];
+requiredEnvs.forEach((env) => {
+  console.log(`[BOOT] ${env} detected: ${process.env[env] ? 'YES ✅' : 'NO ❌'}`);
+});
+
+console.log('[BOOT] Initializing ts-node compiler register...');
 require('ts-node').register({
   transpileOnly: true,
   compilerOptions: {
@@ -9,7 +30,11 @@ require('ts-node').register({
     ignoreDeprecations: "6.0"
   }
 });
+
+console.log('[BOOT] Loading Express app module...');
 const app = require('./app');
+console.log('[BOOT] Express app module loaded successfully.');
+
 const config = require('@config');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -107,8 +132,11 @@ if (enableSocketRedis) {
 const SocketHandlers = require('./socketHandlers');
 SocketHandlers.initialize(io);
 
-server.listen(PORT, () => {
-  console.log(`Server is actually listening on port ${PORT}`);
+// Render requires binding explicitly to 0.0.0.0 in production. Local development defaults to dual-stack.
+const BIND_HOST = config.NODE_ENV === 'production' ? '0.0.0.0' : undefined;
+
+server.listen(PORT, BIND_HOST, () => {
+  console.log(`Server is actually listening on port ${PORT} (${BIND_HOST || 'dual-stack loopback'})`);
   console.log(`Environment: ${config.NODE_ENV}`);
   console.log(
     `WebSocket server initialized with ${redisAdapterEnabled ? 'Redis adapter' : 'in-memory adapter (no Redis)'}`

@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff, ShieldCheck, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ShieldCheck, Lock, CheckCircle2, ArrowRight, Flame } from 'lucide-react';
 import { authApi } from '@/services/api';
-import { cn } from '@/lib/utils';
+import BackgroundVisual from '@/components/auth/BackgroundVisual';
+import LoginInput from '@/components/auth/LoginInput';
+import ThemeToggle from '@/components/auth/ThemeToggle';
+import TrustBadge from '@/components/auth/TrustBadge';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -60,7 +61,7 @@ export default function ResetPassword() {
       });
     } catch (error: any) {
       toast({
-        title: 'Nexus Error',
+        title: 'Server Error',
         description: error.message || 'Failed to update access key.',
         variant: 'destructive',
       });
@@ -70,148 +71,152 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-950 text-white font-sans overflow-hidden relative selection:bg-teal-500 selection:text-slate-950">
-      {/* Background Glows */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(59,130,246,0.1),transparent_70%)] pointer-events-none" />
+    <div className="min-h-screen flex flex-col justify-between text-slate-900 dark:text-slate-100 font-sans overflow-y-auto relative selection:bg-orange-500/10 selection:text-orange-500 py-12 px-4 sm:px-6 md:px-8 w-full bg-[#f8fafc] dark:bg-slate-950 transition-colors duration-500">
+      {/* 🌌 Cinematic Backdrop */}
+      <BackgroundVisual />
+
+      {/* Subtle, Vercel-style Theme Switcher */}
+      <ThemeToggle />
       
-      <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
-        <motion.div 
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           className="w-full max-w-lg space-y-12"
-        >
-          <div className="flex justify-center mb-16">
-            <Link to="/" className="flex items-center gap-4 group">
-              <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain rounded-xl brightness-110" />
-              <div className="flex flex-col -space-y-1 text-left">
-                <span className="font-display font-black text-2xl tracking-tighter text-white uppercase">YVI <span className="text-teal-400">EMS</span></span>
-                <span className="text-[9px] font-sans font-black uppercase tracking-[0.4em] text-teal-500/60 ml-0.5">Enterprise OS</span>
-              </div>
-            </Link>
+      {/* Centered card frame */}
+      <div className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-[440px] mx-auto my-auto space-y-6">
+        
+        {/* 🏢 Brand Header */}
+        <div className="flex justify-center mb-2">
+          <Link to="/" className="group select-none pointer-events-none">
+            <img
+              src="/logo.png"
+              alt="YVI Logo"
+              className="h-10 sm:h-11 object-contain"
+            />
+          </Link>
+        </div>
+
+        {/* Narrative / Header */}
+        <div className="space-y-1 text-center w-full select-none">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-semibold tracking-wide border border-orange-500/10 mb-2">
+            <Lock size={11} />
+            <span>Secure key generation</span>
           </div>
+          <h2 className="text-xl sm:text-2xl font-display font-semibold tracking-tight text-slate-800 dark:text-white leading-tight">
+            {isSuccess ? 'Access restored' : 'Key exchange'}
+          </h2>
+          <p className="text-xs sm:text-sm font-normal text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-balanced">
+            {isSuccess
+              ? 'Your identity synchronization is complete. Proceed to terminal access.'
+              : 'Establish a new institutional Password to restore your session terminal.'}
+          </p>
+        </div>
 
-          <div className="space-y-4 text-center">
-             <div className="inline-flex items-center gap-3 px-5 py-2 rounded-2xl bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-[0.4em] border border-blue-500/20 mb-4">
-                <Lock size={14} />
-                Secure Key Generation
-             </div>
-             <h2 className="text-5xl font-display font-black uppercase tracking-tighter text-white">
-               {isSuccess ? 'Access Restored' : 'Key Exchange'}
-             </h2>
-             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] leading-relaxed max-w-md mx-auto">
-               {isSuccess 
-                 ? 'Your identity synchronization is complete. Proceed to terminal access.' 
-                 : 'Establish a new institutional access key to restore your session terminal.'}
-             </p>
-          </div>
+        {/* Glass Card Box wrapper */}
+        <div className="w-[100%] p-5 sm:p-8 rounded-[2rem] bg-white/[0.22] dark:bg-slate-950/[0.22] border border-white/30 dark:border-white/10 hover:border-white/45 dark:hover:border-white/20 shadow-[0_24px_50px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.5)] backdrop-blur-3xl transition-all duration-500 relative overflow-hidden group text-slate-900 dark:text-white">
+          <div className="absolute -top-32 -left-32 w-64 h-64 rounded-full bg-orange-500/5 blur-[50px] pointer-events-none" />
 
-          <div className="bg-white/[0.02] border border-white/5 rounded-[3rem] p-12 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
-             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-             
-             <AnimatePresence mode="wait">
-               {isSuccess ? (
-                 <motion.div 
-                    key="success"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="space-y-10 text-center relative z-10"
-                 >
-                    <div className="w-24 h-24 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 mx-auto shadow-[0_0_50px_rgba(59,130,246,0.1)]">
-                       <CheckCircle2 size={48} />
-                    </div>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-                      Institutional key established. <br /> 
-                      <span className="text-white">Session Ready for Authorization</span>.
-                    </p>
-                    <Button onClick={() => navigate('/login')} className="w-full h-16 rounded-2xl bg-white text-slate-950 hover:bg-blue-400 font-black uppercase tracking-widest text-[10px] shadow-2xl group transition-all duration-500">
-                       <span className="flex items-center justify-center gap-3">
-                          Establish Access <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
-                       </span>
-                    </Button>
-                 </motion.div>
-               ) : (
-                 <motion.form 
-                    key="form"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    onSubmit={handleSubmit} 
-                    className="space-y-10 relative z-10"
-                 >
-                    <div className="space-y-8">
-                       <div className="space-y-4">
-                          <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-2">New Access Key</Label>
-                          <div className="relative group">
-                             <Input
-                                id="password"
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                disabled={isLoading}
-                                className="h-16 bg-white/[0.03] border-white/10 rounded-2xl px-6 font-display font-black tracking-[0.5em] text-white focus:bg-white/[0.06] focus:border-blue-500/50 transition-all placeholder:text-slate-800"
-                             />
-                             <button
-                                type="button"
-                                className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 hover:text-white transition-colors"
-                                onClick={() => setShowPassword(!showPassword)}
-                             >
-                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                             </button>
-                          </div>
-                       </div>
-
-                       <div className="space-y-4">
-                          <Label htmlFor="confirmPassword" className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-2">Verify Key</Label>
-                          <div className="relative group">
-                             <Input
-                                id="confirmPassword"
-                                type={showConfirmPassword ? 'text' : 'password'}
-                                placeholder="••••••••"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                disabled={isLoading}
-                                className="h-16 bg-white/[0.03] border-white/10 rounded-2xl px-6 font-display font-black tracking-[0.5em] text-white focus:bg-white/[0.06] focus:border-blue-500/50 transition-all placeholder:text-slate-800"
-                             />
-                             <button
-                                type="button"
-                                className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 hover:text-white transition-colors"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                             >
-                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                             </button>
-                          </div>
-                       </div>
-                    </div>
-
-                    <Button 
-                       type="submit" 
-                       disabled={isLoading}
-                       className="w-full h-20 rounded-2xl bg-blue-600 text-white hover:bg-blue-500 font-black uppercase tracking-[0.25em] text-xs shadow-2xl group transition-all duration-500"
+          <AnimatePresence mode="wait">
+            {isSuccess ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="space-y-6 text-center relative z-10"
+              >
+                <div className="w-14 h-14 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-655 dark:text-orange-400 mx-auto shadow-sm">
+                  <CheckCircle2 size={26} className="stroke-[2.5]" />
+                </div>
+                <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 leading-relaxed">
+                  Institutional Password established. <br />
+                  <span className="text-orange-600 dark:text-orange-400 font-bold">Session ready for authorization</span>.
+                </p>
+                <Button
+                  onClick={() => navigate('/login')}
+                  className="h-12 rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-450 text-white font-display font-bold tracking-wide text-sm shadow-[0_8px_20px_rgba(249,115,22,0.12)] border-none transition-all duration-300 w-full group/btn"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    Establish Access
+                    <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform stroke-[2.5]" />
+                  </span>
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.form
+                key="form"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                onSubmit={handleSubmit}
+                className="space-y-5 relative z-10"
+              >
+                {/* Password field */}
+                <LoginInput
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  label="New Password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  rightElement={
+                    <button
+                      type="button"
+                      className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors focus:outline-none mr-1"
+                      onClick={() => setShowPassword(!showPassword)}
                     >
-                       <span className="relative z-10 flex items-center justify-center gap-3">
-                          {isLoading ? (
-                             <><Loader2 size={18} className="animate-spin" /> SYNCHRONIZING...</>
-                          ) : (
-                             <>FINALIZE KEY EXCHANGE <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" /></>
-                          )}
-                       </span>
-                    </Button>
-                 </motion.form>
-               )}
-             </AnimatePresence>
-          </div>
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  }
+                />
 
-          <div className="flex flex-col items-center gap-6 opacity-40">
-             <div className="flex items-center gap-8 grayscale">
-                <span className="text-[9px] font-black uppercase tracking-widest">TLS 1.3 Active</span>
-                <span className="text-[9px] font-black uppercase tracking-widest">AES-256 Auth</span>
-                <span className="text-[9px] font-black uppercase tracking-widest">v2.5.0-PF</span>
-             </div>
-             <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
-                © 2026 YVI Enterprise Management Systems. All rights reserved.
-             </p>
-          </div>
-        </motion.div>
+                {/* Confirm Password field */}
+                <LoginInput
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  label="Verify Key"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
+                  rightElement={
+                    <button
+                      type="button"
+                      className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors focus:outline-none mr-1"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  }
+                />
+
+                <div className="w-full relative group/btn">
+                  <Button
+                    type="submit"
+                    disabled={isLoading || !password || !confirmPassword}
+                    className="w-full h-12 rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-450 text-white font-display font-bold tracking-wide text-sm shadow-[0_8px_20px_rgba(249,115,22,0.12)] hover:shadow-[0_12px_28px_rgba(249,115,22,0.22)] border-none disabled:opacity-40 transition-all duration-300 relative overflow-hidden"
+                  >
+                    {/* Shimmer sweep effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover/btn:animate-[shimmer_1.5s_infinite] pointer-events-none" />
+
+                    <span className="flex items-center justify-center gap-2 relative z-10">
+                      {isLoading ? (
+                        <><Loader2 size={14} className="animate-spin text-white stroke-[2.5]" /> Synchronizing...</>
+                      ) : (
+                        <>Finalize Key Exchange <ArrowRight size={14} className="stroke-[2.5] group-hover/btn:translate-x-1 transition-transform" /></>
+                      )}
+                    </span>
+                  </Button>
+                </div>
+              </motion.form>
+            )}
+          </AnimatePresence>
+
+          <TrustBadge />
+        </div>
+
+      </div>
+
+      {/* Global copyright footer */}
+      <div className="w-full text-center pt-8 border-t border-slate-200/50 dark:border-white/5 max-w-[440px] mx-auto relative z-10 transition-colors duration-500">
+        <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 leading-normal select-none">
+          © 2026 YVI Enterprise Management Systems. All rights reserved.
+        </span>
       </div>
     </div>
   );

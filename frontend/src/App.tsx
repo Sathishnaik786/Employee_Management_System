@@ -14,6 +14,7 @@ import { RouteErrorBoundary } from '@/components/common/RouteErrorBoundary';
 import { CommandProvider } from '@/contexts/CommandContext';
 import { CommandPalette } from '@/components/common/CommandPalette';
 import { QuickActionLauncher } from '@/components/common/QuickActionLauncher';
+import { ThemeProvider } from "next-themes";
 
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -129,7 +130,9 @@ const App = () => (
       <SidebarProvider>
         <OnlineStatusProvider>
           <CommandProvider>
-            <AppContent />
+            <ThemeProvider defaultTheme="light" attribute="class">
+              <AppContent />
+            </ThemeProvider>
           </CommandProvider>
         </OnlineStatusProvider>
       </SidebarProvider>

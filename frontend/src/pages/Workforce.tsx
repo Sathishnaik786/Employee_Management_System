@@ -8,6 +8,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import PremiumButton from '@/components/ui/PremiumButton';
 import EnterprisePageLayout from '@/components/layout/EnterprisePageLayout';
 import { AnimatedContainer } from '@/components/landing/AnimatedContainer';
+import SectionHeading from '@/components/landing/SectionHeading';
 
 const Counter = ({ value, duration = 2 }: { value: number, duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);

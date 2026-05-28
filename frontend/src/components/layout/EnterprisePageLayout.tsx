@@ -42,16 +42,20 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
       </a>
 
       <div className={cn("fixed top-5 left-1/2 -translate-x-1/2 z-[150] w-[95%] max-w-[1700px] transition-all duration-500 ease-out")}>
-        <nav aria-label="Main navigation" className={cn("relative grid grid-cols-[auto_1fr_auto] items-center rounded-full px-6 xl:px-10 bg-white/[0.08] dark:bg-slate-950/[0.55] backdrop-blur-3xl border border-white/15 dark:border-white/10", isScrolled ? "h-[72px] shadow-[0_20px_50px_rgba(15,23,42,0.18)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.55)]" : "h-[88px] shadow-[0_20px_80px_rgba(15,23,42,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.40)]", "transition-all duration-500 ease-out overflow-visible")}>
+        <nav aria-label="Main navigation" className={cn("relative flex items-center justify-between w-full rounded-full px-6 xl:px-10 bg-white/[0.08] dark:bg-slate-950/[0.55] backdrop-blur-3xl border border-white/15 dark:border-white/10", isScrolled ? "h-[72px] shadow-[0_20px_50px_rgba(15,23,42,0.18)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.55)]" : "h-[88px] shadow-[0_20px_80px_rgba(15,23,42,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.40)]", "transition-all duration-500 ease-out overflow-visible")}>
           <div aria-hidden="true" className="absolute inset-0 rounded-full bg-gradient-to-r from-white/10 via-transparent to-orange-500/5 pointer-events-none" />
           <div aria-hidden="true" className="absolute inset-px rounded-full border border-white/10 pointer-events-none" />
 
-          <Link to="/" className="relative flex items-center gap-4 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1">
-            <img src="/logo.png" alt="YVI People logo" loading="lazy" className="w-11 h-11 object-contain rounded-xl brightness-110 drop-shadow-sm" />
-            <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white">YVI <span className="text-orange-500">People</span></span>
-          </Link>
+          {/* LEFT: Logo */}
+          <div className="flex-shrink-0">
+            <Link to="/" className="relative flex items-center gap-4 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1">
+              <img src="/logo.png" alt="YVI People logo" loading="lazy" className="w-11 h-11 object-contain rounded-xl brightness-110 drop-shadow-sm" />
+              <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white">YVI <span className="text-orange-500">People</span></span>
+            </Link>
+          </div>
 
-          <div className="hidden lg:flex items-center justify-center gap-8 xl:gap-10">
+          {/* CENTER: Navigation Links */}
+          <div className="hidden lg:flex flex-1 justify-center gap-8 xl:gap-14 min-w-0">
             {[
               { label: 'Home', path: '/' },
               { label: 'Workforce', path: '/workforce' },
@@ -59,7 +63,6 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
               { label: 'Intelligence', path: '/intelligence' },
               { label: 'Governance', path: '/governance' },
               { label: 'Operations', path: '/operations' },
-              { label: 'Nexus', path: '/nexus' },
               { label: 'Company', path: '/about' }
             ].map((nav) => {
               const active = location.pathname === nav.path;
@@ -68,27 +71,28 @@ export function EnterprisePageLayout({ children, title, label, subtitle, accentW
                   key={nav.label}
                   to={nav.path}
                   className={cn(
-                    "relative text-[15px] font-medium tracking-wide py-2 px-1 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded transition-all duration-300",
+                    "relative text-[15px] font-medium tracking-wide py-2 px-1 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded transition-all duration-300 ease-out",
                     active
-                      ? "text-orange-500 dark:text-orange-400 font-semibold"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                      ? "text-orange-500 dark:text-orange-400 font-semibold after:absolute after:left-0 after:right-0 after:bottom-[-8px] after:h-[2px] after:bg-orange-500 after:rounded-full after:shadow-[0_0_8px_rgba(234,88,12,0.5)]"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-8px] hover:after:h-[2px] hover:after:bg-orange-500 hover:after:rounded-full"
                   )}
                 >
                   {nav.label}
-                  <span
-                    className={cn(
-                      "absolute left-0 bottom-[-4px] h-[2px] bg-orange-500 rounded-full transition-all duration-300 ease-out",
-                      active ? "w-full" : "w-0 group-hover:w-full"
-                    )}
-                  />
                 </Link>
               );
             })}
           </div>
 
-          <div className="relative flex items-center gap-3 shrink-0">
-            <div className="flex items-center"><ThemeToggle /></div>
-            <Link to="/login" className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full"><PremiumButton>Login</PremiumButton></Link>
+          {/* RIGHT: Actions */}
+          <div className="flex-shrink-0 flex items-center gap-4 relative">
+            <Link to="/login" className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full">
+              <PremiumButton className="h-12 px-8 rounded-full text-sm font-semibold">
+                Login
+              </PremiumButton>
+            </Link>
+            <div className="flex items-center justify-center h-12 w-12 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
+              <ThemeToggle />
+            </div>
           </div>
         </nav>
       </div>

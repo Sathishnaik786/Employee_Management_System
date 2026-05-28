@@ -37,7 +37,6 @@ import PayrollPage from "./pages/Payroll";
 import IntelligencePage from "./pages/Intelligence";
 import GovernancePage from "./pages/Governance";
 import OperationsPage from "./pages/Operations";
-import NexusPage from "./pages/Nexus";
 import AboutPage from "./pages/About";
 import SecurityStandardsPage from "./pages/SecurityStandards";
 import EnterpriseSLAPage from "./pages/EnterpriseSLA";
@@ -80,7 +79,6 @@ const router = createBrowserRouter([
   { path: "/intelligence", element: <IntelligencePage /> },
   { path: "/governance", element: <GovernancePage /> },
   { path: "/operations", element: <OperationsPage /> },
-  { path: "/nexus", element: <NexusPage /> },
   { path: "/about", element: <AboutPage /> },
   { path: "/security-standards", element: <SecurityStandardsPage /> },
   { path: "/enterprise-sla", element: <EnterpriseSLAPage /> },

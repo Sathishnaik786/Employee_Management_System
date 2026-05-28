@@ -105,11 +105,7 @@ export const Navbar = () => {
         <nav
           aria-label="Main navigation"
           className={cn(
-            "relative grid grid-cols-[auto_1fr_auto] items-center rounded-full",
-            "px-6 xl:px-10",
-            "bg-white/[0.08] dark:bg-slate-950/[0.55]",
-            "backdrop-blur-3xl",
-            "border border-white/15 dark:border-white/10",
+            "relative flex items-center justify-between w-full rounded-full px-6 xl:px-10 bg-white/[0.08] dark:bg-slate-950/[0.55] backdrop-blur-3xl border border-white/15 dark:border-white/10",
             isScrolled || activeCategory
               ? "h-[72px] shadow-[0_20px_50px_rgba(15,23,42,0.18)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
               : "h-[88px] shadow-[0_20px_80px_rgba(15,23,42,0.10)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.40)]",
@@ -127,24 +123,26 @@ export const Navbar = () => {
             className="absolute inset-px rounded-full border border-white/10 pointer-events-none"
           />
 
-          {/* ── Logo ── */}
-          <Link
-            to="/"
-            className="relative flex items-center gap-4 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1"
-          >
-            <img
-              src="/logo.png"
-              alt="YVI People logo"
-              loading="lazy"
-              className="w-11 h-11 object-contain rounded-xl brightness-110 drop-shadow-sm"
-            />
-            <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white">
-              YVI <span className="text-orange-500">People</span>
-            </span>
-          </Link>
+          {/* LEFT: Logo */}
+          <div className="flex-shrink-0">
+            <Link
+              to="/"
+              className="relative flex items-center gap-4 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1"
+            >
+              <img
+                src="/logo.png"
+                alt="YVI People logo"
+                loading="lazy"
+                className="w-11 h-11 object-contain rounded-xl brightness-110 drop-shadow-sm"
+              />
+              <span className="font-display font-semibold text-[26px] xl:text-[28px] tracking-tight text-slate-900 dark:text-white">
+                YVI <span className="text-orange-500">People</span>
+              </span>
+            </Link>
+          </div>
 
-          {/* ── Desktop Nav — center column ── */}
-          <div className="hidden lg:flex items-center justify-center gap-8 xl:gap-10">
+          {/* CENTER: Navigation Links */}
+          <div className="hidden lg:flex flex-1 justify-center gap-8 xl:gap-14 min-w-0">
             {navLinks.map((link) => {
               const linkPath = `/${link.toLowerCase()}`;
               const active = isLinkActive(linkPath) || activeCategory === link;
@@ -154,45 +152,34 @@ export const Navbar = () => {
                   to={linkPath}
                   onMouseEnter={() => setActiveCategory(link)}
                   className={cn(
-                    "relative text-[15px] font-medium tracking-wide py-2 px-1 group",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded",
-                    "transition-all duration-300 ease-out",
+                    "relative text-[15px] font-medium tracking-wide py-2 px-1 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded transition-all duration-300 ease-out",
                     active
-                      ? "text-orange-500 font-semibold"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                      ? "text-orange-500 font-semibold after:absolute after:left-0 after:right-0 after:bottom-[-8px] after:h-[2px] after:bg-orange-500 after:rounded-full after:shadow-[0_0_8px_rgba(234,88,12,0.5)]"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-8px] hover:after:h-[2px] hover:after:bg-orange-500 hover:after:rounded-full"
                   )}
                 >
                   {link}
-                  {/* Animated underline */}
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "absolute left-0 bottom-[-4px] h-[2px] bg-orange-500 rounded-full",
-                      "transition-all duration-300 ease-out",
-                      active ? "w-full" : "w-0 group-hover:w-full"
-                    )}
-                  />
                 </Link>
               );
             })}
           </div>
 
-          {/* ── Actions Cluster ── */}
-          <div className="relative flex items-center gap-3 shrink-0">
-            {/* ThemeToggle - positioned on left side of Login button */}
-            <div className="flex items-center">
-              <ThemeToggle />
-            </div>
-
+          {/* RIGHT: Actions */}
+          <div className="flex-shrink-0 flex items-center gap-4 relative">
             {/* Login CTA — desktop */}
             <Link
               to="/login"
               className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full"
             >
-              <PremiumButton>
+              <PremiumButton className="h-12 px-8 rounded-full text-sm font-semibold">
                 Login
               </PremiumButton>
             </Link>
+
+            {/* ThemeToggle */}
+            <div className="flex items-center justify-center h-12 w-12 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
+              <ThemeToggle />
+            </div>
 
             {/* Mobile hamburger */}
             <button
@@ -200,7 +187,7 @@ export const Navbar = () => {
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-nav-drawer"
               className={cn(
-                "lg:hidden flex items-center justify-center w-11 h-11 rounded-full",
+                "lg:hidden flex items-center justify-center w-12 h-12 rounded-full",
                 "bg-white/10 dark:bg-white/5 hover:bg-white/20 dark:hover:bg-white/10",
                 "border border-white/15 dark:border-white/10",
                 "text-slate-700 dark:text-white transition-all duration-200",

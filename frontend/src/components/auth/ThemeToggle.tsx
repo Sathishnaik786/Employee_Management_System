@@ -8,8 +8,9 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="fixed top-6 right-6 z-50 p-2.5 rounded-xl bg-white/40 dark:bg-slate-900/40 border border-slate-200/50 dark:border-white/10 text-slate-650 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-white/80 dark:hover:bg-slate-950/80 shadow-sm backdrop-blur-md transition-all duration-300 focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none select-none"
+      className="p-2.5 rounded-xl bg-white/40 dark:bg-slate-900/40 border border-slate-200/50 dark:border-white/10 text-slate-650 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-white/80 dark:hover:bg-slate-950/80 shadow-sm backdrop-blur-md transition-all duration-300 focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none select-none"
       aria-label="Toggle Theme"
+      type="button"
     >
       <div className="relative w-[18px] h-[18px] flex items-center justify-center">
         <Sun size={18} className="absolute rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 duration-300" />

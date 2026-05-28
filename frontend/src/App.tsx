@@ -32,6 +32,16 @@ import MeetupsPage from "./pages/Meetups";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import Landing from "./pages/Landing";
+import WorkforcePage from "./pages/Workforce";
+import PayrollPage from "./pages/Payroll";
+import IntelligencePage from "./pages/Intelligence";
+import GovernancePage from "./pages/Governance";
+import OperationsPage from "./pages/Operations";
+import NexusPage from "./pages/Nexus";
+import AboutPage from "./pages/About";
+import SecurityStandardsPage from "./pages/SecurityStandards";
+import EnterpriseSLAPage from "./pages/EnterpriseSLA";
+import ContactSalesPage from "./pages/ContactSales";
 import { updatesRoutes } from './modules/updates/updates.routes';
 import { payrollRoutes } from './modules/payroll/payroll.routes';
 import { bulkProcessingRoutes } from './modules/payroll-bulk-processing/bulk-processing.routes';
@@ -65,6 +75,16 @@ const queryClient = new QueryClient({
 
 const router = createBrowserRouter([
   { path: "/", element: <Landing /> }, // New Enterprise Landing Page
+  { path: "/workforce", element: <WorkforcePage /> },
+  { path: "/payroll", element: <PayrollPage /> },
+  { path: "/intelligence", element: <IntelligencePage /> },
+  { path: "/governance", element: <GovernancePage /> },
+  { path: "/operations", element: <OperationsPage /> },
+  { path: "/nexus", element: <NexusPage /> },
+  { path: "/about", element: <AboutPage /> },
+  { path: "/security-standards", element: <SecurityStandardsPage /> },
+  { path: "/enterprise-sla", element: <EnterpriseSLAPage /> },
+  { path: "/contact-sales", element: <ContactSalesPage /> },
   { path: "/login", element: <Login /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password", element: <ResetPassword /> },
@@ -106,6 +126,7 @@ const router = createBrowserRouter([
 
     ],
   },
+  { path: "*", element: <NotFound /> }
 ], {
   future: {
     v7_relativeSplatPath: true,

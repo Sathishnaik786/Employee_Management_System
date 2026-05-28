@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Users, 
-  CreditCard, 
-  BarChart3, 
-  ShieldCheck, 
-  Zap, 
+import {
+  Users,
+  CreditCard,
+  BarChart3,
+  ShieldCheck,
+  Zap,
   ArrowRight,
   LayoutDashboard,
   Calculator,
@@ -58,7 +58,7 @@ const menuData: Record<string, any> = {
   },
   'Payroll': {
     left: [
-      { title: 'Payroll Nexus', desc: 'Unified disbursement core.', icon: CreditCard },
+      { title: 'Payroll YVI People', desc: 'Unified disbursement core.', icon: CreditCard },
       { title: 'Tax Governance', desc: 'Localized tax compliance.', icon: Lock },
       { title: 'Salary Structures', desc: 'Flexible compensation models.', icon: Calculator },
       { title: 'Disbursements', desc: 'Bank integration & transfers.', icon: Globe },
@@ -170,9 +170,28 @@ const menuData: Record<string, any> = {
       chart: [20, 40, 60, 50, 70, 90, 80, 100, 95, 110, 105, 120]
     }
   },
+  'YVI People': {
+    left: [
+      { title: 'Core Intelligence', desc: 'Central AI processing unit.', icon: Cpu },
+      { title: 'Governance Hub', desc: 'Policy and compliance control center.', icon: ShieldCheck },
+      { title: 'Audit Console', desc: 'Immutable operation trails.', icon: FileText },
+      { title: 'System Status', desc: 'Real-time health monitoring.', icon: Activity },
+    ],
+    center: [
+      { title: 'Global Nodes', desc: 'Multi-region deployment.', icon: Globe },
+      { title: 'Security Layer', desc: 'Enterprise-grade protection.', icon: Lock },
+      { title: 'API Gateway', desc: 'Unified integration layer.', icon: Database },
+    ],
+    right: {
+      title: 'Active Nodes',
+      value: '96',
+      trend: '+4 new regions',
+      chart: [80, 85, 82, 88, 92, 90, 95, 94, 96, 97, 98, 96]
+    }
+  },
   'AI Systems': {
     left: [
-      { title: 'Nexus Core AI', desc: 'Central intelligence engine.', icon: Cpu },
+      { title: 'YVI People Core AI', desc: 'Central intelligence engine.', icon: Cpu },
       { title: 'Natural Language', desc: 'Semantic data interaction.', icon: MessageSquare },
       { title: 'Pattern Recognition', desc: 'Identify hidden variances.', icon: Zap },
       { title: 'Autonomous Agents', desc: 'Self-executing workflows.', icon: Sparkles },
@@ -189,6 +208,40 @@ const menuData: Record<string, any> = {
       chart: [10, 30, 20, 50, 40, 70, 60, 90, 80, 100, 95, 110]
     }
   }
+};
+
+const getRouteForMenuItem = (title: string, category: string): string => {
+  const normalizedTitle = title.toLowerCase().trim();
+  
+  if (normalizedTitle.includes('core intelligence') || normalizedTitle.includes('intelligence core')) return '/intelligence';
+  if (normalizedTitle.includes('governance hub')) return '/governance';
+  if (normalizedTitle.includes('audit console')) return '/governance';
+  if (normalizedTitle.includes('system status')) return '/operations';
+  
+  if (normalizedTitle.includes('compliance engine') || normalizedTitle.includes('compliance matrix')) return '/governance';
+  if (normalizedTitle.includes('risk assessment')) return '/governance';
+  if (normalizedTitle.includes('regional tax') || normalizedTitle.includes('tax governance')) return '/payroll';
+  if (normalizedTitle.includes('rbac registry') || normalizedTitle.includes('access control') || normalizedTitle.includes('security layer') || normalizedTitle.includes('sso integration')) return '/security-standards';
+  
+  if (normalizedTitle.includes('about us')) return '/about';
+  if (normalizedTitle.includes('enterprise sla')) return '/enterprise-sla';
+  if (normalizedTitle.includes('security standards')) return '/security-standards';
+  if (normalizedTitle.includes('contact sales')) return '/contact-sales';
+  
+  if (normalizedTitle.includes('attritions ai') || normalizedTitle.includes('predictive churn')) return '/intelligence';
+  if (normalizedTitle.includes('payroll forecasts') || normalizedTitle.includes('cost forecasting')) return '/payroll';
+  if (normalizedTitle.includes('growth analytics')) return '/intelligence';
+  if (normalizedTitle.includes('performance core') || normalizedTitle.includes('performance hub')) return '/workforce';
+
+  const cat = category.toLowerCase().trim();
+  if (cat === 'workforce') return '/workforce';
+  if (cat === 'payroll') return '/payroll';
+  if (cat === 'intelligence' || cat === 'analytics' || cat === 'ai systems') return '/intelligence';
+  if (cat === 'governance') return '/governance';
+  if (cat === 'projects') return '/projects';
+  if (cat === 'operations') return '/operations';
+  
+  return '/';
 };
 
 export const MegaMenu = ({ isOpen, onClose, activeCategory: initialCategory }: MegaMenuProps) => {
@@ -210,6 +263,7 @@ export const MegaMenu = ({ isOpen, onClose, activeCategory: initialCategory }: M
     'Projects': Briefcase,
     'Operations': Settings,
     'Analytics': TrendingUp,
+    'YVI People': Cpu,
     'AI Systems': Cpu
   };
 
@@ -217,14 +271,14 @@ export const MegaMenu = ({ isOpen, onClose, activeCategory: initialCategory }: M
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200]"
           />
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -233,21 +287,21 @@ export const MegaMenu = ({ isOpen, onClose, activeCategory: initialCategory }: M
             <div className="flex h-full min-h-[550px]">
               {/* Category Sidebar (Internal Navigation) */}
               <div className="w-20 border-r border-white/5 bg-black/40 flex flex-col items-center py-8 gap-6">
-                 {Object.keys(menuData).map((cat) => {
-                   const Icon = categoryIcons[cat];
-                   return (
-                     <button
-                        key={cat}
-                        onMouseEnter={() => setActiveCategory(cat)}
-                        className={cn(
-                          "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300",
-                          activeCategory === cat ? "bg-teal-500 text-slate-950 shadow-[0_0_20px_rgba(20,184,166,0.4)]" : "text-slate-500 hover:text-white hover:bg-white/5"
-                        )}
-                     >
-                        <Icon size={20} />
-                     </button>
-                   );
-                 })}
+                {Object.keys(menuData).map((cat) => {
+                  const Icon = categoryIcons[cat];
+                  return (
+                    <button
+                      key={cat}
+                      onMouseEnter={() => setActiveCategory(cat)}
+                      className={cn(
+                        "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300",
+                        activeCategory === cat ? "bg-teal-500 text-slate-950 shadow-[0_0_20px_rgba(20,184,166,0.4)]" : "text-slate-500 hover:text-white hover:bg-white/5"
+                      )}
+                    >
+                      <Icon size={20} />
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Left Column: Module Categories */}
@@ -257,7 +311,7 @@ export const MegaMenu = ({ isOpen, onClose, activeCategory: initialCategory }: M
                   {data.left.map((item: any) => (
                     <Link
                       key={item.title}
-                      to="#"
+                      to={getRouteForMenuItem(item.title, activeCategory)}
                       onClick={onClose}
                       className="flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white/5 group"
                     >
@@ -265,8 +319,8 @@ export const MegaMenu = ({ isOpen, onClose, activeCategory: initialCategory }: M
                         <item.icon size={20} />
                       </div>
                       <div className="text-left">
-                         <p className="text-sm font-display font-black uppercase tracking-tight text-slate-200 group-hover:text-white">{item.title}</p>
-                         <p className="text-[10px] font-bold text-slate-500">{item.desc}</p>
+                        <p className="text-sm font-display font-black uppercase tracking-tight text-slate-200 group-hover:text-white">{item.title}</p>
+                        <p className="text-[10px] font-bold text-slate-500">{item.desc}</p>
                       </div>
                     </Link>
                   ))}
@@ -275,73 +329,73 @@ export const MegaMenu = ({ isOpen, onClose, activeCategory: initialCategory }: M
 
               {/* Center Column: Workflows & AI */}
               <div className="flex-1 p-10 space-y-10">
-                 <div className="space-y-2">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-teal-500">Intelligent Workflows</p>
-                    <h3 className="text-3xl font-display font-black uppercase tracking-tighter text-white">
-                       Core <span className="text-teal-500">Automation</span>
-                    </h3>
-                 </div>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-teal-500">Intelligent Workflows</p>
+                  <h3 className="text-3xl font-display font-black uppercase tracking-tighter text-white">
+                    Core <span className="text-teal-500">Automation</span>
+                  </h3>
+                </div>
 
-                 <div className="grid grid-cols-1 gap-6">
-                    {data.center.map((item: any) => (
-                      <Link 
-                        key={item.title} 
-                        to="#" 
-                        onClick={onClose}
-                        className="group flex items-center gap-6 p-6 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all"
-                      >
-                         <div className="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-400">
-                            <item.icon size={24} />
-                         </div>
-                         <div className="flex-1">
-                            <span className="text-sm font-display font-black uppercase tracking-tight text-slate-200 group-hover:text-white block">{item.title}</span>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{item.desc}</span>
-                         </div>
-                         <ArrowRight size={16} className="text-slate-600 group-hover:text-teal-400 group-hover:translate-x-1 transition-all" />
-                      </Link>
-                    ))}
-                 </div>
+                <div className="grid grid-cols-1 gap-6">
+                  {data.center.map((item: any) => (
+                    <Link
+                      key={item.title}
+                      to={getRouteForMenuItem(item.title, activeCategory)}
+                      onClick={onClose}
+                      className="group flex items-center gap-6 p-6 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-400">
+                        <item.icon size={24} />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-sm font-display font-black uppercase tracking-tight text-slate-200 group-hover:text-white block">{item.title}</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{item.desc}</span>
+                      </div>
+                      <ArrowRight size={16} className="text-slate-600 group-hover:text-teal-400 group-hover:translate-x-1 transition-all" />
+                    </Link>
+                  ))}
+                </div>
               </div>
 
               {/* Right Column: Visual Previews */}
               <div className="w-[30%] border-l border-white/5 p-10 bg-black/20 flex flex-col justify-between">
-                 <div className="space-y-8">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Operational Pulse</p>
-                    <div className="p-8 rounded-[3rem] border border-white/10 bg-gradient-to-br from-slate-900 to-black space-y-6 shadow-2xl">
-                       <div className="space-y-2">
-                          <p className="text-[9px] font-sans font-black uppercase tracking-widest text-teal-400/60">{data.right.title}</p>
-                          <h2 className="text-6xl font-display font-black text-white tracking-tighter leading-none">{data.right.value}</h2>
-                          <div className="flex items-center gap-2 text-emerald-400 mt-2">
-                             <TrendingUp size={12} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">{data.right.trend}</span>
-                          </div>
-                       </div>
-                       
-                       {/* Mini Chart Mockup */}
-                       <div className="h-28 flex items-end gap-1.5 pt-4">
-                          {data.right.chart.map((h: number, i: number) => (
-                             <div key={i} className="flex-1 bg-white/5 rounded-t-lg relative group/bar overflow-hidden">
-                                <motion.div 
-                                  initial={{ height: 0 }}
-                                  animate={{ height: `${h}%` }}
-                                  transition={{ duration: 1, delay: i * 0.05 }}
-                                  className="absolute bottom-0 left-0 right-0 bg-teal-500/40 group-hover/bar:bg-teal-400 transition-colors"
-                                />
-                             </div>
-                          ))}
-                       </div>
+                <div className="space-y-8">
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Operational Pulse</p>
+                  <div className="p-8 rounded-[3rem] border border-white/10 bg-gradient-to-br from-slate-900 to-black space-y-6 shadow-2xl">
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-sans font-black uppercase tracking-widest text-teal-400/60">{data.right.title}</p>
+                      <h2 className="text-6xl font-display font-black text-white tracking-tighter leading-none">{data.right.value}</h2>
+                      <div className="flex items-center gap-2 text-emerald-400 mt-2">
+                        <TrendingUp size={12} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{data.right.trend}</span>
+                      </div>
                     </div>
-                 </div>
 
-                 <div className="p-6 rounded-[2.5rem] border border-white/5 bg-white/[0.02] flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
-                       <Sparkles size={18} />
+                    {/* Mini Chart Mockup */}
+                    <div className="h-28 flex items-end gap-1.5 pt-4">
+                      {data.right.chart.map((h: number, i: number) => (
+                        <div key={i} className="flex-1 bg-white/5 rounded-t-lg relative group/bar overflow-hidden">
+                          <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: `${h}%` }}
+                            transition={{ duration: 1, delay: i * 0.05 }}
+                            className="absolute bottom-0 left-0 right-0 bg-teal-500/40 group-hover/bar:bg-teal-400 transition-colors"
+                          />
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white">AI Insight Active</p>
-                       <p className="text-[9px] text-slate-500 font-bold leading-relaxed uppercase">Real-time governance audit in progress.</p>
-                    </div>
-                 </div>
+                  </div>
+                </div>
+
+                <div className="p-6 rounded-[2.5rem] border border-white/5 bg-white/[0.02] flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                    <Sparkles size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white">AI Insight Active</p>
+                    <p className="text-[9px] text-slate-500 font-bold leading-relaxed uppercase">Real-time governance audit in progress.</p>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>

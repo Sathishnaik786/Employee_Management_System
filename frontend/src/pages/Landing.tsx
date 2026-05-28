@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Users,
   ShieldCheck,
@@ -80,6 +80,7 @@ export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -88,6 +89,8 @@ export const Navbar = () => {
   }, []);
 
   const navLinks = ['Workforce', 'Payroll', 'Intelligence', 'Governance', 'Projects', 'Operations'];
+
+  const isLinkActive = (path: string) => location.pathname === path;
 
   return (
     <>
@@ -142,35 +145,45 @@ export const Navbar = () => {
 
           {/* ── Desktop Nav — center column ── */}
           <div className="hidden lg:flex items-center justify-center gap-8 xl:gap-10">
-            {navLinks.map((link) => (
-              <button
-                key={link}
-                onMouseEnter={() => setActiveCategory(link)}
-                className={cn(
-                  "relative text-[15px] font-medium tracking-wide py-2 px-1 group",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded",
-                  "transition-all duration-300 ease-out",
-                  activeCategory === link
-                    ? "text-orange-500"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                )}
-              >
-                {link}
-                {/* Animated underline */}
-                <span
-                  aria-hidden="true"
+            {navLinks.map((link) => {
+              const linkPath = `/${link.toLowerCase()}`;
+              const active = isLinkActive(linkPath) || activeCategory === link;
+              return (
+                <Link
+                  key={link}
+                  to={linkPath}
+                  onMouseEnter={() => setActiveCategory(link)}
                   className={cn(
-                    "absolute left-0 bottom-[-4px] h-[2px] bg-orange-500 rounded-full",
+                    "relative text-[15px] font-medium tracking-wide py-2 px-1 group",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded",
                     "transition-all duration-300 ease-out",
-                    activeCategory === link ? "w-full" : "w-0 group-hover:w-full"
+                    active
+                      ? "text-orange-500 font-semibold"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   )}
-                />
-              </button>
-            ))}
+                >
+                  {link}
+                  {/* Animated underline */}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute left-0 bottom-[-4px] h-[2px] bg-orange-500 rounded-full",
+                      "transition-all duration-300 ease-out",
+                      active ? "w-full" : "w-0 group-hover:w-full"
+                    )}
+                  />
+                </Link>
+              );
+            })}
           </div>
 
           {/* ── Actions Cluster ── */}
           <div className="relative flex items-center gap-3 shrink-0">
+            {/* ThemeToggle - positioned on left side of Login button */}
+            <div className="flex items-center">
+              <ThemeToggle />
+            </div>
+
             {/* Login CTA — desktop */}
             <Link
               to="/login"
@@ -180,11 +193,6 @@ export const Navbar = () => {
                 Login
               </PremiumButton>
             </Link>
-
-            {/* ThemeToggle */}
-            <div className="flex items-center">
-              <ThemeToggle />
-            </div>
 
             {/* Mobile hamburger */}
             <button
@@ -300,28 +308,36 @@ export const Navbar = () => {
               {/* Nav items */}
               <nav aria-label="Mobile navigation" className="flex-1 overflow-y-auto px-7 py-8">
                 <ul className="flex flex-col gap-2" role="list">
-                  {navLinks.map((link, i) => (
-                    <motion.li
-                      key={link}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.06 * i, duration: 0.3, ease: "easeOut" }}
-                    >
-                      <button
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={cn(
-                          "w-full text-left text-2xl font-semibold tracking-tight",
-                          "text-slate-800 dark:text-slate-100",
-                          "hover:text-orange-500 dark:hover:text-orange-400",
-                          "transition-colors duration-200 py-3 px-2 rounded-xl",
-                          "hover:bg-orange-50/60 dark:hover:bg-orange-500/5",
-                          "focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
-                        )}
+                  {navLinks.map((link, i) => {
+                    const linkPath = `/${link.toLowerCase()}`;
+                    const active = isLinkActive(linkPath);
+                    return (
+                      <motion.li
+                        key={link}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.06 * i, duration: 0.3, ease: "easeOut" }}
                       >
-                        {link}
-                      </button>
-                    </motion.li>
-                  ))}
+                        <Link
+                          to={linkPath}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={cn(
+                            "block w-full text-left text-2xl font-semibold tracking-tight",
+                            active
+                              ? "text-orange-500 font-bold"
+                              : "text-slate-800 dark:text-slate-100 hover:text-orange-500 dark:hover:text-orange-400",
+                            "transition-colors duration-200 py-3 px-2 rounded-xl",
+                            active
+                              ? "bg-orange-500/10"
+                              : "hover:bg-orange-50/60 dark:hover:bg-orange-500/5",
+                            "focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
+                          )}
+                        >
+                          {link}
+                        </Link>
+                      </motion.li>
+                    );
+                  })}
                 </ul>
               </nav>
 
@@ -378,7 +394,7 @@ const OperationalPreview = () => {
             <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20 border border-amber-500/40" />
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/40" />
           </div>
-          <div className="mx-auto text-[8px] font-sans font-medium tracking-wide text-slate-400 dark:text-slate-600">Enterprise intelligence nexus</div>
+          <div className="mx-auto text-[8px] font-sans font-medium tracking-wide text-slate-400 dark:text-slate-600">Enterprise intelligence YVI People</div>
         </div>
 
         <div className="flex h-full">
@@ -524,12 +540,25 @@ const ProductShowcase = ({ title, desc, features, img, reverse = false, badge, i
           </div>
 
           <div className="pt-6">
-            <Button
-              variant="ghost"
-              className="h-12 px-8 rounded-2xl border border-slate-200/50 dark:border-white/5 hover:bg-orange-500/5 hover:border-orange-500/30 hover:text-orange-500 transition-all font-sans font-semibold tracking-wide text-sm group focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
-            >
-              Explore Architecture <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform text-orange-500" />
-            </Button>
+            {(() => {
+              const route = badge.toLowerCase().includes('payroll')
+                ? '/payroll'
+                : badge.toLowerCase().includes('governance')
+                ? '/governance'
+                : badge.toLowerCase().includes('analytics') || badge.toLowerCase().includes('predictive')
+                ? '/intelligence'
+                : '/';
+              return (
+                <Link to={route} className="inline-block focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded-2xl">
+                  <Button
+                    variant="ghost"
+                    className="h-12 px-8 rounded-2xl border border-slate-200/50 dark:border-white/5 hover:bg-orange-500/5 hover:border-orange-500/30 hover:text-orange-500 transition-all font-sans font-semibold tracking-wide text-sm group focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
+                  >
+                    Explore Architecture <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform text-orange-500" />
+                  </Button>
+                </Link>
+              );
+            })()}
           </div>
         </AnimatedContainer>
 
@@ -566,8 +595,56 @@ const ProductShowcase = ({ title, desc, features, img, reverse = false, badge, i
   );
 };
 
+const getRouteForModule = (title: string): string => {
+  const t = title.toLowerCase();
+  if (t.includes('payroll')) return '/payroll';
+  if (t.includes('workforce') || t.includes('attendance') || t.includes('recruitment') || t.includes('performance')) return '/workforce';
+  if (t.includes('intelligence')) return '/intelligence';
+  if (t.includes('governance')) return '/governance';
+  if (t.includes('project')) return '/projects';
+  return '/';
+};
+
+const getRouteForMenuItem = (title: string, category: string): string => {
+  const normalizedTitle = title.toLowerCase().trim();
+  
+  if (normalizedTitle.includes('core intelligence') || normalizedTitle.includes('intelligence core')) return '/intelligence';
+  if (normalizedTitle.includes('governance hub')) return '/governance';
+  if (normalizedTitle.includes('audit console')) return '/governance';
+  if (normalizedTitle.includes('system status')) return '/operations';
+  
+  if (normalizedTitle.includes('compliance engine') || normalizedTitle.includes('compliance matrix')) return '/governance';
+  if (normalizedTitle.includes('risk assessment')) return '/governance';
+  if (normalizedTitle.includes('regional tax') || normalizedTitle.includes('tax governance')) return '/payroll';
+  if (normalizedTitle.includes('rbac registry') || normalizedTitle.includes('access control') || normalizedTitle.includes('security layer') || normalizedTitle.includes('sso integration')) return '/security-standards';
+  
+  if (normalizedTitle.includes('about us')) return '/about';
+  if (normalizedTitle.includes('enterprise sla')) return '/enterprise-sla';
+  if (normalizedTitle.includes('security standards')) return '/security-standards';
+  if (normalizedTitle.includes('contact sales')) return '/contact-sales';
+  
+  if (normalizedTitle.includes('attritions ai') || normalizedTitle.includes('predictive churn')) return '/intelligence';
+  if (normalizedTitle.includes('payroll forecasts') || normalizedTitle.includes('cost forecasting')) return '/payroll';
+  if (normalizedTitle.includes('growth analytics')) return '/intelligence';
+  if (normalizedTitle.includes('performance core') || normalizedTitle.includes('performance hub')) return '/workforce';
+
+  const cat = category.toLowerCase().trim();
+  if (cat === 'workforce') return '/workforce';
+  if (cat === 'payroll') return '/payroll';
+  if (cat === 'intelligence' || cat === 'analytics' || cat === 'ai systems') return '/intelligence';
+  if (cat === 'governance') return '/governance';
+  if (cat === 'projects') return '/projects';
+  if (cat === 'operations') return '/operations';
+  
+  return '/';
+};
+
 export default function Landing() {
   const [animationsDisabled, setAnimationsDisabled] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
 
   return (
     <div className="min-h-screen mesh-bg-light dark:mesh-bg-dark text-slate-900 dark:text-white transition-colors duration-500 font-sans selection:bg-orange-500 selection:text-white overflow-x-hidden relative">
@@ -664,7 +741,7 @@ export default function Landing() {
           img="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=2070"
           features={[
             { title: 'Statutory Core', desc: 'Auto-localized tax schemas for 120+ regions.' },
-            { title: 'Nexus Disbursement', desc: 'Near-instant bank transfers via unified API.' }
+            { title: 'YVI People Disbursement', desc: 'Near-instant bank transfers via unified API.' }
           ]}
           animationsDisabled={animationsDisabled}
         />
@@ -713,12 +790,12 @@ export default function Landing() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { title: 'Payroll Nexus', icon: CreditCard, color: 'text-blue-500 dark:text-blue-400' },
+                { title: 'Payroll YVI People', icon: CreditCard, color: 'text-blue-500 dark:text-blue-400' },
                 { title: 'Workforce Core', icon: Users, color: 'text-orange-500 dark:text-orange-400' },
                 { title: 'Intelligence Hub', icon: BarChart3, color: 'text-rose-500 dark:text-rose-400' },
                 { title: 'Governance AI', icon: Sparkles, color: 'text-amber-500 dark:text-amber-400' },
                 { title: 'Attendance Sync', icon: Clock, color: 'text-indigo-500 dark:text-indigo-400' },
-                { title: 'Project Nexus', icon: Target, color: 'text-emerald-500 dark:text-emerald-400' },
+                { title: 'Project YVI People', icon: Target, color: 'text-emerald-500 dark:text-emerald-400' },
                 { title: 'Recruitment Intel', icon: Search, color: 'text-orange-500 dark:text-orange-400' },
                 { title: 'Performance Matrix', icon: Activity, color: 'text-purple-500 dark:text-purple-400' },
               ].map((mod, i) => (
@@ -728,23 +805,25 @@ export default function Landing() {
                   delay={i * 0.05}
                   animationsDisabled={animationsDisabled}
                 >
-                  <GlassCard className="p-8 transition-all duration-500 group flex flex-col justify-between h-full border border-slate-200/50 dark:border-white/5 shadow-soft hover:shadow-[0_20px_60px_rgba(234,88,12,0.06)] dark:hover:shadow-[0_20px_60px_rgba(234,88,12,0.12)] hover:border-orange-500/30 hover:-translate-y-3 hover:scale-[1.01] overflow-hidden relative">
-                    {/* Ambient background glow inside the card on hover */}
-                    <div className="absolute -inset-10 bg-orange-500/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                  <Link to={getRouteForModule(mod.title)} className="block h-full focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded-[var(--radius-card)]">
+                    <GlassCard className="p-8 transition-all duration-500 group flex flex-col justify-between h-full border border-slate-200/50 dark:border-white/5 shadow-soft hover:shadow-[0_20px_60px_rgba(234,88,12,0.06)] dark:hover:shadow-[0_20px_60px_rgba(234,88,12,0.12)] hover:border-orange-500/30 hover:-translate-y-3 hover:scale-[1.01] overflow-hidden relative">
+                      {/* Ambient background glow inside the card on hover */}
+                      <div className="absolute -inset-10 bg-orange-500/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-                    <div className="relative z-10">
-                      <div className={cn("w-12 h-12 rounded-2xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-orange-500/10 dark:group-hover:bg-orange-500/20 group-hover:border-orange-500/20 transition-all duration-500", mod.color)}>
-                        <mod.icon size={22} className="transition-transform duration-500 group-hover:rotate-3" />
+                      <div className="relative z-10">
+                        <div className={cn("w-12 h-12 rounded-2xl bg-slate-100/80 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-orange-500/10 dark:group-hover:bg-orange-500/20 group-hover:border-orange-500/20 transition-all duration-500", mod.color)}>
+                          <mod.icon size={22} className="transition-transform duration-500 group-hover:rotate-3" />
+                        </div>
+                        <h4 className="font-display font-semibold text-lg tracking-tight text-slate-900 dark:text-white mb-2">{mod.title}</h4>
+                        <p className="font-sans font-normal text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                          Operational enterprise grade module with AI-powered automation.
+                        </p>
                       </div>
-                      <h4 className="font-display font-semibold text-lg tracking-tight text-slate-900 dark:text-white mb-2">{mod.title}</h4>
-                      <p className="font-sans font-normal text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Operational enterprise grade module with AI-powered automation.
-                      </p>
-                    </div>
-                    <div className="mt-8 pt-6 border-t border-slate-200/50 dark:border-white/5 relative z-10">
-                      <span className="text-xs font-sans font-medium text-orange-400/60 group-hover:text-orange-400 transition-colors">Operational active</span>
-                    </div>
-                  </GlassCard>
+                      <div className="mt-8 pt-6 border-t border-slate-200/50 dark:border-white/5 relative z-10">
+                        <span className="text-xs font-sans font-medium text-orange-400/60 group-hover:text-orange-400 transition-colors">Operational active</span>
+                      </div>
+                    </GlassCard>
+                  </Link>
                 </AnimatedContainer>
               ))}
             </div>
@@ -764,7 +843,7 @@ export default function Landing() {
                 {[
                   { q: 'How does the EMS handle multi-region compliance?', a: 'The platform integrates a dynamic governance engine that automatically updates localized tax schemas and labor protocols based on the entity jurisdiction.' },
                   { q: 'What is the security standard for data transit?', a: 'All data is encrypted via TLS 1.3 in transit and AES-256 at rest, with SOC2 Type II and ISO 27001 certified data center infrastructure.' },
-                  { q: 'How does the payroll automation engine work?', a: 'Our high-precision payroll nexus evaluates gross-to-net calculations dynamically, executes micro-audits, and dispatches direct deposits instantly.' },
+                  { q: 'How does the payroll automation engine work?', a: 'Our high-precision payroll YVI People evaluates gross-to-net calculations dynamically, executes micro-audits, and dispatches direct deposits instantly.' },
                   { q: 'Can the platform integrate with existing HR systems?', a: 'Yes, YVI People offers extensive enterprise-grade REST APIs and webhooks that synchronize effortlessly with Workday, SAP, and other major platforms.' },
                   { q: 'What support and SLA guarantees are available?', a: 'We offer round-the-clock premium technical support with guaranteed 15-minute response times for critical incidents under our Enterprise SLA.' }
                 ].map((item, i) => (
@@ -793,12 +872,14 @@ export default function Landing() {
                     Establish access
                   </PremiumButton>
                 </Link>
-                <Button
-                  variant="ghost"
-                  className="h-12 px-8 rounded-2xl text-slate-700 dark:text-white font-sans font-semibold tracking-wide text-sm border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-all focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
-                >
-                  View documentation
-                </Button>
+                <Link to="/security-standards" className="focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded-2xl">
+                  <Button
+                    variant="ghost"
+                    className="h-12 px-8 rounded-2xl text-slate-700 dark:text-white font-sans font-semibold tracking-wide text-sm border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-all w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none"
+                  >
+                    View documentation
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -828,7 +909,7 @@ export default function Landing() {
 
               {[
                 {
-                  title: 'Nexus',
+                  title: 'YVI People',
                   links: ['Core Intelligence', 'Governance Hub', 'Audit Console', 'System Status']
                 },
                 {
@@ -849,12 +930,12 @@ export default function Landing() {
                   <ul className="space-y-4 font-sans font-normal text-sm">
                     {cat.links.map((link) => (
                       <li key={link}>
-                        <a
-                          href="#"
+                        <Link
+                          to={getRouteForMenuItem(link, cat.title)}
                           className="text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5"
                         >
                           {link}
-                        </a>
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -865,9 +946,9 @@ export default function Landing() {
             {/* Bottom Row */}
             <div className="pt-8 border-t border-slate-200/50 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex gap-6 font-sans font-normal text-sm text-slate-400">
-                <a href="#" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Privacy policy</a>
-                <a href="#" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Terms of service</a>
-                <a href="#" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Security</a>
+                <Link to="/enterprise-sla" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Privacy policy</Link>
+                <Link to="/enterprise-sla" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Terms of service</Link>
+                <Link to="/security-standards" className="hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1 py-0.5">Security</Link>
               </div>
 
               <div className="flex items-center gap-4">

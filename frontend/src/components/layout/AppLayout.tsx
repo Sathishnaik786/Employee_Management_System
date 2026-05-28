@@ -96,7 +96,7 @@ const navGroups: NavGroup[] = [
       { title: 'Payroll Engine', href: '/app/payroll/cycles', icon: Calendar, roles: ['ADMIN', 'HR'] },
       { title: 'Bulk Ingestion', href: '/app/payroll/bulk', icon: FileUp, roles: ['ADMIN', 'HR'] },
       { title: 'Salary Assignments', href: '/app/payroll/assignments', icon: Users2, roles: ['ADMIN', 'HR'] },
-      { title: 'Approval Nexus', href: '/app/payroll/approvals', icon: ClipboardList, roles: ['ADMIN', 'HR', 'MANAGER'] },
+      { title: 'Approval YVI People', href: '/app/payroll/approvals', icon: ClipboardList, roles: ['ADMIN', 'HR', 'MANAGER'] },
     ]
   },
   {
@@ -144,7 +144,7 @@ const navGroups: NavGroup[] = [
     items: [
       { title: 'Document Vault', href: '/app/documents', icon: FileText, roles: ['ADMIN', 'HR'] },
       { title: 'Insight Reports', href: '/app/reports', icon: BarChart3, roles: ['ADMIN', 'HR', 'MANAGER'] },
-      { title: 'Nexus Settings', href: '/app/payroll/settings', icon: Settings, roles: ['ADMIN'] },
+      { title: 'YVI People Settings', href: '/app/payroll/settings', icon: Settings, roles: ['ADMIN'] },
     ]
   }
 ];
@@ -493,8 +493,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             onClick={() => setIsMegaMenuOpen(true)}
             className="ml-4 h-10 px-6 rounded-2xl bg-teal-500/10 text-teal-500 border border-teal-500/20 hover:bg-teal-500 hover:text-slate-950 font-black uppercase tracking-widest text-[10px] transition-all duration-500 group"
           >
-             <LayoutGrid size={14} className="mr-2 group-hover:rotate-90 transition-transform" />
-             Nexus Modules
+            <LayoutGrid size={14} className="mr-2 group-hover:rotate-90 transition-transform" />
+            YVI People Modules
           </Button>
 
           {/* Center: Global Search */}
@@ -553,7 +553,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-premium relative bg-slate-50 dark:bg-slate-950">
           {/* Cinematic Background Engine (Mesh) */}
           <div className="absolute inset-0 mesh-bg dark:mesh-bg-dark opacity-30 pointer-events-none" />
-          
+
           {/* Subtle background glow - Adaptive */}
           <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-teal-500/5 dark:bg-teal-600/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
           <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] bg-blue-500/5 dark:bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />

@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils';
 import { LucideIcon, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export const EnterpriseCard = ({ children, className, title, description, headerActions, variant = 'default' }: { 
-  children: React.ReactNode; 
+export const EnterpriseCard = ({ children, className, title, description, headerActions, variant = 'default' }: {
+  children: React.ReactNode;
   className?: string;
   title?: string;
   description?: string;
@@ -19,7 +19,7 @@ export const EnterpriseCard = ({ children, className, title, description, header
     viewport={{ once: true }}
     transition={{ duration: 0.8, ease: [0.2, 0, 0, 1] }}
     className={cn(
-      "enterprise-card group/card relative overflow-hidden font-sans", 
+      "enterprise-card group/card relative overflow-hidden font-sans",
       variant === 'teal' && "glass-panel-teal",
       variant === 'glass' && "bg-white/5 backdrop-blur-3xl border-white/10",
       className
@@ -41,18 +41,18 @@ export const EnterpriseCard = ({ children, className, title, description, header
   </motion.div>
 );
 
-export const EnterpriseStatCard = ({ 
-  title, 
-  value, 
-  icon: Icon, 
-  trend, 
+export const EnterpriseStatCard = ({
+  title,
+  value,
+  icon: Icon,
+  trend,
   trendType = 'neutral',
   className,
   color = 'primary'
-}: { 
-  title: string; 
-  value: string | number; 
-  icon: LucideIcon; 
+}: {
+  title: string;
+  value: string | number;
+  icon: LucideIcon;
   trend?: string;
   trendType?: 'success' | 'danger' | 'warning' | 'neutral';
   className?: string;
@@ -80,7 +80,7 @@ export const EnterpriseStatCard = ({
     <EnterpriseCard className={cn("p-0 group/stat border-none shadow-none bg-transparent font-sans", className)}>
       <div className="flex items-center justify-between mb-8">
         <div className={cn(
-          "h-16 w-16 rounded-[2rem] flex items-center justify-center ring-8 ring-white/5 transition-all duration-700 group-hover/stat:scale-110 group-hover/stat:rotate-6 shadow-2xl", 
+          "h-16 w-16 rounded-[2rem] flex items-center justify-center ring-8 ring-white/5 transition-all duration-700 group-hover/stat:scale-110 group-hover/stat:rotate-6 shadow-2xl",
           colorMap[color]
         )}>
           <Icon size={30} />
@@ -99,16 +99,16 @@ export const EnterpriseStatCard = ({
   );
 };
 
-export const EnterpriseHeader = ({ 
-  title, 
-  description, 
-  badge, 
+export const EnterpriseHeader = ({
+  title,
+  description,
+  badge,
   actions,
   isCinematic = false
-}: { 
-  title: string; 
-  description?: string; 
-  badge?: string; 
+}: {
+  title: string;
+  description?: string;
+  badge?: string;
   actions?: React.ReactNode;
   isCinematic?: boolean;
 }) => (
@@ -134,14 +134,14 @@ export const EnterpriseHeader = ({
   </div>
 );
 
-export const EnterpriseEmptyState = ({ 
-  title, 
-  description, 
-  icon: Icon, 
-  action 
-}: { 
-  title: string; 
-  description: string; 
+export const EnterpriseEmptyState = ({
+  title,
+  description,
+  icon: Icon,
+  action
+}: {
+  title: string;
+  description: string;
   icon: LucideIcon;
   action?: React.ReactNode;
 }) => (
@@ -157,13 +157,13 @@ export const EnterpriseEmptyState = ({
   </div>
 );
 
-export const EnterpriseErrorState = ({ 
-  title = "Nexus Connectivity Failure", 
-  description = "A critical synchronization error occurred in the operational layer. Verify your authentication credentials and network integrity.", 
-  onRetry 
-}: { 
-  title?: string; 
-  description?: string; 
+export const EnterpriseErrorState = ({
+  title = "YVI People Connectivity Failure",
+  description = "A critical synchronization error occurred in the operational layer. Verify your authentication credentials and network integrity.",
+  onRetry
+}: {
+  title?: string;
+  description?: string;
   onRetry?: () => void;
 }) => (
   <EnterpriseCard className="p-16 text-center flex flex-col items-center gap-8 border-rose-500/20 bg-rose-500/5 backdrop-blur-3xl font-sans">

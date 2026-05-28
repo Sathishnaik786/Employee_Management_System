@@ -38,8 +38,8 @@ describe('Navbar Component', () => {
       </MemoryRouter>
     );
 
-    // Get Started button
-    const getStartedButtons = screen.getAllByRole('button', { name: /Get Started/i });
+    // Login button
+    const getStartedButtons = screen.getAllByRole('button', { name: /Login/i });
     // In mobile menu and desktop navbar, we might have multiple buttons or one visible
     expect(getStartedButtons.length).toBeGreaterThan(0);
 

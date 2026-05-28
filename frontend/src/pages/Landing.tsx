@@ -102,7 +102,7 @@ export const Navbar = () => {
         <nav
           aria-label="Main navigation"
           className={cn(
-            "relative flex items-center justify-between rounded-full",
+            "relative grid grid-cols-[auto_1fr_auto] items-center rounded-full",
             "px-6 xl:px-10",
             "bg-white/[0.08] dark:bg-slate-950/[0.55]",
             "backdrop-blur-3xl",
@@ -140,8 +140,8 @@ export const Navbar = () => {
             </span>
           </Link>
 
-          {/* ── Desktop Nav — absolutely centered ── */}
-          <div className="hidden lg:flex items-center gap-12 xl:gap-14 absolute left-1/2 -translate-x-1/2">
+          {/* ── Desktop Nav — center column ── */}
+          <div className="hidden lg:flex items-center justify-center gap-8 xl:gap-10">
             {navLinks.map((link) => (
               <button
                 key={link}
@@ -170,47 +170,21 @@ export const Navbar = () => {
           </div>
 
           {/* ── Actions Cluster ── */}
-          <div className="relative flex items-center gap-3 xl:gap-4 shrink-0">
-            {/* Sign in — desktop */}
+          <div className="relative flex items-center gap-3 shrink-0">
+            {/* Login CTA — desktop */}
             <Link
               to="/login"
-              className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full px-2 py-1"
+              className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full"
             >
-              <span className="text-[14px] font-medium tracking-wide text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 cursor-pointer">
-                Sign in
-              </span>
+              <PremiumButton>
+                Login
+              </PremiumButton>
             </Link>
 
             {/* ThemeToggle */}
             <div className="flex items-center">
               <ThemeToggle />
             </div>
-
-            {/* CTA — desktop premium capsule */}
-            <Link
-              to="/login"
-              className="hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 rounded-full"
-            >
-              <button
-                className={cn(
-                  "relative overflow-hidden group",
-                  "h-[52px] px-8 xl:px-10 rounded-full",
-                  "bg-gradient-to-r from-orange-600 to-orange-500",
-                  "hover:from-orange-500 hover:to-orange-400",
-                  "text-white font-display font-semibold tracking-wide text-[15px]",
-                  "shadow-[0_12px_40px_rgba(234,88,12,0.35)]",
-                  "hover:shadow-[0_18px_50px_rgba(234,88,12,0.45)] hover:scale-[1.03]",
-                  "transition-all duration-300 ease-out border-none",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50"
-                )}
-              >
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.18] to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none rounded-full"
-                />
-                <span className="relative z-10">Get Started</span>
-              </button>
-            </Link>
 
             {/* Mobile hamburger */}
             <button
@@ -353,14 +327,7 @@ export const Navbar = () => {
 
               {/* Drawer footer */}
               <div className="px-7 pb-10 pt-4 border-t border-slate-200/60 dark:border-white/[0.08]">
-                <div className="flex items-center justify-between mb-5">
-                  <Link
-                    to="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-[15px] font-medium text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded px-1"
-                  >
-                    Sign in
-                  </Link>
+                <div className="flex items-center justify-end mb-5">
                   <ThemeToggle />
                 </div>
                 <Link
@@ -369,10 +336,11 @@ export const Navbar = () => {
                   className="block focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:outline-none rounded-2xl"
                 >
                   <PremiumButton className="w-full h-14 rounded-2xl text-[16px]">
-                    Get Started
+                    Login
                   </PremiumButton>
                 </Link>
               </div>
+
             </motion.div>
           </>
         )}

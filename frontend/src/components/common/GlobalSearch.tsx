@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Users, Building2, Briefcase, ClipboardList, X, Command } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -211,7 +212,7 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
   return (
     <div className="relative group/search" ref={searchRef}>
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within/search:text-primary group-focus-within/search:scale-110 transition-all" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 group-focus-within/search:text-cyan-600 dark:group-focus-within/search:text-cyan-400 group-focus-within/search:scale-105 transition-all" />
         <Input
           ref={inputRef}
           value={query}
@@ -222,13 +223,14 @@ export function GlobalSearch({ isMobile = false }: GlobalSearchProps) {
           onFocus={() => setIsOpen(true)}
           placeholder="Search employees, units, projects..."
           className={cn(
-            "pl-11 h-11 transition-all duration-300 border-slate-200 dark:border-white/10 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-sm",
-            "focus:w-[480px] focus:shadow-2xl focus:border-primary/30"
+            "pl-11 h-11 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] rounded-full text-slate-800 dark:text-white",
+            "placeholder:text-slate-500/80 dark:placeholder:text-slate-500/80 placeholder:font-medium",
+            "liquid-recessed focus:w-[480px]"
           )}
         />
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1.5 pointer-events-none opacity-40 group-focus-within/search:opacity-100 transition-opacity">
-          <kbd className="h-5 px-1.5 rounded border border-white/20 bg-white/5 text-[10px] font-black text-white shadow-sm flex items-center gap-1">
-            <Command size={8} /> /
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1.5 pointer-events-none opacity-40 group-focus-within/search:opacity-100 transition-all duration-500 group-focus-within/search:scale-105">
+          <kbd className="h-5 px-2 rounded-lg border border-slate-200 dark:border-white/15 bg-slate-50/50 dark:bg-white/5 text-[9px] font-sans font-black text-slate-500 dark:text-slate-400 shadow-sm flex items-center gap-1">
+            <Command size={8} className="text-slate-400 dark:text-slate-500" /> /
           </kbd>
         </div>
       </div>

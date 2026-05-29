@@ -121,7 +121,7 @@ const GovernanceDashboard = () => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="p-6 rounded-[1.5rem] bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/5 group hover:border-primary/30 transition-all"
+                  className="liquid-elevated p-6 rounded-[1.5rem] group hover:border-primary/30 transition-all"
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -174,7 +174,7 @@ const GovernanceDashboard = () => {
             description="Automated risk flags and anomaly detection reports."
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-2xl border border-rose-500/10 bg-rose-500/5 flex items-start gap-4">
+              <div className="liquid-elevated p-4 rounded-2xl border border-rose-500/20 flex items-start gap-4">
                  <div className="p-2 rounded-lg bg-rose-500/20 text-rose-500">
                     <ShieldAlert size={20} />
                  </div>
@@ -183,7 +183,7 @@ const GovernanceDashboard = () => {
                     <p className="text-xs text-slate-500 mt-1">12 records in Cycle #24 show &gt;15% deviation from baseline.</p>
                  </div>
               </div>
-              <div className="p-4 rounded-2xl border border-amber-500/10 bg-amber-500/5 flex items-start gap-4">
+              <div className="liquid-elevated p-4 rounded-2xl border border-amber-500/20 flex items-start gap-4">
                  <div className="p-2 rounded-lg bg-amber-500/20 text-amber-500">
                     <AlertCircle size={20} />
                  </div>
@@ -203,7 +203,7 @@ const GovernanceDashboard = () => {
           >
             <div className="space-y-3">
               <Link to="/app/payroll/governance/approvals">
-                <Button className="w-full justify-between h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-white/5 hover:border-primary/50 text-slate-900 dark:text-white group" variant="outline">
+                <Button className="liquid-elevated w-full justify-between h-14 rounded-2xl hover:border-primary/50 text-slate-900 dark:text-white group border-transparent shadow-none" variant="outline">
                   <span className="flex items-center gap-3 font-bold">
                     <CheckCircle2 size={18} className="text-emerald-500" />
                     Pending Approvals
@@ -212,7 +212,7 @@ const GovernanceDashboard = () => {
                 </Button>
               </Link>
               <Link to="/app/payroll/governance/variances">
-                <Button className="w-full justify-between h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-white/5 hover:border-primary/50 text-slate-900 dark:text-white group" variant="outline">
+                <Button className="liquid-elevated w-full justify-between h-14 rounded-2xl hover:border-primary/50 text-slate-900 dark:text-white group border-transparent shadow-none" variant="outline">
                   <span className="flex items-center gap-3 font-bold">
                     <TrendingUp size={18} className="text-amber-500" />
                     Cycle Variances
@@ -220,7 +220,7 @@ const GovernanceDashboard = () => {
                   <ArrowUpRight size={16} className="text-slate-400 group-hover:text-primary" />
                 </Button>
               </Link>
-              <Button className="w-full justify-between h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-white/5 hover:border-primary/50 text-slate-900 dark:text-white group" variant="outline">
+              <Button className="liquid-elevated w-full justify-between h-14 rounded-2xl hover:border-primary/50 text-slate-900 dark:text-white group border-transparent shadow-none" variant="outline">
                 <span className="flex items-center gap-3 font-bold">
                   <ShieldCheck size={18} className="text-blue-500" />
                   Compliance Scorecard

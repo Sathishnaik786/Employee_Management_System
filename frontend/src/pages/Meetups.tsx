@@ -161,7 +161,7 @@ export default function MeetupsPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between bg-card/30 p-6 sm:p-8 rounded-[2rem] border border-white/10 backdrop-blur-sm shadow-premium">
+      <div className="enterprise-panel flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <PageHeader
           title="Meet-ups"
           description="Coordinate and participate in upcoming organizational events & syncs."
@@ -195,7 +195,7 @@ export default function MeetupsPage() {
             {[...Array(6)].map((_, idx) => (
               <div
                 key={idx}
-                className="card-premium p-6 space-y-4"
+                className="enterprise-card space-y-4"
               >
                 <div className="flex justify-between">
                   <Skeleton className="h-6 w-3/4 rounded-lg bg-muted/40" />
@@ -218,7 +218,7 @@ export default function MeetupsPage() {
         )}
 
         {!loading && !error && approvedMeetups.length === 0 && (
-          <div className="rounded-[2.5rem] border border-dashed border-primary/20 bg-background/40 p-12 lg:p-20 text-center shadow-inner">
+          <div className="enterprise-panel border-dashed border-primary/20 text-center py-20 flex flex-col items-center justify-center">
             <div className="mx-auto mb-6 h-20 w-20 rounded-3xl bg-primary/5 flex items-center justify-center text-primary/40">
               <CalendarIcon className="h-10 w-10" />
             </div>

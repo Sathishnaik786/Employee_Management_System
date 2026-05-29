@@ -165,7 +165,17 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     const saved = localStorage.getItem('yvi_sidebar_sections');
-    return saved ? JSON.parse(saved) : { Overview: true, 'Payroll Core': true, Processing: true, Resources: true };
+    return saved ? JSON.parse(saved) : {
+      'Executive Overview': true,
+      'Workforce Intelligence': true,
+      'Operational Cycles': true,
+      'Governance & Compliance': true,
+      'Financial Orchestration': true,
+      'Predictive Analytics': true,
+      'Personalized Portal': true,
+      'Human Capital Management': true,
+      'Strategic Assets': true
+    };
   });
 
   const toggleSection = (label: string) => {
@@ -186,7 +196,20 @@ export function AppLayout({ children }: AppLayoutProps) {
   };
 
   return (
-    <div className="h-screen flex w-full bg-slate-50 dark:bg-slate-950 text-foreground overflow-hidden font-sans antialiased selection:bg-primary/10">
+    <div className="h-screen flex w-full  dark:bg-[#020617] text-foreground overflow-hidden font-sans antialiased selection:bg-cyan-500/20 lg:p-3 lg:gap-3 relative z-0" style={{ background: "#c1e1ec" }}>
+      {/* Premium Executive Mesh Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-400/15 dark:bg-blue-600/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-cyan-400/15 dark:bg-cyan-600/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen" />
+        <div className="absolute top-[20%] right-[20%] w-[40%] h-[40%] bg-indigo-400/10 dark:bg-indigo-600/15 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-screen" />
+      </div>
+
+      <a
+        href="#main-app-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-6 focus:left-6 focus:z-[250] focus:px-5 focus:py-3 focus:bg-white focus:text-slate-900 dark:focus:bg-slate-950 dark:focus:text-white focus:rounded-2xl focus:shadow-2xl focus:ring-2 focus:ring-blue-500 border border-slate-200 dark:border-white/10 font-bold text-sm tracking-tight transition-all"
+      >
+        Skip to main content
+      </a>
       <CommandPalette />
       <QuickActionLauncher />
       <MegaMenu isOpen={isMegaMenuOpen} onClose={() => setIsMegaMenuOpen(false)} />
@@ -208,10 +231,11 @@ export function AppLayout({ children }: AppLayoutProps) {
       <TooltipProvider delayDuration={0}>
         <motion.aside
           className={cn(
-            "fixed lg:sticky top-0 left-0 z-50 h-screen flex flex-col border-r border-white/10 overflow-hidden",
-            "bg-[#090E1A] transition-all duration-300 shadow-2xl shadow-black/40",
-            collapsed ? "w-[88px]" : "w-[280px]",
-            mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+            "fixed lg:sticky top-0 left-0 z-50 h-screen lg:h-[calc(100vh-1.5rem)] flex flex-col overflow-hidden rounded-[2.5rem]",
+            "bg-white/90 dark:bg-[#030B17]/90 backdrop-blur-3xl lg:backdrop-blur-md",
+            "lg:liquid-recessed lg:!bg-black/5 dark:lg:!bg-white/5 lg:border-transparent lg:shadow-none lg:p-2",
+            collapsed ? "w-[104px]" : "w-[280px]",
+            mobileOpen ? "translate-x-0 m-0 h-screen rounded-none border-0 top-0 left-0" : "-translate-x-full lg:translate-x-0"
           )}
           animate={collapsed ? { width: 88 } : { width: 280 }}
           initial={false}
@@ -222,8 +246,8 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           {/* Logo Section */}
           <div className={cn(
-            "h-[72px] flex items-center shrink-0 border-b border-white/5 relative",
-            collapsed ? "justify-center" : "px-7 justify-between"
+            "h-[72px] flex items-center shrink-0 relative mt-2",
+            collapsed ? "justify-center" : "px-5 justify-between"
           )}>
             <Link to="/app/dashboard" className="flex items-center gap-3.5 group">
               <motion.div
@@ -248,7 +272,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   animate={{ opacity: 1, x: 0 }}
                   className="flex flex-col"
                 >
-                  <span className="font-display font-black text-xl tracking-[-0.03em] text-white leading-none">YVI <span className="text-blue-500">PEOPLE</span></span>
+                  <span className="font-display font-black text-xl tracking-[-0.03em] text-slate-900 dark:text-white leading-none">YVI <span className="text-cyan-600 dark:text-cyan-400">PEOPLE</span></span>
                   <span className="text-[10px] font-bold text-slate-500 tracking-[0.2em] mt-1.5 uppercase">Enterprise OS</span>
                 </motion.div>
               )}
@@ -257,7 +281,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           {/* Navigation Area */}
           <ScrollArea className="flex-1 scrollbar-premium px-4">
-            <div className="py-8 space-y-10">
+            <div className="py-6 space-y-7">
               {navGroups.map((group) => {
                 const groupItems = filterItems(group.items);
                 if (groupItems.length === 0) return null;
@@ -265,16 +289,16 @@ export function AppLayout({ children }: AppLayoutProps) {
                 const isExpanded = expandedSections[group.label] !== false;
 
                 return (
-                  <div key={group.label} className="space-y-2">
+                  <div key={group.label} className="space-y-1.5">
                     {!collapsed && (
                       <button
                         onClick={() => toggleSection(group.label)}
-                        className="flex items-center justify-between w-full px-4 mb-3 group text-slate-400 hover:text-white transition-colors"
+                        className="flex items-center justify-between w-full px-3 py-1.5 mb-3 group liquid-metadata text-slate-500 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-all hover:border-white/40 dark:hover:border-white/10"
                       >
-                        <span className="text-[10px] font-sans font-black uppercase tracking-[0.3em] group-hover:text-blue-400 transition-colors">{group.label}</span>
+                        <span className="text-[9px] font-sans font-black uppercase tracking-[0.25em] group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{group.label}</span>
                         <ChevronDown
                           size={12}
-                          className={cn("transition-transform duration-300 opacity-30 group-hover:opacity-100", !isExpanded && "-rotate-90")}
+                          className={cn("transition-transform duration-300 opacity-40 group-hover:opacity-70", !isExpanded && "-rotate-90")}
                         />
                       </button>
                     )}
@@ -299,27 +323,28 @@ export function AppLayout({ children }: AppLayoutProps) {
                                       to={item.href}
                                       onClick={() => setMobileOpen(false)}
                                       className={cn(
-                                        "relative flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50",
+                                        "relative flex items-center gap-3.5 px-4 py-3 rounded-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group focus-visible:outline-none border",
                                         collapsed ? "justify-center mx-0" : "mx-0",
                                         isActive
-                                          ? "bg-white/[0.12] text-white shadow-lg"
-                                          : "text-slate-400 hover:text-white hover:bg-white/[0.06]"
+                                          ? "liquid-capsule-active"
+                                          : "liquid-capsule-hover border-transparent text-slate-600 dark:text-slate-400 font-medium"
                                       )}
                                     >
-                                      {/* Premium Active Indicator Bar */}
                                       {isActive && (
                                         <motion.div
                                           layoutId="sidebar-active-bar"
-                                          className="absolute left-[-4px] top-1/4 bottom-1/4 w-[4px] bg-blue-500 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.6)]"
+                                          className="absolute left-[6px] top-1/4 bottom-1/4 w-[3px] bg-cyan-500 dark:bg-cyan-400 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.6)]"
                                           initial={{ opacity: 0 }}
                                           animate={{ opacity: 1 }}
-                                          transition={{ duration: 0.3 }}
+                                          transition={{ type: "spring", stiffness: 120, damping: 18 }}
                                         />
                                       )}
 
                                       <item.icon className={cn(
                                         "h-5 w-5 shrink-0 transition-all duration-300",
-                                        isActive ? "text-blue-400 opacity-100 scale-110" : "opacity-60 group-hover:opacity-100 group-hover:text-white"
+                                        isActive
+                                          ? "text-cyan-600 dark:text-cyan-400 opacity-100 scale-105 drop-shadow-[0_0_4px_rgba(6,182,212,0.4)]"
+                                          : "text-slate-500 dark:text-slate-400 opacity-70 group-hover:opacity-100 group-hover:text-cyan-700 dark:group-hover:text-white"
                                       )} />
 
                                       {!collapsed && (
@@ -355,16 +380,16 @@ export function AppLayout({ children }: AppLayoutProps) {
           </ScrollArea>
 
           {/* User & Footer Area */}
-          <div className="p-6 bg-white/[0.02] border-t border-white/5">
+          <div className="p-4 lg:p-6">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className={cn(
-                  "flex items-center gap-3 w-full rounded-2xl p-2.5 transition-all duration-300 group focus-visible:ring-2 focus-visible:ring-blue-500/50 outline-none",
-                  "bg-white/[0.04] border border-white/[0.05] hover:bg-white/[0.08] hover:border-white/[0.1] active:scale-[0.98]",
+                  "flex items-center gap-3 w-full rounded-[1.75rem] p-2.5 transition-all duration-300 group outline-none",
+                  "liquid-elevated active:scale-[0.98]",
                   collapsed && "justify-center p-2"
                 )}>
                   <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden ring-2 ring-white/5 group-hover:ring-blue-500/40 transition-all shadow-xl shadow-black/40">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden ring-2 ring-white/20 dark:ring-white/[0.06] group-hover:ring-cyan-500/40 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
                       {user?.profile_image ? (
                         <img
                           src={user.profile_image}
@@ -372,12 +397,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500/20 to-blue-500/5 text-blue-400">
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500/30 to-indigo-600/15 text-blue-500 dark:text-blue-300">
                           <span className="text-sm font-bold">{initials}</span>
                         </div>
                       )}
                     </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#0B1220] shadow-glow" />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#0B1220] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                   </div>
 
                   {!collapsed && (
@@ -386,16 +411,16 @@ export function AppLayout({ children }: AppLayoutProps) {
                       animate={{ opacity: 1, x: 0 }}
                       className="flex-1 text-left min-w-0"
                     >
-                      <p className="text-sm font-semibold text-white truncate tracking-tight">
+                      <p className="text-sm font-semibold text-slate-800 dark:text-white truncate tracking-tight">
                         {user?.firstName} {user?.lastName}
                       </p>
-                      <p className="text-[10px] text-blue-400 font-medium truncate mt-0.5 uppercase tracking-wider flex items-center gap-1">
+                      <p className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold truncate mt-0.5 uppercase tracking-wider flex items-center gap-1">
                         <ShieldCheck size={10} /> {user?.role}
                       </p>
                     </motion.div>
                   )}
                   {!collapsed && (
-                    <ChevronRight size={14} className="text-slate-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                    <ChevronRight size={14} className="text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all" />
                   )}
                 </button>
               </DropdownMenuTrigger>
@@ -435,7 +460,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </DropdownMenu>
 
             {!collapsed && (
-              <div className="mt-4 px-2 flex items-center justify-between text-[10px] font-black text-slate-600 uppercase tracking-[0.1em]">
+              <div className="mt-4 px-2 flex items-center justify-between text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.1em]">
                 <span>v2.5.0-PF</span>
                 <Dot className="text-blue-500 animate-pulse" />
                 <span>YVI ENTERPRISE</span>
@@ -445,10 +470,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         </motion.aside>
       </TooltipProvider>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 h-[72px] bg-white/95 dark:bg-[#090E1A]/95 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 flex items-center px-4 lg:px-8 transition-colors duration-500">
+      {/* Right Column (Navbar + Main Content) */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen lg:h-full gap-3 transition-all duration-500">
+
+        {/* Top bar (Independent Track) */}
+        <header className={cn(
+          "sticky top-0 z-30 flex items-center transition-all duration-500",
+          // Mobile base
+          "h-[72px] px-4 bg-white/70 dark:bg-[#030B17]/55 backdrop-blur-3xl border-b border-slate-200/60 dark:border-white/10",
+          // Desktop overrides - Unified Single Track
+          "lg:h-14 lg:p-1.5 lg:px-2 lg:rounded-full lg:liquid-recessed lg:!bg-black/5 dark:lg:!bg-white/5 lg:border-transparent lg:shadow-none"
+        )}>
           <Button
             variant="ghost"
             size="icon"
@@ -458,18 +490,29 @@ export function AppLayout({ children }: AppLayoutProps) {
             <Menu className="h-5 w-5" />
           </Button>
 
-          {/* Collapse Button (Desktop) */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden lg:flex mr-4 h-10 w-10 rounded-2xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-500 hover:text-blue-500 active:scale-95 shadow-sm"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-          </Button>
+          {/* Left Track Group */}
+          <div className="hidden lg:flex items-center gap-1 mr-4">
+            {/* Collapse Button (Desktop) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-full liquid-capsule-hover flex items-center justify-center active:scale-95 text-slate-600 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-cyan-300"
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            </Button>
+
+            {/* Date Capsule */}
+            <div className="hidden xl:flex items-center gap-2.5 h-10 px-4 rounded-full liquid-capsule text-[10px] font-black uppercase tracking-[0.15em]">
+              <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+              <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
+            </div>
+
+
+          </div>
 
           {/* Logo - visible on mobile */}
-          <Link to="/app/dashboard" className="flex items-center gap-2.5 group">
+          <Link to="/app/dashboard" className="flex lg:hidden items-center gap-2.5 group">
             <div className="relative">
               <div className="absolute inset-[-2px] bg-blue-500/20 blur-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
               <img
@@ -480,22 +523,6 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
             <span className="font-black text-xl tracking-tight text-slate-900 dark:text-white">YVI</span>
           </Link>
-
-
-          {/* Page Details Shadow */}
-          <div className="hidden xl:flex items-center gap-2.5 px-4 py-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em] shadow-sm">
-            <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-            <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
-          </div>
-
-          {/* Mega Menu Trigger */}
-          <Button
-            onClick={() => setIsMegaMenuOpen(true)}
-            className="ml-4 h-10 px-6 rounded-2xl bg-teal-500/10 text-teal-500 border border-teal-500/20 hover:bg-teal-500 hover:text-slate-950 font-black uppercase tracking-widest text-[10px] transition-all duration-500 group"
-          >
-            <LayoutGrid size={14} className="mr-2 group-hover:rotate-90 transition-transform" />
-            YVI People Modules
-          </Button>
 
           {/* Center: Global Search */}
           <div className="hidden lg:block flex-1 max-w-xl mx-auto px-10">
@@ -508,29 +535,27 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
 
           {/* Right side: Chat, Notification, Profile */}
-          <div className="ml-auto flex items-center gap-4">
-            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setIsChatOpen(true);
-                  setUnreadChatCount(0);
-                }}
-                className="relative h-10 w-10 rounded-xl hover:bg-white dark:hover:bg-white/10 hover:shadow-sm transition-all group"
-              >
-                <MessageCircle size={20} className="group-hover:text-blue-500 transition-colors" />
-                {unreadChatCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4.5 w-4.5 bg-blue-600 text-[10px] font-bold rounded-full flex items-center justify-center text-white ring-2 ring-white dark:ring-[#0B1020] animate-pulse">
-                    {unreadChatCount}
-                  </span>
-                )}
-              </Button>
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setIsChatOpen(true);
+                setUnreadChatCount(0);
+              }}
+              className="relative h-10 w-10 rounded-full liquid-capsule-hover flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-cyan-300"
+            >
+              <MessageCircle size={20} className="group-hover:text-blue-500 transition-colors" />
+              {unreadChatCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4.5 w-4.5 bg-blue-600 text-[10px] font-bold rounded-full flex items-center justify-center text-white ring-2 ring-white dark:ring-[#0B1020] animate-pulse">
+                  {unreadChatCount}
+                </span>
+              )}
+            </Button>
 
-              <NotificationBell />
-            </div>
+            <NotificationBell />
 
-            <div className="h-8 w-[1px] bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block" />
+            <div className="h-6 w-[1px] bg-black/10 dark:bg-white/10 mx-1 hidden sm:block" />
 
             {/* Profile with Quick Actions */}
             {user && (
@@ -541,6 +566,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 profileImage={user.profile_image}
                 position={user.position || ''}
                 role={user.role || ''}
+                className="liquid-capsule-hover border-transparent"
               />
             )}
           </div>
@@ -549,14 +575,14 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Chat Drawer */}
         <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-premium relative bg-slate-50 dark:bg-slate-950">
+        {/* Page content (Glass Panel Container) */}
+        <main id="main-app-content" className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-premium relative liquid-recessed lg:rounded-[2.5rem] focus:outline-none">
           {/* Cinematic Background Engine (Mesh) */}
-          <div className="absolute inset-0 mesh-bg dark:mesh-bg-dark opacity-30 pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(at_0%_0%,rgba(6,182,212,0.12)_0px,transparent_50%),radial-gradient(at_100%_100%,rgba(20,184,166,0.08)_0px,transparent_50%)] pointer-events-none z-0 opacity-40" />
 
           {/* Subtle background glow - Adaptive */}
-          <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-teal-500/5 dark:bg-teal-600/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] bg-blue-500/5 dark:bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-cyan-500/[0.04] dark:bg-cyan-500/[0.08] rounded-full blur-[140px] pointer-events-none animate-slow-pulse" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-teal-500/[0.03] dark:bg-teal-500/[0.06] rounded-full blur-[120px] pointer-events-none animate-slow-pulse" style={{ animationDelay: '-6s' }} />
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

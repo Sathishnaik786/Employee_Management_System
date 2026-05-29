@@ -65,7 +65,7 @@ export const UpdatesQuickAccess: React.FC = () => {
     if (features.length === 0) return null;
 
     return (
-        <Card className="enterprise-card border-none">
+        <Card className="liquid-surface rounded-[2.5rem] border-transparent shadow-none p-2 mt-4">
             <CardHeader className="pb-4">
                 <CardTitle className="enterprise-subheading flex items-center gap-2">
                     <ClipboardList className="h-5 w-5 text-primary" />
@@ -77,14 +77,14 @@ export const UpdatesQuickAccess: React.FC = () => {
                     {features.map((feature) => (
                         <Button
                             key={feature.id}
-                            variant="outline"
-                            className="h-auto py-8 flex-col gap-4 rounded-[2rem] border-white/5 bg-slate-50/50 dark:bg-white/[0.02] hover:border-primary/30 hover:bg-white dark:hover:bg-white/[0.05] transition-all duration-500 group shadow-sm hover:shadow-xl hover:-translate-y-2 relative overflow-hidden"
+                            variant="ghost"
+                            className="h-auto py-8 flex-col gap-4 rounded-3xl transition-all duration-500 group relative overflow-hidden"
                             onClick={() => navigate(feature.href)}
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             
                             <div className={cn(
-                                "h-14 w-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-premium transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 ring-1 ring-black/5 dark:ring-white/5",
+                                "h-14 w-14 rounded-2xl liquid-elevated flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-6",
                                 feature.color.replace('text-', 'bg-').replace('-500', '-500/10')
                             )}>
                                 <feature.icon className={cn("h-6 w-6", feature.color)} />

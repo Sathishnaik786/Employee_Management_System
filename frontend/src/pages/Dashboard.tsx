@@ -83,7 +83,7 @@ export default function Dashboard() {
   if (authLoading || loading) {
     return (
       <div className="p-6 lg:p-8 space-y-8 animate-fade-in">
-        <div className="bg-card/40 backdrop-blur-xl p-8 rounded-[2rem] border border-border/30 shadow-premium flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="enterprise-panel flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-3">
             <Skeleton className="h-10 w-48 rounded-xl bg-muted/40" />
             <Skeleton className="h-5 w-80 rounded-lg bg-muted/20" />
@@ -96,7 +96,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-[2rem] border border-border/30 bg-card/40 p-8 space-y-6 shadow-premium relative overflow-hidden">
+            <div key={i} className="enterprise-card space-y-6 relative overflow-hidden">
               <div className="flex justify-between items-start">
                 <div className="space-y-3">
                   <Skeleton className="h-4 w-24 rounded bg-muted/30" />
@@ -110,7 +110,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <div className="rounded-[2rem] border border-border/30 bg-card/40 p-8 shadow-premium min-h-[400px]">
+        <div className="enterprise-panel min-h-[400px]">
           <div className="flex justify-between items-center mb-8">
             <Skeleton className="h-7 w-56 rounded bg-muted/30" />
             <div className="flex gap-2">

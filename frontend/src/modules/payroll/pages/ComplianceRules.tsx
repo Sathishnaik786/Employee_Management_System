@@ -100,25 +100,25 @@ const ComplianceRules = () => {
               </CardContent>
           </Card>
           
-          <Card className="lg:col-span-2 rounded-[2.5rem] border-0 bg-gradient-to-br from-cyan-600 to-blue-700 text-white shadow-xl shadow-cyan-500/20 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-10 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700">
+          <Card className="lg:col-span-2 rounded-[2.5rem] border border-white/70 dark:border-cyan-500/[0.12] bg-gradient-to-tr from-cyan-50/50 via-white/80 to-blue-50/50 dark:from-[#06152B]/40 dark:via-[#092245]/25 dark:to-[#051833]/30 backdrop-blur-2xl text-slate-800 dark:text-white shadow-[inset_0_2.5px_4px_rgba(255,255,255,0.6),inset_0_-2.5px_4px_rgba(0,0,0,0.02),0_30px_60px_-15px_rgba(148,210,230,0.1)] dark:shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.06),inset_0_-3px_5px_rgba(0,0,0,0.3),0_30px_60px_-15px_rgba(0,0,0,0.4)] relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-10 opacity-5 dark:opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700 text-cyan-500">
                   <ShieldCheck size={180} />
               </div>
               <CardContent className="p-10 relative z-10">
                   <div className="flex flex-col md:flex-row md:items-center gap-8">
-                      <div className="w-20 h-20 rounded-[2rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl">
+                      <div className="w-20 h-20 rounded-[2rem] bg-cyan-500/10 dark:bg-cyan-500/20 flex items-center justify-center border border-cyan-500/25 dark:border-cyan-500/10 shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.4),inset_0_-1.5px_2px_rgba(0,0,0,0.02),0_4px_12px_rgba(6,182,212,0.03)] text-cyan-600 dark:text-cyan-400">
                           <Calendar size={36} />
                       </div>
                       <div className="space-y-2 flex-1">
-                          <h3 className="text-2xl font-black tracking-tight uppercase">Regulatory Update: July 2024</h3>
-                          <p className="text-white/80 font-medium leading-relaxed max-w-md">
+                          <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Regulatory Update: July 2024</h3>
+                          <p className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-w-md">
                             New Labor Code Alignment directives detected. Ensure all statutory components are reviewed before the next processing cycle.
                           </p>
                           <div className="flex items-center gap-4 pt-4">
-                             <Button className="bg-white text-cyan-600 hover:bg-white/90 font-black rounded-xl h-12 px-8 shadow-xl shadow-black/10">
+                             <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold rounded-full h-12 px-8 border border-cyan-400/20 shadow-[inset_0_2.5px_3px_rgba(255,255,255,0.45),inset_0_-3px_6px_rgba(0,0,0,0.15),0_12px_24px_-4px_rgba(6,182,212,0.15)] hover:scale-[1.02] duration-300 active:scale-[0.98]">
                                 Review Alignment
                              </Button>
-                             <button className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                             <button className="text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
                                 Dismiss <ArrowRight size={16} />
                              </button>
                           </div>

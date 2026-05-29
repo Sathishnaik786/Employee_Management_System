@@ -86,10 +86,10 @@ const SalaryStructures = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {isLoading ? (
           Array(6).fill(0).map((_, i) => (
-            <Card key={i} className="h-64 rounded-[2.5rem] bg-white/50 dark:bg-white/5 border-0 animate-pulse" />
+            <div key={i} className="enterprise-card h-64 animate-pulse" />
           ))
         ) : structures?.length === 0 ? (
-          <div className="col-span-full h-80 flex flex-col items-center justify-center text-center p-10 bg-white dark:bg-slate-900/50 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-white/5">
+          <div className="enterprise-panel col-span-full h-80 flex flex-col items-center justify-center text-center p-10 border-2 border-dashed border-slate-200 dark:border-white/5">
             <div className="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 mb-6">
               <Package size={40} />
             </div>
@@ -109,7 +109,7 @@ const SalaryStructures = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
             >
-              <Card className="rounded-[2.5rem] border border-slate-200 dark:border-white/5 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all group overflow-hidden bg-white dark:bg-slate-900/30">
+              <Card className="enterprise-card p-0 group overflow-hidden hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/5 border border-transparent">
                 <CardHeader className="p-8 pb-0">
                   <div className="flex justify-between items-start">
                     <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:rotate-3 transition-transform">

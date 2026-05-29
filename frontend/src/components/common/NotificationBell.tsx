@@ -117,8 +117,10 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
         size="icon"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "relative h-10 w-10 rounded-xl transition-all",
-          isOpen ? "bg-primary text-white shadow-lg shadow-primary/20" : "hover:bg-slate-100 dark:hover:bg-white/5"
+          "relative h-10 w-10 rounded-full group flex items-center justify-center",
+          isOpen
+            ? "liquid-capsule-active"
+            : "liquid-capsule"
         )}
       >
         <Bell className={cn("h-5 w-5 transition-transform", isOpen && "scale-110")} />

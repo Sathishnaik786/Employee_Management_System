@@ -19,9 +19,9 @@ export const EnterpriseCard = ({ children, className, title, description, header
     viewport={{ once: true }}
     transition={{ duration: 0.8, ease: [0.2, 0, 0, 1] }}
     className={cn(
-      "enterprise-card group/card relative overflow-hidden font-sans",
+      "enterprise-card group/card relative overflow-hidden font-sans transition-all duration-500",
       variant === 'teal' && "glass-panel-teal",
-      variant === 'glass' && "bg-white/5 backdrop-blur-3xl border-white/10",
+      variant === 'glass' && "liquid-surface",
       className
     )}
   >
@@ -77,7 +77,7 @@ export const EnterpriseStatCard = ({
   };
 
   return (
-    <EnterpriseCard className={cn("p-0 group/stat border-none shadow-none bg-transparent font-sans", className)}>
+    <EnterpriseCard className={cn("group/stat font-sans", className)}>
       <div className="flex items-center justify-between mb-8">
         <div className={cn(
           "h-16 w-16 rounded-[2rem] flex items-center justify-center ring-8 ring-white/5 transition-all duration-700 group-hover/stat:scale-110 group-hover/stat:rotate-6 shadow-2xl",
@@ -112,18 +112,18 @@ export const EnterpriseHeader = ({
   actions?: React.ReactNode;
   isCinematic?: boolean;
 }) => (
-  <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-20 font-sans">
+  <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 font-sans">
     <div className="space-y-6">
       {badge && (
-        <div className="inline-flex items-center gap-3 px-5 py-2 rounded-2xl bg-teal-500/10 text-teal-400 text-[10px] font-black uppercase tracking-[0.4em] border border-teal-500/20 shadow-sm shadow-teal-500/10">
-          <div className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
+        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-cyan-500/[0.06] text-cyan-400 dark:text-cyan-300/80 text-[10px] font-sans font-bold uppercase tracking-[0.25em] border border-cyan-500/10 shadow-sm shadow-cyan-500/5">
+          <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
           {badge}
         </div>
       )}
       <div className="space-y-2">
         <h1 className={cn(
-          "font-display font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-[0.85]",
-          isCinematic ? "enterprise-heading" : "text-7xl"
+          "font-display font-black tracking-[-0.03em] text-slate-900 dark:text-white uppercase leading-none",
+          isCinematic ? "enterprise-heading" : "text-4xl lg:text-5xl"
         )}>
           {isCinematic ? <span className="text-gradient-teal">{title}</span> : title}
         </h1>

@@ -89,7 +89,7 @@ const SalaryComponents = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="p-6 rounded-3xl border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/50 shadow-sm">
+        <div className="enterprise-card">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
               <LayoutGrid size={24} />
@@ -99,8 +99,8 @@ const SalaryComponents = () => {
               <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{components?.length || 0}</h3>
             </div>
           </div>
-        </Card>
-        <Card className="p-6 rounded-3xl border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/50 shadow-sm">
+        </div>
+        <div className="enterprise-card">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
               <CheckCircle2 size={24} />
@@ -112,8 +112,8 @@ const SalaryComponents = () => {
               </h3>
             </div>
           </div>
-        </Card>
-        <Card className="p-6 rounded-3xl border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/50 shadow-sm">
+        </div>
+        <div className="enterprise-card">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
               <XCircle size={24} />
@@ -125,8 +125,8 @@ const SalaryComponents = () => {
               </h3>
             </div>
           </div>
-        </Card>
-        <Card className="p-6 rounded-3xl border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/50 shadow-sm">
+        </div>
+        <div className="enterprise-card">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
               <ListFilter size={24} />
@@ -138,7 +138,7 @@ const SalaryComponents = () => {
               </h3>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -147,7 +147,7 @@ const SalaryComponents = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
             <Input 
               placeholder="Search by code, name or category..." 
-              className="h-14 pl-12 rounded-2xl bg-white dark:bg-slate-900/50 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold shadow-sm focus:ring-indigo-500/20"
+              className="form-input-premium pl-12 h-14"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -165,7 +165,7 @@ const SalaryComponents = () => {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[2.5rem] border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/30 shadow-2xl shadow-slate-200/50 dark:shadow-none transition-all">
+        <div className="enterprise-panel p-0 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-slate-100 dark:border-white/5">

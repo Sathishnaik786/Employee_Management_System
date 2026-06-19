@@ -1,4 +1,4 @@
-import { apiCall } from '@/services/api';
+import { apiCall, API_BASE_URL } from '@/services/api';
 import { 
   SalaryComponent, 
   SalaryStructure, 
@@ -189,8 +189,7 @@ export const payrollApi = {
     return apiCall(`/payroll/reconciliations/run/${cycleId}`, 'POST');
   },
   exportToCsv: async (cycleId: string): Promise<void> => {
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3003/api';
-    const response = await fetch(`${baseUrl}/payroll/exports/csv/${cycleId}`, {
+    const response = await fetch(`${API_BASE_URL}/payroll/exports/csv/${cycleId}`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     const blob = await response.blob();

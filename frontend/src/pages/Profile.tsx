@@ -27,7 +27,7 @@ import {
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
 import { CrudModal } from '@/components/modals/CrudModal';
 import { useToast } from '@/components/ui/use-toast';
-import { employeesApi } from '@/services/api';
+import { employeesApi, API_BASE_URL } from '@/services/api';
 import { EmployeeFormData, Employee } from '@/types';
 import { staggerContainer, slideUpVariants, scaleInVariants } from '@/animations/motionVariants';
 import { cn } from '@/lib/utils';
@@ -127,7 +127,7 @@ export default function Profile() {
       setUploading(true);
       const formData = new FormData();
       formData.append('image', file);
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3003/api'}/employees/profile/image`, {
+      const response = await fetch(`${API_BASE_URL}/employees/profile/image`, {
         method: 'POST',
         body: formData,
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }

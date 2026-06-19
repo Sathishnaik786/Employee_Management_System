@@ -37,7 +37,13 @@ import {
 } from '@/types';
 
 // Base API URL - replace with your Express backend URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3003/api';
+export const API_BASE_URL = (() => {
+  let baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3003/api';
+  if (baseUrl && !baseUrl.endsWith('/api') && !baseUrl.endsWith('/api/')) {
+    baseUrl = baseUrl.endsWith('/') ? `${baseUrl}api` : `${baseUrl}/api`;
+  }
+  return baseUrl;
+})();
 
 // Helper function for API calls
 export async function apiCall(

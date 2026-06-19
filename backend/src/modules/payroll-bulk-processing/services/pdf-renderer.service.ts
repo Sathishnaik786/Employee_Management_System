@@ -8,20 +8,25 @@ export class PdfRendererService {
   static async renderHtmlToPdf(html: string): Promise<Buffer> {
     const launchOptions: any = {
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
     };
 
     try {
       const browser = await puppeteer.launch(launchOptions);
       return await this._generate(browser, html);
     } catch (e) {
-      console.warn("Bundled Chromium failed to launch, trying system Chrome paths...");
+      console.warn("Bundled Chromium failed to launch, trying system Chrome paths...", e);
       
       const paths = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chromium',
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chrome'
       ];
       
       let executablePath = null;

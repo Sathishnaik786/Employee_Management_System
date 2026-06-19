@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
-import { supabaseAdmin } from '@lib/supabase';
+// @ts-ignore
+import { supabaseAdmin as _supabaseAdmin } from '@lib/supabase';
+// @ts-ignore
+const supabaseAdmin: any = _supabaseAdmin;
 import { PayslipGeneratorService } from '../services/payslip-generator.service';
 import { PayslipStorageService } from '../services/payslip-storage.service';
 
@@ -284,14 +287,12 @@ export class PayslipGovernanceController {
         throw new Error('Original bulk uploaded row mapping not found for detailed pay components.');
       }
 
-      // Load commitment preview metadata for computed detailed pan/uan/bank component allocations
-      const { data: commitment } = await supabaseAdmin
-        .from('payroll_bulk_commitments')
-        .select('*, preview:payroll_bulk_preview_summaries(*)')
+      // Load preview metadata directly using upload_id
+      const { data: preview } = await supabaseAdmin
+        .from('payroll_bulk_preview_summaries')
+        .select('*')
         .eq('upload_id', row.upload_id)
         .maybeSingle();
-
-      const preview = commitment?.preview;
       const rowDetails = preview?.metadata?.calculatedDetails?.find((d: any) => d.rowId === row.id);
 
       // 3. Construct pay components snapshot for rendering

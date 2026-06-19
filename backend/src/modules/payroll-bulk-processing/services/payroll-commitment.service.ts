@@ -366,12 +366,19 @@ export class PayrollCommitmentService {
 
     const { data: commitment, error: cError } = await supabaseAdmin
       .from('payroll_bulk_commitments')
-      .select('*, preview:payroll_bulk_preview_summaries(*)')
+      .select('*')
       .eq('id', commitmentId)
       .single();
 
     if (cError || !commitment) throw new Error('Commitment record not found');
-    const preview = commitment.preview;
+
+    const { data: preview, error: pError } = await supabaseAdmin
+      .from('payroll_bulk_preview_summaries')
+      .select('*')
+      .eq('upload_id', commitment.upload_id)
+      .maybeSingle();
+
+    if (pError) throw pError;
 
     const { data: mappings, error: mError } = await supabaseAdmin
       .from('payroll_bulk_row_mappings')

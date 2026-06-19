@@ -11,6 +11,17 @@ export class PdfRendererService {
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
     };
 
+    // If on Linux/Render, use @sparticuz/chromium
+    if (process.platform !== 'win32') {
+      try {
+        const chromium = require('@sparticuz/chromium');
+        launchOptions.executablePath = await chromium.executablePath();
+        launchOptions.args = [...chromium.args, ...launchOptions.args];
+      } catch (e) {
+        console.warn("Failed to configure @sparticuz/chromium, falling back to default launch", e);
+      }
+    }
+
     try {
       const browser = await puppeteer.launch(launchOptions);
       return await this._generate(browser, html);
